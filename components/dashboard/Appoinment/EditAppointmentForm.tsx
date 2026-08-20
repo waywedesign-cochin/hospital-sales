@@ -1,0 +1,391 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Breadcrumb from "@/components/shared/Breadcrumb";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { appointmentSchema } from "@/app/validations/appointmentSchemas";
+import { Doctor } from "@/lib/types";
+import { useRouter, useSearchParams } from "next/navigation";
+import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
+import { ArrowLeft, CalendarIcon } from "lucide-react";
+
+type BlockedSlot = {
+  time: string;
+  reason: "BOOKED" | "LEAVE";
+};
+
+export default function EditAppointmentForm({
+  doctors,
+  appointment,
+}: {
+  doctors: Doctor[];
+  appointment: any;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialDoctorId = appointment.doctor?._id || appointment.doctor || "";
+  const initialTreatmentCategory = appointment.treatmentCategory || "";
+  const originalSlot = appointment.startTime;
+
+  const [form, setForm] = useState({
+    enquiryId: appointment.enquiryId?._id ?? undefined,
+    patientName: appointment.patientName || "",
+    patientPhone: appointment.patientPhone || "",
+    patientEmail: appointment.patientEmail || "",
+    doctor: initialDoctorId,
+    treatmentCategory: initialTreatmentCategory,
+    date: appointment.date || "",
+    startTime: appointment.startTime || "",
+    status: appointment.status || "SCHEDULED",
+    notes: appointment.notes || "",
+  });
+
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  /* ---------------- LOGIC (UNCHANGED) ---------------- */
+
+  const onChange = (key: string, value: string) => {
+    setErrors((p) => ({ ...p, [key]: "" }));
+
+    setForm((prev) => {
+      let next = { ...prev, [key]: value };
+
+      if (key === "treatmentCategory" && value !== prev.treatmentCategory) {
+        next.doctor = value === initialTreatmentCategory ? initialDoctorId : "";
+        next.startTime = "";
+        setBlockedSlots([]);
+      }
+
+      return next;
+    });
+  };
+
+  const now = new Date();
+
+  const isPastSlot = (slot: string) => {
+    if (!form.date) return false;
+    const d = new Date(form.date).toISOString().split("T")[0];
+    return new Date(`${d}T${slot}:00`) < now;
+  };
+
+  const getSlotReason = (time: string) =>
+    blockedSlots.find((s) => s.time === time)?.reason;
+
+  const fetchSlots = async () => {
+    if (!form.doctor || !form.date) return;
+
+    try {
+      setLoadingSlots(true);
+
+      const formattedDate = new Date(form.date).toISOString().split("T")[0];
+
+      const res = await axios.get(
+        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}`
+      );
+
+      if (res.data.success) {
+        const slots: BlockedSlot[] = res.data.data;
+
+        const filtered =
+          form.doctor === initialDoctorId
+            ? slots.filter((s) => s.time !== originalSlot)
+            : slots;
+
+        setBlockedSlots(filtered);
+      }
+    } catch {
+      toast.error("Failed to load time slots");
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!form.doctor || !form.date) return;
+    fetchSlots();
+  }, [form.doctor, form.date]);
+
+  useEffect(() => {
+    if (form.doctor !== initialDoctorId) {
+      setForm((prev) => ({ ...prev, startTime: "" }));
+    }
+    setBlockedSlots([]);
+  }, [form.doctor]);
+
+  useEffect(() => {
+    if (!form.treatmentCategory) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("specialization", form.treatmentCategory);
+    router.replace(`?${params.toString()}`);
+    router.refresh();
+  }, [form.treatmentCategory]);
+
+  const handleUpdate = async () => {
+    setErrors({});
+
+    const payload = {
+      ...form,
+      date: formatDate(form.date),
+    };
+
+    const validation = appointmentSchema.safeParse(payload);
+    if (!validation.success) {
+      const e: Record<string, string> = {};
+      validation.error.issues.forEach((i) => {
+        e[i.path[0] as string] = i.message;
+      });
+      setErrors(e);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.put(`/api/appointment?id=${appointment._id}`, {
+        ...payload,
+        enquiryId: form?.enquiryId || undefined,
+      });
+
+      if (!res.data.success) {
+        toast.error(res.data.message);
+        return;
+      }
+
+      toast.success("Appointment updated");
+      router.refresh();
+      router.push(`/appointments`);
+    } catch {
+      toast.error("Update failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (value: string) => {
+    if (!value) return "";
+    const d = new Date(value);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
+  /* ---------------- UI ---------------- */
+
+  return (
+    <div className="min-h-screen p-2 space-y-6 relative">
+      {/* Background – same as Appointments page */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+       
+      </div>
+      <div className="relative z-10 mb-6 flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="gap-2 px-2 hover:bg-green-600 hover:text-white transition-all"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+
+        <div className="h-4 w-px bg-slate-300" />
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Appointments", href: "/appointments" },
+            { label: "Edit Appointment", current: true },
+          ]}
+        />
+      </div>
+      {/* Header – matched style */}
+      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-[#ABEDCC]">
+        <div className="relative flex items-center gap-4 p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 ">
+          <div className="bg-[#216E20] p-4 rounded-xl shadow-lg shadow-blue-500/30">
+            <CalendarIcon className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold bg-greenpick bg-clip-text text-transparent">
+              Edit Appointment
+            </h1>
+            <p className="text-slate-600 font-medium text-sm mt-1">
+              Update appointment details and reschedule if needed
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Card */}
+      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
+      
+        {/* Patient Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            placeholder="Patient Name"
+            value={form.patientName}
+            onChange={(e) => onChange("patientName", e.target.value)}
+          />
+
+          <Input
+            placeholder="Phone Number"
+            value={form.patientPhone}
+            onChange={(e) => onChange("patientPhone", e.target.value)}
+          />
+
+          <Input
+            placeholder="Email"
+            value={form.patientEmail}
+            onChange={(e) => onChange("patientEmail", e.target.value)}
+          />
+        </div>
+
+        {/* Category & Doctor */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Select
+              value={form.treatmentCategory || ""}
+              onValueChange={(val) => onChange("treatmentCategory", val)}
+            >
+              <SelectTrigger className="h-11 w-full">
+                <SelectValue placeholder="Treatment Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {["Skin", "Body", "Hair"].map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.treatmentCategory && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.treatmentCategory}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Select
+              value={form.doctor || ""}
+              onValueChange={(val) => onChange("doctor", val)}
+            >
+              <SelectTrigger className="h-11  w-full">
+                <SelectValue placeholder="Select Doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.map((doc) => (
+                  <SelectItem key={doc._id} value={doc._id}>
+                    {doc.firstName} {doc.lastName} – {doc.qualification}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.doctor && (
+              <p className="text-red-500 text-xs mt-1">{errors.doctor}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Date */}
+        <Input
+          type="date"
+          value={formatDate(form.date)}
+          onChange={(e) => onChange("date", e.target.value)}
+        />
+
+        {/* Time Slots */}
+        {form.doctor && form.date && (
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-gray-700">
+              Select Time Slot
+            </p>
+
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+              {DEFAULT_TIME_SLOTS.map((time) => {
+                const reason = getSlotReason(time);
+                const isPast = isPastSlot(time);
+                const isSelected = form.startTime === time;
+                const disabled = isPast || !!reason;
+
+                let cls =
+                  "h-11 rounded-xl text-sm border transition flex items-center justify-center";
+
+                if (isPast)
+                  cls +=
+                    " bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed";
+                else if (reason === "LEAVE")
+                  cls +=
+                    " bg-orange-100 text-orange-600 border-orange-200 cursor-not-allowed";
+                else if (reason === "BOOKED")
+                  cls +=
+                    " bg-red-100 text-red-500 border-red-200 cursor-not-allowed";
+                else if (isSelected)
+                  cls += " bg-blue-600 text-white border-blue-700";
+                else cls += " bg-blue-50 border-blue-300 hover:bg-blue-100";
+
+                return (
+                  <button
+                    key={time}
+                    disabled={disabled}
+                    onClick={() => onChange("startTime", time)}
+                    className={cls}
+                  >
+                    {time}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Status */}
+        <Select
+          value={form.status}
+          onValueChange={(v) => onChange("status", v)}
+        >
+          <SelectTrigger className="h-11 rounded-xl">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            {["SCHEDULED", "COMPLETED", "CANCELLED", "NO_SHOW"].map((s) => (
+              <SelectItem key={s} value={s}>
+                {s.replace("_", " ")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Notes */}
+        <Textarea
+          placeholder="Notes"
+          value={form.notes}
+          onChange={(e) => onChange("notes", e.target.value)}
+        />
+
+        {/* Submit */}
+        <Button
+          onClick={handleUpdate}
+          disabled={loading}
+          className="w-full h-11 rounded-xl bg-linear-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900"
+        >
+          {loading ? "Updating..." : "Update Appointment"}
+        </Button>
+      </div>
+    </div>
+  );
+}

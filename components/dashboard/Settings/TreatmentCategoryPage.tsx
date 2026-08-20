@@ -1,0 +1,254 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Breadcrumb from "@/components/shared/Breadcrumb";
+import { Pencil, Trash2, Plus, Tag, Edit } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
+import DeleteDialog from "@/components/shared/DeleteDialog";
+import { treatmentCategorySchema } from "@/app/validations/treatmentCategoryValidations";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { ITreatmentCategory } from "@/app/models/TreatmentCategory";
+
+export default function TreatmentCategoryPage({
+  treatmentCategories,
+}: {
+  treatmentCategories: ITreatmentCategory[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+  // Form State
+  const [form, setForm] = useState({ name: "", description: "" });
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [loading, setLoading] = useState(false);
+
+  const openAddModal = () => {
+    setEditMode(false);
+    setForm({ name: "", description: "" });
+    setSelectedId(null);
+    setOpen(true);
+  };
+
+  const openEditModal = (item: any) => {
+    setEditMode(true);
+    setSelectedId(item._id);
+    setForm({ name: item.name, description: item.description });
+    setOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    setErrors({});
+
+    const validation = treatmentCategorySchema.safeParse(form);
+
+    if (!validation.success) {
+      const formattedErrors: Record<string, string> = {};
+      validation.error.issues.forEach((err) => {
+        formattedErrors[err.path[0] as string] = err.message;
+      });
+      setErrors(formattedErrors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/treatment-category", form);
+
+      if (!response.data.success) {
+        toast.error(
+          response.data.message || "Failed to add treatment category"
+        );
+        return;
+      }
+
+      toast.success("Treatment category added successfully");
+      setForm({
+        name: "",
+        description: "",
+      });
+      router.refresh();
+      setOpen(false);
+      router.push("/settings/treatment-category");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    toast.success("Category deleted");
+  };
+
+  return (
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-2 space-y-6">
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Settings", href: "/settings" },
+          { label: "Treatment Categories", current: true },
+        ]}
+      />
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border">
+        <div className="flex items-center gap-4">
+          <div className="bg-indigo-50 p-4 rounded-2xl">
+            <Tag className="w-8 h-8 text-indigo-600" />
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Treatment Categories
+            </h1>
+            <p className="text-slate-500 text-sm">
+              Manage clinic treatment category list.
+            </p>
+          </div>
+        </div>
+
+        {/* ADD Category Button */}
+        <button
+          onClick={openAddModal}
+          className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition flex items-center gap-2 shadow-sm"
+        >
+          <Plus className="w-4 h-4" /> Add Category
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-blue-50/60">
+            <tr>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Category Name
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Description
+              </th>
+              <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="bg-white divide-y divide-gray-100">
+            {treatmentCategories.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="text-center py-8 text-gray-500 text-sm"
+                >
+                  No treatment categories found
+                </td>
+              </tr>
+            ) : (
+              treatmentCategories.map((item) => (
+                <tr key={item._id} className="hover:bg-blue-50/30 transition">
+                  <td className="px-6 py-5 text-sm font-semibold text-gray-800">
+                    {item.name}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-gray-600">
+                    {item.description}
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <div className="flex justify-center gap-2">
+                      <Button
+                        //   onClick={() => handleEdit(apt._id)}
+                        variant="ghost"
+                        className="text-amber-600 hover:text-amber-700 p-2 rounded-lg hover:bg-amber-50 hover:shadow-md transform hover:scale-110"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+
+                      <DeleteDialog
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 hover:shadow-md transform hover:scale-110"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        }
+                        title="Delete Category"
+                        description="Are you sure you want to delete this category?"
+                        onConfirm={() => handleDelete(item._id)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Dialog form */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editMode ? "Edit Category" : "Add Category"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Input
+              placeholder="Category Name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            {errors.name && (
+              <p className="text-red-500 text-xs">{errors.name}</p>
+            )}
+
+            <Textarea
+              placeholder="Description (optional)"
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  {editMode ? "Updating..." : "Saving..."}
+                </div>
+              ) : editMode ? (
+                "Update"
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
