@@ -86,7 +86,7 @@ export default function ViewAppointmentPage({
       {/* Main Card */}
       <div className="relative z-10 bg-white/60 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="bg-greenpick p-8 text-white flex flex-col sm:flex-row gap-6">
+        <div className="bg-blue-primary p-8 text-white flex flex-col sm:flex-row gap-6">
           <div className=" p-4 rounded-2xl backdrop-blur-md flex items-center justify-center">
             <UserCircle className="w-20 h-20" />
           </div>

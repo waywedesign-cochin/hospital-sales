@@ -234,8 +234,8 @@ export default function ActivityPage({
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-greenpick">
-                  <tr className="bg-greenpick text-white text-xs uppercase tracking-wide">
+                <thead className="bg-blue-primary">
+                  <tr className="bg-blue-primary text-white text-xs uppercase tracking-wide">
                     <th className="px-5 py-3 text-left font-medium">Status</th>
                     <th className="px-5 py-3 text-left font-medium">Note</th>
                     <th className="px-5 py-3 text-left font-medium">Date</th>
@@ -399,7 +399,7 @@ export default function ActivityPage({
                     onClick={() => handlePageChange(1)}
                     className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                       cp === 1
-                        ? "bg-greenpick text-white shadow-lg shadow-green-500/30 scale-105"
+                        ? "bg-blue-primary text-white shadow-lg shadow-green-500/30 scale-105"
                         : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                     }`}
                   >
@@ -429,7 +429,7 @@ export default function ActivityPage({
                       onClick={() => handlePageChange(i)}
                       className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                         cp === i
-                          ? "bg-greenpick text-white shadow-lg shadow-indigo-500/40 scale-105"
+                          ? "bg-blue-primary text-white shadow-lg shadow-indigo-500/40 scale-105"
                           : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                       }`}
                     >
@@ -456,7 +456,7 @@ export default function ActivityPage({
                       onClick={() => handlePageChange(total)}
                       className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                         cp === total
-                          ? "bg-[#216E20] text-white shadow-lg shadow-indigo-500/40 scale-105"
+                          ? "bg-blue-600 text-white shadow-lg shadow-indigo-500/40 scale-105"
                           : "text-green-700 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 border border-indigo-100"
                       }`}
                     >

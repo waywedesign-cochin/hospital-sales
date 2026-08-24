@@ -229,19 +229,19 @@ const DashboardHome = ({
     <div className="min-h-screen p-4 space-y-8">
       {/* Header */}
       <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10">
-        <div className="absolute inset-0 bg-[#ABEDCC] to-pink-500/5"></div>
+        <div className="absolute inset-0 bg-blue-50 to-pink-500/5"></div>
 
         <div className="relative flex flex-col md:flex-row justify-between items-center md:items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
           {/* Left */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
-            <div className="bg-[#216E20] p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <h1 className="text-[#BF9824] font-bold text-lg">
+            <div className="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-500/30">
+              <h1 className="text-blue-500 font-bold text-lg">
                 {user?.firstName?.charAt(0).toUpperCase()}
               </h1>
             </div>
 
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-[#216E20] bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-blue-600 bg-clip-text text-transparent">
                 Welcome back, {user?.firstName}
               </h1>
               <p className="text-slate-600 font-medium text-sm mt-1">
@@ -312,7 +312,7 @@ const DashboardHome = ({
             title="Total Appointments"
             value={totalSummary.totalAppointments}
             subtitle="Visits done"
-            accentColor="#216E20"
+            accentColor="#2563eb"
             icon={
               <Image
                 src="/admin/dashboard-overview/total-appointments.png"
@@ -366,7 +366,7 @@ const DashboardHome = ({
       {!logginedDoctor && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold text-greenpick">
+            <h2 className="text-xl md:text-2xl font-bold text-blue-primary">
               Enquiry Analytics
             </h2>
           </div>
@@ -392,14 +392,14 @@ const DashboardHome = ({
 
                   <XAxis
                     dataKey="monthName"
-                    tick={{ fill: "#216E20", fontSize: 12 }}
+                    tick={{ fill: "#2563eb", fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                   />
 
                   <YAxis
                     allowDecimals={false}
-                    tick={{ fill: "#216E20", fontSize: 12 }}
+                    tick={{ fill: "#2563eb", fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                   />

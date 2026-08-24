@@ -6,9 +6,9 @@ export const sendPasswordResetEmail = async (
 ) => {
   try {
     await resend.emails.send({
-      from: "Novesse <onboarding@resend.dev>",
+      from: "Hospital <onboarding@resend.dev>",
       to: "midhunkmhhh@gmail.com",
-      subject: "🔒 Reset Your Password – Novesse",
+      subject: "🔒 Reset Your Password – Hospital",
 
       text: `
 Hello ${user.firstName ?? "User"},
@@ -21,7 +21,7 @@ ${resetLink}
 This link is valid for 15 minutes. If you did not request a password reset, you can safely ignore this email.
 
 Thank you,
-Novesse
+Hospital
       `,
 
       html: `
@@ -64,7 +64,7 @@ Novesse
 
         <p>
           We received a request to reset your password for your
-          <strong>Novesse</strong> account.
+          <strong>Hospital</strong> account.
         </p>
 
         <p>If this was you, click the button below to continue:</p>
@@ -112,7 +112,7 @@ Novesse
 
         <p style="margin-top:30px;">
           Thank you,<br />
-          <strong>Novesse</strong>
+          <strong>Hospital</strong>
         </p>
       </div>
     </div>

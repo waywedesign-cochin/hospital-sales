@@ -17,7 +17,7 @@ export default function Loading() {
           {/* Brand name */}
           <div className="flex flex-col items-center">
             <p className="text-sm font-semibold tracking-wide text-slate-700">
-              Novesse
+              Hospital
             </p>
             <p className="text-xs text-slate-500">
               Loading your workspace…

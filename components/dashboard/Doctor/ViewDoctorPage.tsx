@@ -91,7 +91,7 @@ export default function ViewDoctorPage({ doctor }: DoctorViewProps) {
       {/* Main Card */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
         {/* Header Section with Gradient */}
-        <div className="bg-greenpick p-8 text-white relative overflow-hidden">
+        <div className="bg-blue-primary p-8 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
           <div className="relative flex flex-col sm:flex-row text-center sm:text-left items-center gap-6">
             <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl">

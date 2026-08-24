@@ -62,6 +62,11 @@ export const createAppointment = async (data: {
       note: data.notes || "Appointment booked",
       date: new Date(),
     });
+    // Actually update the Enquiry's main status field
+    await Enquiry.findByIdAndUpdate(enquiryId, {
+      status: "APPOINTMENT_BOOKED",
+      handledBy: data.handledBy || undefined,
+    });
   }
 
   // Fetch populated appointment

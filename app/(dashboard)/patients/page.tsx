@@ -39,6 +39,9 @@ export default function PatientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [activeTreatments, setActiveTreatments] = useState(0);
+  const [messagesSent, setMessagesSent] = useState(0);
 
   const fetchPatients = async (searchTerm = "", currentPage = 1) => {
     try {
@@ -49,6 +52,9 @@ export default function PatientsPage() {
       if (res.data.success) {
         setPatients(res.data.data.patients);
         setTotalPages(res.data.data.pagination.totalPages);
+        setTotalCount(res.data.data.pagination.totalCount || 0);
+        setActiveTreatments(res.data.data.activeTreatments || 0);
+        setMessagesSent(res.data.data.messagesSent || 0);
       }
     } catch (error) {
       console.error("Failed to fetch patients:", error);
@@ -87,7 +93,7 @@ export default function PatientsPage() {
           <CardHeader className="pb-2">
             <CardDescription className="text-slate-500 font-medium">Total Patients</CardDescription>
             <CardTitle className="text-3xl text-slate-800">
-              {loading ? "..." : patients.length * totalPages /* roughly */}
+              {loading ? "..." : totalCount}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -99,7 +105,9 @@ export default function PatientsPage() {
         <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl">
           <CardHeader className="pb-2">
             <CardDescription className="text-slate-500 font-medium">Active Treatments</CardDescription>
-            <CardTitle className="text-3xl text-slate-800">142</CardTitle>
+            <CardTitle className="text-3xl text-slate-800">
+              {loading ? "..." : activeTreatments}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center text-xs text-slate-500 font-medium">
@@ -110,7 +118,9 @@ export default function PatientsPage() {
         <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl bg-linear-to-br from-blue-primary to-blue-600 text-white">
           <CardHeader className="pb-2">
             <CardDescription className="text-blue-100 font-medium">Messages Sent</CardDescription>
-            <CardTitle className="text-3xl text-white">4,092</CardTitle>
+            <CardTitle className="text-3xl text-white">
+              {loading ? "..." : messagesSent.toLocaleString()}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center text-xs text-neon-accent font-semibold">

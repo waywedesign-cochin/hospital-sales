@@ -15,7 +15,7 @@ import {
 } from "@/app/validations/authSchemas";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import Image from "next/image";
-import logo from "@/public/thumbnail_Novesse.png";
+import logo from "@/public/thumbnail_Hospital.png";
 import axios from "axios";
 
 const AuthForm = () => {
@@ -130,37 +130,37 @@ const AuthForm = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-linear-to-br from-emerald-50 via-cyan-50 to-teal-50">
+    <div className="min-h-screen w-full relative overflow-hidden bg-[#F4F7FB]">
       {/* Modern Mesh Gradient Background */}
-      <div className="absolute inset-0 bg-linear-to-tr from-emerald-100/40 via-transparent to-cyan-100/40"></div>
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-teal-200/30 to-transparent blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-radial from-emerald-200/30 to-transparent blur-3xl"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-blue-100/50"></div>
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-blue-200/30 to-transparent blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-radial from-blue-100/40 to-transparent blur-3xl"></div>
 
       {/* Floating Shapes */}
-      <div className="absolute top-20 right-1/4 w-32 h-32 bg-linear-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute top-20 right-1/4 w-32 h-32 bg-linear-to-br from-blue-300/20 to-blue-400/20 rounded-full blur-2xl animate-pulse"></div>
       <div
-        className="absolute bottom-32 left-1/3 w-40 h-40 bg-linear-to-br from-cyan-300/20 to-emerald-300/20 rounded-full blur-2xl animate-pulse"
+        className="absolute bottom-32 left-1/3 w-40 h-40 bg-linear-to-br from-blue-200/20 to-neon-accent/10 rounded-full blur-2xl animate-pulse"
         style={{ animationDelay: "1.5s" }}
       ></div>
 
       <div className="flex items-center justify-center min-h-screen px-4 relative z-10 py-8">
         <div className="w-full max-w-md">
           {/* Glassmorphic Card */}
-          <div className="relative backdrop-blur-2xl bg-white/70 rounded-3xl shadow-2xl shadow-emerald-200/20 border border-white/60 p-10 transition-all duration-500 hover:shadow-emerald-300/30">
+          <div className="relative backdrop-blur-2xl bg-white/80 rounded-3xl shadow-2xl shadow-blue-500/10 border border-white p-10 transition-all duration-500 hover:shadow-blue-500/20">
             {/* Modern Logo */}
-            <div className="justify-center  flex">
+            <div className="justify-center flex mb-6">
               <Image
                 src={logo}
-                className="h-36 object-cover w-auto max-w-40"
-                alt="Novesse by Vijaya"
-              />{" "}
+                className="h-32 object-cover w-auto max-w-40 drop-shadow-sm"
+                alt="Hospital by Vijaya"
+              />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               {showSignUp && (
                 <>
                   <div>
-                    <Label className="block text-sm font-bold text-stone-700 mb-2 ml-1">
+                    <Label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
                       First Name
                     </Label>
                     <Input
@@ -168,16 +168,16 @@ const AuthForm = () => {
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder="Enter first name"
-                      className="w-full px-5 py-3.5 bg-white/80 border border-stone-200 rounded-2xl text-stone-800 placeholder:text-stone-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 shadow-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:border-blue-primary focus:ring-4 focus:ring-blue-100 shadow-sm transition-all duration-200"
                     />
                     {errors.firstName && (
-                      <p className="text-rose-500 text-xs mt-2 ml-1 font-semibold">
+                      <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
                         {errors.firstName}
                       </p>
                     )}
                   </div>
                   <div>
-                    <Label className="block text-sm font-bold text-stone-700 mb-2 ml-1">
+                    <Label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
                       Last Name
                     </Label>
                     <Input
@@ -185,10 +185,10 @@ const AuthForm = () => {
                       value={formData.lastName}
                       onChange={handleChange}
                       placeholder="Enter last name"
-                      className="w-full px-5 py-3.5 bg-white/80 border border-stone-200 rounded-2xl text-stone-800 placeholder:text-stone-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 shadow-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:border-blue-primary focus:ring-4 focus:ring-blue-100 shadow-sm transition-all duration-200"
                     />
                     {errors.lastName && (
-                      <p className="text-rose-500 text-xs mt-2 ml-1 font-semibold">
+                      <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
                         {errors.lastName}
                       </p>
                     )}
@@ -197,7 +197,7 @@ const AuthForm = () => {
               )}
 
               <div>
-                <Label className="block text-sm font-bold text-stone-700 mb-2 ml-1">
+                <Label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
                   Email Address
                 </Label>
                 <Input
@@ -205,11 +205,11 @@ const AuthForm = () => {
                   value={formData.email}
                   onChange={handleChange}
                   type="email"
-                  placeholder="you@novesse.com"
-                  className="w-full px-5 py-3.5 bg-white/80 border border-stone-200 rounded-2xl text-stone-800 placeholder:text-stone-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 shadow-sm transition-all duration-200"
+                  placeholder="you@hospital.com"
+                  className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:border-blue-primary focus:ring-4 focus:ring-blue-100 shadow-sm transition-all duration-200"
                 />
                 {errors.email && (
-                  <p className="text-rose-500 text-xs mt-2 ml-1 font-semibold">
+                  <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
                     {errors.email}
                   </p>
                 )}
@@ -218,7 +218,7 @@ const AuthForm = () => {
               {!showForgotPassword && (
                 <div>
                   <div className="flex items-center justify-between mb-2 ml-1">
-                    <Label className="block text-sm font-bold text-stone-700">
+                    <Label className="block text-sm font-semibold text-slate-700">
                       Password
                     </Label>
                     {!showSignUp && (
@@ -228,7 +228,7 @@ const AuthForm = () => {
                           setShowForgotPassword(true);
                           setErrors({});
                         }}
-                        className="text-xs text-yellow-600 hover:text-yellow-700 font-semibold transition-colors duration-200"
+                        className="text-xs text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
                       >
                         Forgot Password?
                       </button>
@@ -241,12 +241,12 @@ const AuthForm = () => {
                       onChange={handleChange}
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••••"
-                      className="w-full px-5 py-3.5 bg-white/80 border border-stone-200 rounded-2xl text-stone-800 placeholder:text-stone-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 shadow-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:border-blue-primary focus:ring-4 focus:ring-blue-100 shadow-sm transition-all duration-200"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-5 flex items-center text-stone-400 hover:text-emerald-500 transition-colors duration-200"
+                      className="absolute inset-y-0 right-5 flex items-center text-slate-400 hover:text-blue-primary transition-colors duration-200"
                     >
                       {showPassword ? (
                         <FiEyeOff size={20} />
@@ -256,7 +256,7 @@ const AuthForm = () => {
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-rose-500 text-xs mt-2 ml-1 font-semibold">
+                    <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
                       {errors.password}
                     </p>
                   )}
@@ -266,7 +266,7 @@ const AuthForm = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full mt-6 py-4 bg-linear-to-r from-emerald-500 via-green-500 to-green-600 hover:from-emerald-600 hover:via-green-600 hover:to-green-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-300/40 hover:shadow-xl hover:shadow-emerald-400/50 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                className="w-full mt-8 py-4 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-3">
@@ -306,8 +306,8 @@ const AuthForm = () => {
               </button>
             </div>
 
-            <div className="mt-7 pt-6 border-t border-stone-200/60">
-              <p className="text-center text-sm text-stone-600 font-medium">
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <p className="text-center text-sm text-slate-500 font-medium">
                 {showForgotPassword ? (
                   <>
                     Remember your password?{" "}
@@ -316,7 +316,7 @@ const AuthForm = () => {
                         setShowForgotPassword(false);
                         setErrors({});
                       }}
-                      className="text-yellow-600 font-bold hover:text-yellow-700 transition-colors duration-200 hover:underline underline-offset-2"
+                      className="text-blue-600 font-bold hover:text-blue-700 transition-colors duration-200 hover:underline underline-offset-2"
                     >
                       Sign In
                     </button>
@@ -326,7 +326,7 @@ const AuthForm = () => {
                     Already have an account?{" "}
                     <button
                       onClick={toggleForm}
-                      className="text-yellow-600 font-bold hover:text-yellow-700 transition-colors duration-200 hover:underline underline-offset-2"
+                      className="text-blue-600 font-bold hover:text-blue-700 transition-colors duration-200 hover:underline underline-offset-2"
                     >
                       Sign In
                     </button>
@@ -336,7 +336,7 @@ const AuthForm = () => {
                     Don&apos;t have an account?{" "}
                     <button
                       onClick={toggleForm}
-                      className="text-yellow-600 font-bold hover:text-yellow-700 transition-colors duration-200 hover:underline underline-offset-2"
+                      className="text-blue-600 font-bold hover:text-blue-700 transition-colors duration-200 hover:underline underline-offset-2"
                     >
                       Sign Up
                     </button>
@@ -348,8 +348,8 @@ const AuthForm = () => {
 
           {/* Footer Badge */}
           <div className="text-center mt-6">
-            <p className="text-xs text-stone-500 font-medium">
-              Secure Admin Access · Novesse by Vijaya
+            <p className="text-xs text-slate-400 font-medium">
+              Secure Admin Access · Hospital by Vijaya
             </p>
           </div>
         </div>

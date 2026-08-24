@@ -316,7 +316,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         .fc .fc-daygrid-day-number {
           font-size: 0.9rem;
           font-weight: 500;
-          color: #216E20;
+          color: #2563eb;
           width: 28px;
           height: 28px;
           display: flex;
@@ -414,17 +414,17 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         </div>
 
         {/* Header */}
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-green-500/10 bg-[#ABEDCC]">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-green-500/10 bg-blue-50">
           <div className="absolute inset-0 pointer-events-none bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
 
           <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 backdrop-blur-sm p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
             <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-3 sm:gap-4 w-full md:w-auto">
-              <div className="bg-greenpick p-3 sm:p-4 rounded-xl shadow-lg shadow-blue-500/30">
+              <div className="bg-blue-primary p-3 sm:p-4 rounded-xl shadow-lg shadow-blue-500/30">
                 <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
 
               <div className="flex-1 md:flex-initial">
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-greenpick bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
                   Appointments Calendar
                 </h1>
                 <p className="text-slate-600 font-medium text-xs sm:text-sm mt-1">

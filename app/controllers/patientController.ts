@@ -1,4 +1,6 @@
 import Patient from "../models/Patient";
+import Appointment from "../models/Appointment";
+import MessageLog from "../models/MessageLog";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 
 export const getPatients = async (
@@ -18,15 +20,17 @@ export const getPatients = async (
     ];
   }
 
-  const totalCount = await Patient.countDocuments(whereClause);
-  const patients = await Patient.find(whereClause)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  const [totalCount, patients, activeTreatments, messagesSent] = await Promise.all([
+    Patient.countDocuments(whereClause),
+    Patient.find(whereClause).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Appointment.countDocuments({ status: "IN_PROGRESS" }),
+    MessageLog.countDocuments()
+  ]);
 
   return sendApiResponse(true, "Patients fetched successfully", {
     patients,
+    activeTreatments,
+    messagesSent,
     pagination: {
       page,
       limit,

@@ -105,14 +105,14 @@ export const EditUserForm = ({
       </div>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-[#ABEDCC]">
+      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="flex flex-col md:flex-row justify-between items-center   gap-4  backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-green-100/50">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-greenpick p-4 rounded-xl shadow-lg shadow-blue-500/30">
+            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
               <User className="w-8 h-8 max-md:size-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold text-greenpick tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold text-blue-primary tracking-tight">
                 Edit User - {user.firstName} {user.lastName}
               </h1>
               <p className="text-slate-500 font-medium text-sm mt-1">

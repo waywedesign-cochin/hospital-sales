@@ -40,7 +40,7 @@ export interface IUser {
 const UserAvatar = ({ firstName }: { firstName: string }) => {
   const initials = firstName ? firstName.charAt(0).toUpperCase() : "?";
   return (
-    <div className="w-24 h-24 rounded-full bg-greenpick flex items-center justify-center text-yellow-600 text-4xl font-extrabold ring-4 ring-white/50 shadow-2xl">
+    <div className="w-24 h-24 rounded-full bg-blue-primary flex items-center justify-center text-yellow-600 text-4xl font-extrabold ring-4 ring-white/50 shadow-2xl">
       {initials}
     </div>
   );

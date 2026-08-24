@@ -128,15 +128,15 @@ export default function DoctorsPage({
         />
       </div>
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-[#ABEDCC]">
+      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-greenpick p-4 rounded-xl shadow-lg shadow-blue-500/30">
+            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
               <StethoscopeIcon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-greenpick bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
                 Doctors Management
               </h1>
               <p className="text-slate-600 font-medium text-sm mt-1">
@@ -187,7 +187,7 @@ export default function DoctorsPage({
       <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-greenpick">
+            <thead className="bg-blue-primary">
               <tr>
                 {[
                   "Doctor",
@@ -225,7 +225,7 @@ export default function DoctorsPage({
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 bg-greenpick rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                        <div className="h-9 w-9 bg-blue-primary rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
                           {doc.firstName[0]}
                         </div>
                         <div>
@@ -364,7 +364,7 @@ export default function DoctorsPage({
                     onClick={() => updateQuery("page", String(page))}
                     className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                       currentPage === page
-                        ? "bg-greenpick text-white shadow-lg scale-105"
+                        ? "bg-blue-primary text-white shadow-lg scale-105"
                         : "text-green-700 hover:bg-green-50 border border-green-100"
                     }`}
                   >

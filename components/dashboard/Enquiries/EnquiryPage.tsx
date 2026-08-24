@@ -283,15 +283,15 @@ export default function EnquiryPage({
       </div>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-[#ABEDCC]">
+      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5"></div>
         <div className="flex flex-col md:flex-row justify-between items-center md:items-center gap-4  backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-greenpick p-4 rounded-xl shadow-lg shadow-blue-500/30">
+            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-greenpick bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
                 Enquiry Management
               </h1>
               <p className="text-slate-600 font-medium text-sm mt-1">
@@ -453,7 +453,7 @@ export default function EnquiryPage({
       <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <div className="overflow-x-auto ">
           <table className="min-w-[1300px] w-full table-auto divide-y divide-purple-300 table">
-            <thead className="bg-greenpick">
+            <thead className="bg-blue-primary">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                   Name
@@ -504,7 +504,7 @@ export default function EnquiryPage({
                     {/* Name */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 bg-[#216E20] rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm hover:shadow-md transition-shadow">
+                        <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm hover:shadow-md transition-shadow">
                           {enq.firstName.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -599,7 +599,7 @@ export default function EnquiryPage({
                         <Button
                           onClick={() => router.push(`/enquiries/${enq?._id}`)}
                           size="sm"
-                          className="text-xs bg-white shadow-sm text-greenpick hover:text-brownpick px-2 py-1 rounded-md hover:bg-blue-50 transition-all shrink-0"
+                          className="text-xs bg-white shadow-sm text-blue-primary hover:text-blue-600 px-2 py-1 rounded-md hover:bg-blue-50 transition-all shrink-0"
                         >
                           <Eye className="w-3 h-3 mr-1" />
                           Activity Notes
@@ -686,7 +686,7 @@ export default function EnquiryPage({
                       onClick={() => handlePageChange(1)}
                       className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                         cp === 1
-                          ? "bg-greenpick text-white shadow-lg shadow-green-500/30 scale-105"
+                          ? "bg-blue-primary text-white shadow-lg shadow-green-500/30 scale-105"
                           : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                       }`}
                     >
@@ -716,7 +716,7 @@ export default function EnquiryPage({
                         onClick={() => handlePageChange(i)}
                         className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                           cp === i
-                            ? "bg-greenpick text-white shadow-lg shadow-indigo-500/40 scale-105"
+                            ? "bg-blue-primary text-white shadow-lg shadow-indigo-500/40 scale-105"
                             : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                         }`}
                       >
@@ -743,7 +743,7 @@ export default function EnquiryPage({
                         onClick={() => handlePageChange(total)}
                         className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                           cp === total
-                            ? "bg-[#216E20] text-white shadow-lg shadow-indigo-500/40 scale-105"
+                            ? "bg-blue-600 text-white shadow-lg shadow-indigo-500/40 scale-105"
                             : "text-green-700 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 border border-indigo-100"
                         }`}
                       >

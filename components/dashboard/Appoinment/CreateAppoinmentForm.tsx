@@ -237,14 +237,14 @@ export default function AppointmentForm({
       </div>
 
       {/* Header – SAME as AppointmentsPage */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-[#ABEDCC]">
+      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="absolute inset-0 " />
         <div className="flex flex-col sm:flex-row text-center sm: items-center gap-4 p-6 rounded-2xl border border-blue-100/50">
-          <div className="bg-greenpick p-4 rounded-xl shadow-lg shadow-blue-500/30">
+          <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
             <CalendarIcon className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-greenpick bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
               Create Appointment
             </h1>
             <p className="text-slate-600 font-medium text-sm mt-1">

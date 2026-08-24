@@ -137,14 +137,14 @@ const UserManagementPage = ({
         />
       </div>
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-[#ABEDCC]">
+      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="flex flex-col md:flex-row justify-between items-center   gap-4  backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-green-100/50">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-greenpick p-4 rounded-xl shadow-lg shadow-blue-500/30">
+            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
               <Users className="w-8 h-8 max-md:size-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold text-greenpick tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold text-blue-primary tracking-tight">
                 Users Management
               </h1>
               <p className="text-slate-500 font-medium text-sm mt-1">
@@ -190,7 +190,7 @@ const UserManagementPage = ({
       {/* Table */}
       <div className="bg-white backdrop-blur-sm z-10 rounded-xl shadow-lg overflow-hidden border border-gray-100">
         <Table>
-          <TableHeader className="bg-greenpick text-white">
+          <TableHeader className="bg-blue-primary text-white">
             <TableRow>
               <TableHead className="text-white!">Name & Email</TableHead>
               <TableHead className="text-white!">Role</TableHead>
@@ -214,7 +214,7 @@ const UserManagementPage = ({
                   {/* Name & Email */}
                   <TableCell>
                     <div className="flex items-center">
-                      <div className="h-10 w-10 bg-greenpick rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      <div className="h-10 w-10 bg-blue-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {user.firstName[0].toUpperCase()}
                       </div>
 
@@ -315,7 +315,7 @@ const UserManagementPage = ({
                     onClick={() => handlePageChange(1)}
                     className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                       cp === 1
-                        ? "bg-greenpick text-white shadow-md shadow-green-500/40 scale-105"
+                        ? "bg-blue-primary text-white shadow-md shadow-green-500/40 scale-105"
                         : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                     }`}
                   >
@@ -345,7 +345,7 @@ const UserManagementPage = ({
                       onClick={() => handlePageChange(i)}
                       className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                         cp === i
-                          ? "bg-greenpick text-white shadow-lg shadow-green-500/40 scale-105"
+                          ? "bg-blue-primary text-white shadow-lg shadow-green-500/40 scale-105"
                           : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                       }`}
                     >
@@ -372,7 +372,7 @@ const UserManagementPage = ({
                       onClick={() => handlePageChange(total)}
                       className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
                         cp === total
-                          ? "bg-greenpick text-white shadow-lg shadow-indigo-500/40 scale-105"
+                          ? "bg-blue-primary text-white shadow-lg shadow-indigo-500/40 scale-105"
                           : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
                       }`}
                     >
