@@ -10,7 +10,7 @@ import { sendApiResponse } from "@/app/utils/nextResponseHandler";
 import { doctorLeaveSchema } from "@/app/validations/doctorSchema";
 import { NextRequest } from "next/server";
 
-export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
@@ -24,7 +24,7 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await createLeave(data);
+    return await createLeave({ ...data, clinicId: user.clinicId, userId: user._id });
   } catch (error) {
     let message = "Server error";
 
@@ -35,7 +35,7 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
   }
 });
 
-export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
@@ -52,7 +52,7 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await updateLeave(id, data);
+    return await updateLeave(user.clinicId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
 
@@ -63,14 +63,14 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
   }
 });
 
-export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest) => {
+export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteLeave(id);
+    return await deleteLeave(user.clinicId, id, user._id);
   } catch (error) {
     let message = "Server error";
 

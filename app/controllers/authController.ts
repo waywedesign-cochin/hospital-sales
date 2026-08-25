@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { signJwt } from "../lib/jwt";
 import User from "../models/User";
+import Clinic from "../models/Clinic";
 import { sendResponse } from "../utils/responseHandler";
 import bcrypt from "bcrypt";
 import { sendApiResponse } from "../utils/nextResponseHandler";
@@ -12,14 +13,15 @@ export const signUp = async (data: {
   lastName?: string;
   email: string;
   password: string;
-  role?: "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
+  role?: "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
+  clinicId?: string;
 }) => {
   try {
     const lowercasedEmail = data.email.toLowerCase();
 
-    const userExists = await User.findOne({ email: lowercasedEmail });
+    const userExists = await User.findOne({ email: lowercasedEmail, clinicId: data.clinicId });
     if (userExists) {
-      return sendResponse(false, "User already exists");
+      return sendResponse(false, "User already exists in this clinic");
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -34,6 +36,90 @@ export const signUp = async (data: {
   } catch (error) {
     console.error("Signup Error:", error);
     return sendResponse(false, "Something went wrong during signup");
+  }
+};
+
+// ================= REGISTER CLINIC =================
+export const registerClinic = async (data: {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  password: string;
+  clinicName: string;
+  clinicPhone?: string;
+  clinicAddress?: string;
+  departments?: string[];
+}) => {
+  try {
+    const lowercasedEmail = data.email.toLowerCase();
+
+    // 1. Generate unique slug for clinic
+    let baseSlug = data.clinicName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    let slug = baseSlug;
+    let counter = 1;
+    while (await Clinic.findOne({ slug })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    // 2. Create the Clinic
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30); // 30-day trial
+
+    const newClinic = await Clinic.create({
+      name: data.clinicName,
+      slug,
+      email: lowercasedEmail,
+      phone: data.clinicPhone,
+      address: data.clinicAddress,
+      departments: data.departments?.length ? data.departments : ["General Medicine"],
+      plan: "FREE_TRIAL",
+      trialEndsAt,
+      subscriptionStatus: "TRIAL",
+      maxDoctors: 2,
+      maxStaff: 5,
+    });
+
+    // 3. Create the Admin User
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const newAdmin = await User.create({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: lowercasedEmail,
+      password: hashedPassword,
+      role: "ADMIN",
+      clinicId: newClinic._id,
+    });
+
+    // 4. Update Clinic Owner ID
+    await Clinic.findByIdAndUpdate(newClinic._id, { ownerId: newAdmin._id });
+
+    // 5. Auto login
+    const token = signJwt({ _id: newAdmin._id, role: newAdmin.role, clinicId: newClinic._id }, "7d");
+    const cookieStore = await cookies();
+    cookieStore.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return sendResponse(true, "Clinic registered successfully", {
+      _id: newAdmin._id.toString(),
+      firstName: newAdmin.firstName,
+      lastName: newAdmin.lastName,
+      email: newAdmin.email,
+      role: newAdmin.role,
+      clinicId: newClinic._id.toString(),
+    });
+
+  } catch (error: any) {
+    console.error("Clinic Registration Error:", error);
+    if (error.code === 11000) {
+      return sendResponse(false, "This email is already registered");
+    }
+    return sendResponse(false, "Something went wrong during clinic registration");
   }
 };
 
@@ -56,8 +142,8 @@ export const signIn = async (data: { email: string; password: string }) => {
       return sendResponse(false, "Access denied. Contact admin.");
     }
 
-    // ✅ Sign JWT
-    const token = signJwt({ _id: user._id, role: user.role }, "7d");
+    // ✅ Sign JWT with clinicId
+    const token = signJwt({ _id: user._id, role: user.role, clinicId: user.clinicId }, "7d");
     const cookieStore = await cookies();
 
     // ✅ Set JWT in HttpOnly cookie
@@ -75,6 +161,7 @@ export const signIn = async (data: { email: string; password: string }) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
+      clinicId: user.clinicId?.toString() || null,
     });
   } catch (error) {
     console.error("Signin Error:", error);

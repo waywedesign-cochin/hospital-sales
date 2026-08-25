@@ -1,5 +1,6 @@
 import { getEnquiryActivities } from "../controllers/enquiryActivityController";
 import { dbConnect } from "../lib/dbConnect";
+import { requireAuth } from "../lib/auth";
 
 export const getEnquiriesAction = async (
   enquiryId: string,
@@ -7,5 +8,6 @@ export const getEnquiriesAction = async (
   limit: number,
 ) => {
   await dbConnect();
-  return await getEnquiryActivities(enquiryId, page, limit);
+  const user = await requireAuth();
+  return await getEnquiryActivities(user.clinicId, enquiryId, page, limit);
 };

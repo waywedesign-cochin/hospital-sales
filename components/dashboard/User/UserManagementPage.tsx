@@ -26,6 +26,14 @@ import {
 } from "@/components/ui/select";
 
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import {
   Table,
   TableHeader,
   TableRow,
@@ -56,6 +64,16 @@ const UserManagementPage = ({
   const router = useRouter();
   const currentUser = useAuthStore((state) => state.user);
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
+
+  // Invite state
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "STAFF",
+  });
+  const [isInviting, setIsInviting] = useState(false);
 
   // Redirect non-admin users
   useEffect(() => {
@@ -115,6 +133,31 @@ const UserManagementPage = ({
     }
   };
 
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsInviting(true);
+    try {
+      const res = await axios.post("/api/auth/invite", inviteForm);
+      if (res.data.success) {
+        toast.success("Invitation sent successfully!");
+        const link = res.data.data.inviteLink;
+        if (link) {
+          // For testing without emails
+          alert(`Test mode: Invite link generated!\n\n${link}`);
+        }
+        setIsInviteOpen(false);
+        setInviteForm({ firstName: "", lastName: "", email: "", role: "STAFF" });
+        router.refresh();
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to invite user");
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 p-2">
       <div className="relative z-10 mb-6 flex items-center gap-3">
@@ -152,6 +195,69 @@ const UserManagementPage = ({
               </p>
             </div>
           </div>
+          {/* Invite User Dialog */}
+          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-11 px-6 rounded-xl bg-green-700 text-white shadow-md hover:bg-green-800">
+                Invite Staff
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite a new staff member</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleInvite} className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    placeholder="First Name"
+                    value={inviteForm.firstName}
+                    onChange={(e) =>
+                      setInviteForm({ ...inviteForm, firstName: e.target.value })
+                    }
+                    required
+                  />
+                  <Input
+                    placeholder="Last Name"
+                    value={inviteForm.lastName}
+                    onChange={(e) =>
+                      setInviteForm({ ...inviteForm, lastName: e.target.value })
+                    }
+                  />
+                </div>
+                <Input
+                  type="email"
+                  placeholder="Email Address"
+                  value={inviteForm.email}
+                  onChange={(e) =>
+                    setInviteForm({ ...inviteForm, email: e.target.value })
+                  }
+                  required
+                />
+                <Select
+                  value={inviteForm.role}
+                  onValueChange={(val) =>
+                    setInviteForm({ ...inviteForm, role: val })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STAFF">Staff</SelectItem>
+                    <SelectItem value="DOCTOR">Doctor</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="submit"
+                  disabled={isInviting}
+                  className="w-full bg-blue-primary text-white"
+                >
+                  {isInviting ? "Sending Invite..." : "Send Invite"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

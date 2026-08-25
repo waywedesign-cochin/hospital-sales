@@ -15,7 +15,7 @@ export interface EnquirySummaryCardsData {
   // Monthly overview
   totalEnquiries: number;
   conversionRate: number;
-  topCategory: "SKIN" | "HAIR" | "BODY";
+  topCategory: string;
 }
 
 interface Props {

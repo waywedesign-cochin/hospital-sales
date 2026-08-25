@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
 import { deleteUser, updateUser } from "@/app/controllers/userController";
 
-export async function PUT(req: NextRequest) {
+import { withAuth } from "@/app/middlewares/withAuth";
+
+export const PUT = withAuth(["PLATFORM_ADMIN", "ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
@@ -16,7 +18,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const result = await updateUser(id, body);
+    const result = await updateUser(user.clinicId, id, user._id, body);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -26,9 +28,9 @@ export async function PUT(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
-export const DELETE = async (req: NextRequest) => {
+export const DELETE = withAuth(["PLATFORM_ADMIN", "ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
@@ -41,7 +43,7 @@ export const DELETE = async (req: NextRequest) => {
       );
     }
 
-    const result = await deleteUser(id);
+    const result = await deleteUser(user.clinicId, id, user._id);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -51,4 +53,4 @@ export const DELETE = async (req: NextRequest) => {
       { status: 500 }
     );
   }
-};
+});

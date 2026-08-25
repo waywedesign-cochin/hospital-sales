@@ -1,8 +1,9 @@
 // app/controllers/userController.ts
 import { cookies } from "next/headers";
-import User from "@/app/models/User";
-import { sendResponse } from "@/app/utils/responseHandler";
-import { dbConnect } from "@/app/lib/dbConnect";
+import User from "../models/User";
+import { sendApiResponse } from "../utils/nextResponseHandler";
+import { sendResponse } from "../utils/responseHandler";
+import { logActivity } from "./activityLogController";
 import { verifyJwt } from "../lib/jwt";
 
 interface DecodedToken {
@@ -36,6 +37,7 @@ export const getCurrentUser = async () => {
     //  Convert Mongo document to frontend-safe User object
     const user = {
       _id: userDoc._id.toString(),
+      clinicId: userDoc.clinicId?.toString() || null,
       firstName: userDoc.firstName,
       lastName: userDoc.lastName,
       email: userDoc.email,
@@ -51,6 +53,7 @@ export const getCurrentUser = async () => {
 
 // ================= GET USERS =================
 export const getUsers = async (
+  clinicId: string,
   page: number,
   limit: number,
   role?: string,
@@ -58,7 +61,7 @@ export const getUsers = async (
 ) => {
   try {
     const skip = (page - 1) * limit;
-    let whereClause: any = {};
+    let whereClause: any = { clinicId };
     if (role) {
       whereClause.role = role;
     }
@@ -104,10 +107,10 @@ export const getUsers = async (
 };
 
 // ================= GET USER BY ID =================
-export const getUserById = async (id: string) => {
+export const getUserById = async (clinicId: string, id: string) => {
   try {
 
-    const userDoc = await User.findById({ _id: id }).select("-password");
+    const userDoc = await User.findOne({ _id: id, clinicId }).select("-password");
 
     if (!userDoc) {
       return sendResponse(false, "User not found", null);
@@ -133,16 +136,29 @@ export const getUserById = async (id: string) => {
 
 // ================= UPDATE USER =================
 export const updateUser = async (
+  clinicId: string,
   id: string,
+  userId: string,
   data: { firstName?: string; lastName?: string; email?: string; role?: string }
 ) => {
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne({ _id: id, clinicId });
     if (!user) {
       return sendResponse(false, "User not found", null);
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+
+    if (userId) {
+      await logActivity(
+        clinicId,
+        userId,
+        "UPDATED_USER",
+        "User",
+        `Updated user profile for ${updatedUser?.firstName} ${updatedUser?.lastName || ""}`.trim(),
+        id
+      );
+    }
 
     return sendResponse(true, "User updated successfully", updatedUser);
   } catch (err) {
@@ -152,14 +168,25 @@ export const updateUser = async (
 };
 
 // ================= DELETE USER =================
-export const deleteUser = async (id: string) => {
+export const deleteUser = async (clinicId: string, id: string, userId: string) => {
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne({ _id: id, clinicId });
     if (!user) {
       return sendResponse(false, "User not found", null);
     }
 
     await User.findByIdAndDelete(id);
+
+    if (userId) {
+      await logActivity(
+        clinicId,
+        userId,
+        "DELETED_USER",
+        "User",
+        `Deleted user profile for ${user.firstName} ${user.lastName || ""}`.trim(),
+        id
+      );
+    }
 
     return sendResponse(true, "User deleted successfully", null);
   } catch (err) {

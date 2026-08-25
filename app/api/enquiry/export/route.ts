@@ -5,7 +5,7 @@ import { sendApiResponse } from "@/app/utils/nextResponseHandler";
 import { NextRequest } from "next/server";
 import "@/app/models/User";
 
-export const GET = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const GET = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
@@ -20,7 +20,7 @@ export const GET = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
       toDate: searchParams.get("toDate") ?? "",
     };
 
-    const data = await getEnquiriesForExport(filters);
+    const data = await getEnquiriesForExport(user.clinicId, filters);
     return sendApiResponse(true, "Exported successfully", data);
   } catch (error) {
     let message = "Server error";

@@ -2,8 +2,10 @@ import Enquiry from "../models/Enquiry";
 import EnquiryActivity from "../models/EnquiryActivity";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 import { sendResponse } from "../utils/responseHandler";
+import { logActivity } from "./activityLogController";
 
 export const addEnquiryActivity = async (data: {
+  clinicId: string;
   enquiryId: string;
   type: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED";
   note: string;
@@ -26,19 +28,31 @@ export const addEnquiryActivity = async (data: {
     );
     const newActivity = await EnquiryActivity.create({
       ...data,
-      date: data.date ? new Date(data.date) : undefined,
+      date: data.date ? new Date(data.date) : new Date(),
     });
+
+    if (data.createdBy) {
+      await logActivity(
+        data.clinicId,
+        data.createdBy,
+        "ADDED_LEAD_ACTIVITY",
+        "EnquiryActivity",
+        `Added activity note: ${data.note.slice(0, 30)}...`,
+        newActivity._id
+      );
+    }
 
     return sendApiResponse(true, "Enquiry activity added successfully", {
       activity: newActivity,
     });
   } catch (error) {
     console.error("Error adding enquiry activity:", error);
-    sendApiResponse(false, "Failed to add enquiry activity");
+    return sendApiResponse(false, "Failed to add enquiry activity");
   }
 };
 
 export const getEnquiryActivities = async (
+  clinicId: string,
   enquiryId: string,
   page: number = 1,
   limit: number = 10,
@@ -46,11 +60,11 @@ export const getEnquiryActivities = async (
   try {
     const skip = (page - 1) * limit;
 
-    // Count total
-    const totalCount = await EnquiryActivity.countDocuments({ enquiryId });
+    // Count total within clinic
+    const totalCount = await EnquiryActivity.countDocuments({ enquiryId, clinicId });
 
-    // Fetch paginated data
-    const activities = await EnquiryActivity.find({ enquiryId })
+    // Fetch paginated data within clinic
+    const activities = await EnquiryActivity.find({ enquiryId, clinicId })
       .populate("createdBy", "firstName lastName")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -96,7 +110,9 @@ export const getEnquiryActivities = async (
 };
 
 export const updateEnquiryActivity = async (
+  clinicId: string,
   activityId: string,
+  userId: string,
   data: {
     type?: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED";
     note?: string;
@@ -104,7 +120,7 @@ export const updateEnquiryActivity = async (
   },
 ) => {
   try {
-    const enquiryActivity = await EnquiryActivity.findById(activityId);
+    const enquiryActivity = await EnquiryActivity.findOne({ _id: activityId, clinicId });
     if (!enquiryActivity) {
       return sendApiResponse(false, "Enquiry activity not found");
     }
@@ -129,26 +145,48 @@ export const updateEnquiryActivity = async (
       return sendApiResponse(false, "Enquiry activity not found");
     }
 
+    if (userId) {
+      await logActivity(
+        clinicId,
+        userId,
+        "UPDATED_LEAD_ACTIVITY",
+        "EnquiryActivity",
+        `Updated lead activity note`,
+        activityId
+      );
+    }
+
     return sendApiResponse(true, "Enquiry activity updated successfully", {
       activity: updatedActivity,
     });
   } catch (error) {
     console.error("Error updating enquiry activity:", error);
-    sendApiResponse(false, "Failed to update enquiry activity");
+    return sendApiResponse(false, "Failed to update enquiry activity");
   }
 };
 
-export const deleteEnquiryActivity = async (id: string) => {
+export const deleteEnquiryActivity = async (clinicId: string, id: string, userId: string) => {
   try {
-    const deletedActivity = await EnquiryActivity.findByIdAndDelete(id);
+    const deletedActivity = await EnquiryActivity.findOneAndDelete({ _id: id, clinicId });
 
     if (!deletedActivity) {
       return sendApiResponse(false, "Enquiry activity not found");
     }
 
+    if (userId) {
+      await logActivity(
+        clinicId,
+        userId,
+        "DELETED_LEAD_ACTIVITY",
+        "EnquiryActivity",
+        `Deleted lead activity note`,
+        id
+      );
+    }
+
     return sendApiResponse(true, "Enquiry activity deleted successfully");
   } catch (error) {
     console.error("Error deleting enquiry activity:", error);
-    sendApiResponse(false, "Failed to delete enquiry activity");
+    return sendApiResponse(false, "Failed to delete enquiry activity");
   }
 };

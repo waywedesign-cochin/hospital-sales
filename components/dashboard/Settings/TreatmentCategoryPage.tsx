@@ -66,16 +66,22 @@ export default function TreatmentCategoryPage({
 
     try {
       setLoading(true);
-      const response = await axios.post("/api/treatment-category", form);
+      
+      let response;
+      if (editMode && selectedId) {
+        response = await axios.put(`/api/treatment-category?id=${selectedId}`, form);
+      } else {
+        response = await axios.post("/api/treatment-category", form);
+      }
 
       if (!response.data.success) {
         toast.error(
-          response.data.message || "Failed to add treatment category"
+          response.data.message || `Failed to ${editMode ? "update" : "add"} treatment category`
         );
         return;
       }
 
-      toast.success("Treatment category added successfully");
+      toast.success(`Treatment category ${editMode ? "updated" : "added"} successfully`);
       setForm({
         name: "",
         description: "",
@@ -91,7 +97,17 @@ export default function TreatmentCategoryPage({
   };
 
   const handleDelete = async (id: string) => {
-    toast.success("Category deleted");
+    try {
+      const response = await axios.delete(`/api/treatment-category?id=${id}`);
+      if (response.data.success) {
+        toast.success("Category deleted");
+        router.refresh();
+      } else {
+        toast.error(response.data.message || "Failed to delete category");
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to delete category");
+    }
   };
 
   return (
@@ -169,7 +185,7 @@ export default function TreatmentCategoryPage({
                   <td className="px-6 py-5 text-center">
                     <div className="flex justify-center gap-2">
                       <Button
-                        //   onClick={() => handleEdit(apt._id)}
+                        onClick={() => openEditModal(item)}
                         variant="ghost"
                         className="text-amber-600 hover:text-amber-700 p-2 rounded-lg hover:bg-amber-50 hover:shadow-md transform hover:scale-110"
                       >

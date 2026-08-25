@@ -23,6 +23,9 @@ export const POST = async (req: NextRequest) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
+    if (!data.clinicId) {
+      return sendApiResponse(false, "Clinic ID is required", null);
+    }
     return await createEnquiry(data);
   } catch (error) {
     let message = "Server error";
@@ -34,7 +37,7 @@ export const POST = async (req: NextRequest) => {
 };
 
 // Only admin and staff can update
-export const PATCH = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const PATCH = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
@@ -52,7 +55,9 @@ export const PATCH = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
       return sendApiResponse(false, "Invalid request", null);
     }
     return await updateEnquiryStatus(
+      user.clinicId,
       id,
+      user._id,
       data.status,
       data.handledBy,
       data.staffNotes
@@ -66,14 +71,14 @@ export const PATCH = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
   }
 });
 
-export const DELETE = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const DELETE = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteEnquiry(id);
+    return await deleteEnquiry(user.clinicId, id, user._id);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {

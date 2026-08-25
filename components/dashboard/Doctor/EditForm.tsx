@@ -5,8 +5,10 @@ import { Controller, useForm, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { EyeOff, Loader2 } from "lucide-react";
 import Select, { MultiValue } from "react-select";
-import { ArrowLeft, Loader2, StethoscopeIcon } from "lucide-react";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
+import { ArrowLeft, StethoscopeIcon } from "lucide-react";
 import {
   DoctorUpdateFormData,
   doctorUpdateSchema,
@@ -36,6 +38,7 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [password, setPassword] = useState("");
 
   useEffect(() => setIsMounted(true), []);
 
@@ -67,12 +70,13 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
       ? "border-red-500 focus:ring-red-500"
       : "border-gray-300 focus:ring-blue-500";
 
-  const specializationOptions = [
-    { value: "skin", label: "Skin" },
-    { value: "hair", label: "Hair" },
-    { value: "body", label: "Body" },
-  ];
-  type Option = (typeof specializationOptions)[0];
+  const clinic = useAuthStore((state) => state.clinic);
+  const specializationOptions = clinic?.departments?.map(dept => ({
+    value: dept,
+    label: dept
+  })) || [];
+
+  type Option = { value: string; label: string };
 
   const onSubmit = async (data: DoctorUpdateFormData) => {
     try {

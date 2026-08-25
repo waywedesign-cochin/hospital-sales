@@ -1,6 +1,6 @@
 import { ObjectId } from "mongoose";
 
-export type UserRole = "STAFF" | "DOCTOR" | "ADMIN" | "GUEST";
+export type UserRole = "PLATFORM_ADMIN" | "STAFF" | "DOCTOR" | "ADMIN" | "GUEST";
 
 export type BookingStatus =
   | "PENDING"
@@ -12,6 +12,7 @@ export type BookingStatus =
 
 export interface User {
   _id: string;
+  clinicId?: string;
   firstName: string;
   lastName?:string
   email: string;
@@ -128,6 +129,17 @@ export interface Analytics {
   activePatients: number;
   activeDoctors: number;
 }
+
+export interface Clinic {
+  _id: string;
+  name: string;
+  slug: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  departments: string[];
+  plan: string;
+}
 // types/enquiry.ts (frontend or shared DTO)
 
 export interface EnquiryDTO {
@@ -136,7 +148,7 @@ export interface EnquiryDTO {
   lastName?: string;
   email: string;
   phone: string;
-  treatmentCategory: "SKIN" | "BODY" | "HAIR";
+  treatmentCategory: string;
   message: string;
   status: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED";
   source: "WEBSITE" | "PHONE" | "WHATSAPP" | "OTHER";

@@ -18,8 +18,10 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const doctor = searchParams.get("doctor") ?? "";
     const date = searchParams.get("date") ?? "";
+    const clinicId = searchParams.get("clinicId");
+    if (!clinicId) throw new Error("Clinic ID is required");
   
-    const result = await getBookedSlots(date, doctor);
+    const result = await getBookedSlots(clinicId, date, doctor);
 
     // If controller already returned a NextResponse, just return it.
     if (result instanceof NextResponse) return result;
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const [data, errorResponse] = await validate(appointmentSchema, req);
@@ -49,6 +51,8 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
     }
     return await createAppointment({
       ...data,
+      clinicId: user.clinicId,
+      userId: user._id,
       enquiryId: data.enquiryId ?? undefined,
     });
   } catch (error) {
@@ -61,7 +65,7 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
   }
 });
 
-export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
+export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
@@ -75,7 +79,7 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await updateAppointment(id, data);
+    return await updateAppointment(user.clinicId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -85,14 +89,14 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest) => {
   }
 });
 
-export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest) => {
+export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteAppointment(id);
+    return await deleteAppointment(user.clinicId, id, user._id);
   } catch (error) {
     let message = "Server error";
 

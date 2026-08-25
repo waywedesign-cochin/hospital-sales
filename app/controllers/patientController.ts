@@ -4,12 +4,13 @@ import MessageLog from "../models/MessageLog";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 
 export const getPatients = async (
+  clinicId: string,
   page: number = 1,
   limit: number = 10,
   search?: string
 ) => {
   const skip = (page - 1) * limit;
-  const whereClause: any = {};
+  const whereClause: any = { clinicId };
   
   if (search) {
     whereClause.$or = [
@@ -23,8 +24,8 @@ export const getPatients = async (
   const [totalCount, patients, activeTreatments, messagesSent] = await Promise.all([
     Patient.countDocuments(whereClause),
     Patient.find(whereClause).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    Appointment.countDocuments({ status: "IN_PROGRESS" }),
-    MessageLog.countDocuments()
+    Appointment.countDocuments({ clinicId, status: "IN_PROGRESS" }),
+    MessageLog.countDocuments({ clinicId })
   ]);
 
   return sendApiResponse(true, "Patients fetched successfully", {
@@ -40,8 +41,8 @@ export const getPatients = async (
   });
 };
 
-export const getPatientById = async (id: string) => {
-  const patient = await Patient.findById(id).lean();
+export const getPatientById = async (clinicId: string, id: string) => {
+  const patient = await Patient.findOne({ _id: id, clinicId }).lean();
   if (!patient) {
     return sendApiResponse(false, "Patient not found", null);
   }

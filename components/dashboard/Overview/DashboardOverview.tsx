@@ -69,11 +69,7 @@ export interface QuickOverviewData {
     completed: number;
     pending: number;
   };
-  consultationBreakdown: {
-    skin?: number;
-    hair?: number;
-    body?: number;
-  };
+  consultationBreakdown: Record<string, number>;
   tomorrowAppointments: number;
 }
 

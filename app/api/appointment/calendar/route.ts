@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
 import { getAllAppointments } from "@/app/controllers/appoinmentController";
+import { withAuth } from "@/app/middlewares/withAuth";
 
-export const GET = async (req: NextRequest) => {
+export const GET = withAuth(["ADMIN", "STAFF", "DOCTOR"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
@@ -20,6 +21,7 @@ export const GET = async (req: NextRequest) => {
 
     // Controller call (matches your function signature)
     const result = await getAllAppointments(
+      user.clinicId,
       page,
       limit,
       doctor,
@@ -38,4 +40,4 @@ export const GET = async (req: NextRequest) => {
       { status: 500 }
     );
   }
-};
+});

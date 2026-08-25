@@ -5,6 +5,8 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ITreatmentCategory } from "@/app/models/TreatmentCategory";
+import QuickAddCategoryDialog from "../Settings/QuickAddCategoryDialog";
 import {
   Select,
   SelectTrigger,
@@ -18,13 +20,12 @@ import { appointmentSchema } from "@/app/validations/appointmentSchemas";
 import { Doctor } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
-import { ArrowLeft, CalendarIcon } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Plus } from "lucide-react";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import { updateEnquiryStatusSchema } from "@/app/validations/enquirySchemas";
 
 /* ---------------- CONSTANTS ---------------- */
 
-const categories = ["Skin", "Body", "Hair"];
 type BlockedSlot = {
   time: string;
   reason: "BOOKED" | "LEAVE";
@@ -51,7 +52,17 @@ export default function AppointmentForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
-  //console.log(prefill);
+  const clinic = useAuthStore((state) => state.clinic);
+  const categories = clinic?.departments || [];
+  
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [localCategories, setLocalCategories] = useState<string[]>(categories);
+
+  useEffect(() => {
+    if (categories) {
+      setLocalCategories(categories);
+    }
+  }, [categories]);
 
   const [form, setForm] = useState({
     enquiryId: prefill?.enquiryId ?? undefined,
@@ -326,11 +337,20 @@ export default function AppointmentForm({
                     <SelectValue placeholder="Treatment Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((c) => (
+                    {localCategories.map((c) => (
                       <SelectItem key={c} value={c}>
                         {c}
                       </SelectItem>
                     ))}
+                    <div className="p-2 border-t mt-1">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => setQuickAddOpen(true)}
+                      >
+                        <Plus className="w-4 h-4 mr-2" /> Add New Category
+                      </Button>
+                    </div>
                   </SelectContent>
                 </Select>
                 {errors.treatmentCategory && (
@@ -448,6 +468,14 @@ export default function AppointmentForm({
           </Button>
         )}
       </div>
+      <QuickAddCategoryDialog
+        open={quickAddOpen}
+        setOpen={setQuickAddOpen}
+        onAdded={(newCategory) => {
+          setLocalCategories((prev) => [...prev, newCategory]);
+          onChange("treatmentCategory", newCategory);
+        }}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 import { verifyJwt } from "../lib/jwt";
 
-type AuthUser = { _id: string; role: string };
+export type AuthUser = { _id: string; role: string; clinicId: string };
 
 export const withAuth =
   (allowedRoles: string[] = []) =>
@@ -20,6 +20,11 @@ export const withAuth =
       // Role based check
       if (allowedRoles.length && !allowedRoles.includes(user.role)) {
         return sendApiResponse(false, "Access denied");
+      }
+
+      // Ensure clinicId exists for non-platform-admin users
+      if (user.role !== "PLATFORM_ADMIN" && !user.clinicId) {
+        return sendApiResponse(false, "No clinic associated with this account");
       }
 
       return handler(req, user);

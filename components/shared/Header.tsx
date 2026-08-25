@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Bell, Menu, Calendar } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../provider/SidebarContext";
@@ -8,8 +9,15 @@ import { useAuthStore } from "@/providers/AuthStoreProvider";
 export function Header() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const fetchClinic = useAuthStore((state) => state.fetchClinic);
   const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (user) {
+      fetchClinic();
+    }
+  }, [user, fetchClinic]);
 
   const getPageTitle = (path: string) => {
     const cleanPath = path.substring(1);
@@ -31,7 +39,15 @@ export function Header() {
   });
 
   return (
-    <header className="bg-white/40 backdrop-blur-2xl sticky top-0 z-10 border-b border-white/30 h-16 px-6 flex items-center justify-between shadow-sm">
+    <header className="shrink-0 relative overflow-hidden sticky top-0 z-10 border-b border-white/40 h-16 px-6 flex items-center justify-between shadow-sm">
+      {/* Background Image Layer */}
+      <div 
+        className="absolute inset-0 z-[-2] bg-cover bg-center opacity-40 mix-blend-multiply"
+        style={{ backgroundImage: "url('/sidebar-bg.jpg')" }}
+      />
+      {/* Glass Effect Overlay */}
+      <div className="absolute inset-0 z-[-1] bg-white/50 backdrop-blur-xl" />
+
       {/* LEFT: Mobile Menu & Dynamic Title */}
       <div className="flex items-center gap-4">
         <button

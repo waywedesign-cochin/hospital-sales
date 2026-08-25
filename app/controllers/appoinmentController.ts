@@ -9,10 +9,13 @@ import { sendWhatsAppMessage } from "../utils/whatsapp";
 import Doctor from "@/app/models/Doctor";
 import EnquiryActivity from "../models/EnquiryActivity";
 import Patient from "../models/Patient";
+import { logActivity } from "./activityLogController";
 const generateBookingId = () => {
   return `BK-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 };
 export const createAppointment = async (data: {
+  clinicId: string;
+  userId?: string;
   enquiryId?: string;
   patientName: string;
   patientPhone: string;
@@ -26,8 +29,9 @@ export const createAppointment = async (data: {
   handledBy?: string;
   notes?: string;
 }) => {
-  // Check existing patient
+  // Check existing patient within clinic
   let existingPatient = await Patient.findOne({
+    clinicId: data.clinicId,
     phone: data.patientPhone,
   });
   
@@ -36,6 +40,7 @@ export const createAppointment = async (data: {
   if (!existingPatient) {
     const [first, ...rest] = data.patientName.split(" ");
     existingPatient = await Patient.create({
+      clinicId: data.clinicId,
       firstName: first,
       lastName: rest.join(" ") || "",
       email: data.patientEmail,
@@ -56,6 +61,7 @@ export const createAppointment = async (data: {
   if (appointment.enquiryId) {
     const enquiryId = appointment.enquiryId as mongoose.Types.ObjectId;
     await EnquiryActivity.create({
+      clinicId: data.clinicId,
       enquiryId,
       type: "APPOINTMENT_BOOKED",
       createdBy: data.handledBy,
@@ -63,7 +69,7 @@ export const createAppointment = async (data: {
       date: new Date(),
     });
     // Actually update the Enquiry's main status field
-    await Enquiry.findByIdAndUpdate(enquiryId, {
+    await Enquiry.findOneAndUpdate({ _id: enquiryId.toString(), clinicId: data.clinicId }, {
       status: "APPOINTMENT_BOOKED",
       handledBy: data.handledBy || undefined,
     });
@@ -121,10 +127,22 @@ Dermatology Center`;
     console.error("WhatsApp send failed:", error);
   }
 
+  if (data.userId) {
+    await logActivity(
+      data.clinicId,
+      data.userId,
+      "CREATED_APPOINTMENT",
+      "Appointment",
+      `Booked appointment for ${data.patientName} on ${data.date} at ${data.startTime}`,
+      appointment._id
+    );
+  }
+
   return sendApiResponse(true, "Appointment created successfully", appointment);
 };
 
 export const getAllAppointments = async (
+  clinicId: string,
   page: number,
   limit: number,
   doctor?: string,
@@ -138,7 +156,7 @@ export const getAllAppointments = async (
   const Doctor = (await import("@/app/models/Doctor")).default;
   const Enquiry = (await import("@/app/models/Enquiry")).default;
   const skip = (page - 1) * limit;
-  const whereClause: any = {};
+  const whereClause: any = { clinicId };
 
   if (status) whereClause.status = status;
   if (doctor) whereClause.doctor = doctor;
@@ -226,7 +244,9 @@ export const getAllAppointments = async (
 
 //update appoinment
 export const updateAppointment = async (
+  clinicId: string,
   id: string,
+  userId: string,
   data: {
     patientName: string;
     patientPhone: string;
@@ -245,26 +265,50 @@ export const updateAppointment = async (
     ...data,
     date: formattedDate,
   };
-  const appoinment = await Appointment.findByIdAndUpdate(id, updatedData, {
+  const appoinment = await Appointment.findOneAndUpdate({ _id: id, clinicId }, updatedData, {
     new: true,
   });
+
+  if (userId) {
+    await logActivity(
+      clinicId,
+      userId,
+      "UPDATED_APPOINTMENT",
+      "Appointment",
+      `Updated appointment for ${data.patientName}`,
+      id
+    );
+  }
+
   return sendApiResponse(true, "Appoinment updated successfully", appoinment);
 };
 
 //delete appoinment
-export const deleteAppointment = async (id: string) => {
-  const appopintmentExists = await Appointment.findById(id);
+export const deleteAppointment = async (clinicId: string, id: string, userId: string) => {
+  const appopintmentExists = await Appointment.findOne({ _id: id, clinicId });
   console.log(appopintmentExists);
 
   if (!appopintmentExists) {
     return sendApiResponse(false, "Appoinment not found");
   }
-  const appoinment = await Appointment.findByIdAndDelete(id);
+  const appoinment = await Appointment.findOneAndDelete({ _id: id, clinicId });
+
+  if (userId) {
+    await logActivity(
+      clinicId,
+      userId,
+      "DELETED_APPOINTMENT",
+      "Appointment",
+      `Deleted appointment for ${appopintmentExists.patientName}`,
+      id
+    );
+  }
+
   return sendApiResponse(true, "Appoinment deleted successfully", appoinment);
 };
 
-export const getAppointmentById = async (id: string) => {
-  const appointment = await Appointment.findById(id)
+export const getAppointmentById = async (clinicId: string, id: string) => {
+  const appointment = await Appointment.findOne({ _id: id, clinicId })
     .populate(
       "doctor",
       "_id firstName lastName email phone prefix specialization qualification",
@@ -296,7 +340,7 @@ export const getAppointmentById = async (id: string) => {
 const getSlotsInRange = (start: string, end: string) =>
   DEFAULT_TIME_SLOTS.filter((t) => t >= start && t <= end);
 
-export const getBookedSlots = async (date: string, doctor: string) => {
+export const getBookedSlots = async (clinicId: string, date: string, doctor: string) => {
   if (!date || !doctor) {
     return sendApiResponse(false, "Date and doctor required", []);
   }
@@ -305,11 +349,13 @@ export const getBookedSlots = async (date: string, doctor: string) => {
   const end = new Date(`${date}T23:59:59Z`);
 
   const appointments = await Appointment.find({
+    clinicId,
     doctor,
     date: { $gte: start, $lte: end },
   }).lean();
 
   const leaves = await DoctorLeave.find({
+    clinicId,
     doctor,
     fromDate: { $lte: end },
     toDate: { $gte: start },
@@ -346,13 +392,14 @@ export const getBookedSlots = async (date: string, doctor: string) => {
 };
 
 //get month wise report
-export const getMonthWiseReport = async (year?: string, doctorId?: string) => {
+export const getMonthWiseReport = async (clinicId: string, year?: string, doctorId?: string) => {
   const currentYear = year ? Number(year) : new Date().getFullYear();
 
   const startDate = new Date(currentYear, 0, 1);
   const endDate = new Date(currentYear, 11, 31, 23, 59, 59);
 
   const matchCondition: any = {
+    clinicId: new mongoose.Types.ObjectId(clinicId),
     date: { $gte: startDate, $lte: endDate },
   };
 
