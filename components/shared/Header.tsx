@@ -31,7 +31,7 @@ export function Header() {
   });
 
   return (
-    <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-10 border-b border-slate-200/60 h-16 px-6 flex items-center justify-between shadow-sm">
+    <header className="bg-white/40 backdrop-blur-2xl sticky top-0 z-10 border-b border-white/30 h-16 px-6 flex items-center justify-between shadow-sm">
       {/* LEFT: Mobile Menu & Dynamic Title */}
       <div className="flex items-center gap-4">
         <button
@@ -42,11 +42,11 @@ export function Header() {
         </button>
 
         <div className="flex flex-col">
-          <h2 className="text-sm sm:text-lg font-bold text-slate-800 tracking-tight leading-tight">
+          <h2 className="text-sm sm:text-lg font-bold text-[#00236F] tracking-tight leading-tight">
             {title}
           </h2>
-          <p className="text-xs text-slate-500 font-medium hidden sm:block">
-            Welcome back, <span className="text-blue-primary font-semibold">{user?.firstName} {user?.lastName}</span> !
+          <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
+            Elite Health Systems
           </p>
         </div>
       </div>

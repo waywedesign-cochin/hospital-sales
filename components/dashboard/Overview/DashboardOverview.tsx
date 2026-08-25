@@ -30,7 +30,7 @@ import {
   ClipboardList,
   CalendarCheck,
   CheckCircle2,
-  XCircle,
+  XCircle, Mail, CalendarDays,
 } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import DoctorAppointmentSummary from "./DoctorAppointmentSummary";
@@ -228,137 +228,98 @@ const DashboardHome = ({
   return (
     <div className="min-h-screen p-4 space-y-8">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10">
-        <div className="absolute inset-0 bg-blue-50 to-pink-500/5"></div>
-
-        <div className="relative flex flex-col md:flex-row justify-between items-center md:items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
-          {/* Left */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
-            <div className="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <h1 className="text-blue-500 font-bold text-lg">
-                {user?.firstName?.charAt(0).toUpperCase()}
-              </h1>
-            </div>
-
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-blue-600 bg-clip-text text-transparent">
-                Welcome back, {user?.firstName}
-              </h1>
-              <p className="text-slate-600 font-medium text-sm mt-1">
-                Appointment analytics and insights
-              </p>
-            </div>
-          </div>
-
-          {/* Right */}
-          <Select value={year} onValueChange={updateYearFilter}>
-            <SelectTrigger
-              className="
-    w-full md:w-[130px]
-    bg-[#249922]
-    text-white
-    border border-blue-100/60
-    rounded-xl
-    shadow-md shadow-blue-200/40
-    hover:bg-green-700
-    transition-all
-    flex justify-between items-center
-    [&>svg]:text-white
-    [&>svg]:opacity-200
-  "
-            >
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-
-            <SelectContent
-              className="
-      bg-white/80 backdrop-blur-xl
-      border border-blue-100/60
-      rounded-xl
-      shadow-xl shadow-blue-200/40
-    "
-            >
-              {[...Array(5)].map((_, i) => {
-                const y = new Date().getFullYear() - 2 + i;
-                return (
-                  <SelectItem key={y} value={y.toString()}>
-                    {y}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-black text-[#00236F] tracking-tight">
+            Welcome back, {user?.firstName}
+          </h1>
+          <p className="text-slate-500 font-medium text-sm mt-2">
+            Here is the latest update for your clinic today.
+          </p>
         </div>
+
+        {/* Right */}
+        <Select value={year} onValueChange={updateYearFilter}>
+          <SelectTrigger
+            className="
+              w-full md:w-[130px]
+              bg-white/80 backdrop-blur-xl
+              text-[#00236F] font-bold
+              border border-white/60
+              rounded-xl
+              shadow-sm shadow-[#00236F]/5
+              hover:bg-white
+              transition-all
+              flex justify-between items-center
+            "
+          >
+            <SelectValue placeholder="Year" />
+          </SelectTrigger>
+
+          <SelectContent
+            className="
+              bg-white/90 backdrop-blur-2xl
+              border border-white/60
+              rounded-xl
+              shadow-xl shadow-[#00236F]/10
+            "
+          >
+            {[...Array(5)].map((_, i) => {
+              const y = new Date().getFullYear() - 2 + i;
+              return (
+                <SelectItem key={y} value={y.toString()} className="font-medium text-[#00236F]">
+                  {y}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       </div>
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <section className="grid grid-cols-1 gap-6 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <SummaryCard
-            title="Total Enquiries"
+            title="Enquiries"
             value={totalSummary.totalEnquiries}
-            subtitle="Initial enquiries"
-            accentColor="#8BB174"
-            icon={
-              <Image
-                src="/admin/dashboard-overview/total-enquiries.png"
-                alt="Total Enquiries"
-                width={20}
-                height={20}
-              />
-            }
+            subtitle=""
+            accentColor="#64748B"
+            icon={<Mail className="w-6 h-6" />}
           />
 
           <SummaryCard
-            title="Total Appointments"
+            title="Appointments"
             value={totalSummary.totalAppointments}
-            subtitle="Visits done"
-            accentColor="#2563eb"
-            icon={
-              <Image
-                src="/admin/dashboard-overview/total-appointments.png"
-                alt="Total Appointments"
-                width={20}
-                height={20}
-              />
-            }
+            subtitle=""
+            accentColor="#2DD4BF"
+            icon={<CalendarDays className="w-6 h-6" />}
           />
 
           <SummaryCard
-            title="Completed Appointments"
+            title="Completed"
             value={totalSummary.completedAppointments}
-            subtitle="Booked visits"
-            accentColor="#B6D400"
-            icon={
-              <Image
-                src="/admin/dashboard-overview/completed-appointments.png"
-                alt="Completed Appointments"
-                width={20}
-                height={20}
-              />
-            }
+            subtitle=""
+            accentColor="#0EA5E9"
+            icon={<CheckCircle2 className="w-6 h-6" />}
           />
 
           <SummaryCard
-            title="Cancelled Appointments"
+            title="Cancelled"
             value={totalSummary.cancelledAppointments}
-            subtitle="Visits cancelled"
-            accentColor="#F87171"
-            icon={
-              <Image
-                src="/admin/dashboard-overview/cancelled-appointments.png"
-                alt="Cancelled Appointments"
-                width={20}
-                height={20}
-              />
-            }
+            subtitle=""
+            accentColor="#EF4444"
+            icon={<XCircle className="w-6 h-6" />}
           />
         </div>
+      </section>
 
-        <DoctorAppointmentSummary doctors={doctorsAppointmentSummary} />
+      <section className="mt-6">
+        <div className="w-full">
+          <DoctorAppointmentSummary doctors={doctorsAppointmentSummary} />
+        </div>
       </section>
 
       {/* Quick Overview */}
-      <div>
+      <div className="mt-8">
         <QuickOverview data={quickOverview} />
       </div>
 
@@ -366,14 +327,14 @@ const DashboardHome = ({
       {!logginedDoctor && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold text-blue-primary">
+            <h2 className="text-lg font-bold text-[#00236F]">
               Enquiry Analytics
             </h2>
           </div>
 
-          <div className="bg-linear-to-br from-white to-gray-50/50 p-6 rounded-3xl border border-gray-200/60 shadow-lg shadow-gray-200/50 backdrop-blur-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-sm md:text-lg text-nowrap font-semibold text-gray-900">
+          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-sm md:text-lg text-nowrap font-semibold text-[#00236F]">
                 Enquiries vs Appointments
               </h3>
             </div>
@@ -454,14 +415,14 @@ const DashboardHome = ({
 
       {/* Appointment Analytics */}
       <section className="space-y-4">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+        <h2 className="text-lg font-bold text-[#00236F]">
           Appointment Analytics
         </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Appointment chart */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border shadow-sm">
-            <p className="font-semibold mb-4 text-sm md:text-lg">
+          <div className="lg:col-span-2 bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+            <p className="font-semibold mb-4 text-[#00236F]">
               Monthly Appointments
             </p>
             <div className="h-[340px]">
@@ -519,8 +480,8 @@ const DashboardHome = ({
           </div>
 
           {/* Pie chart */}
-          <div className="bg-white p-3 rounded-2xl border shadow-sm flex flex-col items-center">
-            <p className="font-semibold ">Status Distribution</p>
+          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 flex flex-col items-center transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+            <p className="font-semibold text-[#00236F]">Status Distribution</p>
             <div className="w-full h-full">
               <EnhancedPieChart pieData={pieData} />
             </div>
@@ -534,3 +495,5 @@ const DashboardHome = ({
 };
 
 export default DashboardHome;
+
+

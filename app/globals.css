@@ -5,36 +5,36 @@
 :root {
   --vh: 100%;
   
-  /* Modern SaaS Palette */
-  --blue-primary: #5998DB; /* Soft sky blue from reference */
-  --blue-light: #7AAFEA;
-  --neon-accent: #C7F135; /* Neon lime green from reference */
-  --bg-main: #F4F7FB; /* Very light cool gray */
-  --card-bg: #FFFFFF;
-  --text-main: #2D3748;
-  --text-muted: #718096;
+  /* Modern SaaS Palette - Clinical Precision */
+  --blue-primary: #00236F; /* Deep Navy */
+  --blue-light: #2DD4BF; /* Professional Teal */
+  --neon-accent: #2DD4BF; /* Teal Accent */
+  --bg-main: #F4F7FB; 
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --text-main: #00236F;
+  --text-muted: #64748b;
 
-  --sidebar-bg: #FFFFFF;
-  --sidebar-border: #EDF2F7;
-  --sidebar-foreground: #4A5568;
-  --sidebar-primary: var(--blue-primary);
-  --sidebar-accent-hover: #F8FAFC;
-  --sidebar-active-text: var(--blue-primary);
-  --sidebar-active-bg: #F0F6FF;
+  --sidebar-bg: rgba(255, 255, 255, 0.5);
+  --sidebar-border: rgba(255, 255, 255, 0.2);
+  --sidebar-foreground: #00236F;
+  --sidebar-primary: #2DD4BF;
+  --sidebar-accent-hover: rgba(255, 255, 255, 0.8);
+  --sidebar-active-text: #2DD4BF;
+  --sidebar-active-bg: rgba(45, 212, 191, 0.1);
 
-  --font-geist-sans: "Geist Sans", sans-serif;
+  --font-hanken-grotesk: "Hanken Grotesk", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
   --radius: 1rem;
   
-  --background: oklch(0.98 0 0); /* #F4F7FB equivalent */
+  --background: oklch(0.98 0 0);
   --foreground: oklch(0.3 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0 0);
-  --primary: oklch(0.6 0.15 250); /* Blue primary */
+  --primary: oklch(0.3 0.1 250); /* Deep Navy in OKLCH approx */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.9 0.15 110); /* Neon accent */
+  --secondary: oklch(0.8 0.1 180); /* Teal approx */
   --secondary-foreground: oklch(0.2 0 0);
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.6 0 0);
@@ -43,10 +43,10 @@
   --destructive: oklch(0.6 0.2 20);
   --border: oklch(0.92 0 0);
   --input: oklch(0.92 0 0);
-  --ring: oklch(0.6 0.15 250);
+  --ring: oklch(0.3 0.1 250);
   
-  --chart-1: oklch(0.6 0.15 250);
-  --chart-2: oklch(0.9 0.15 110);
+  --chart-1: oklch(0.3 0.1 250);
+  --chart-2: oklch(0.8 0.1 180);
   --chart-3: oklch(0.8 0.1 200);
   --chart-4: oklch(0.7 0.15 300);
   --chart-5: oklch(0.85 0.15 50);
@@ -60,7 +60,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-hanken-grotesk);
   --font-mono: var(--font-geist-mono);
   --color-border: var(--border);
   --color-primary: var(--primary);

@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthStoreProvider } from "@/providers/AuthStoreProvider";
 import { Toaster } from "react-hot-toast";
 import GoogleAnalytics from "@/components/shared/GoogleAnalytics";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const hankenGrotesk = Hanken_Grotesk({
+  variable: "--font-hanken-grotesk",
   subsets: ["latin"],
 });
 
@@ -29,7 +24,7 @@ export default function RootLayout({
     <html suppressHydrationWarning lang="en">
       <GoogleAnalytics />
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+        className={`${hankenGrotesk.variable} font-sans antialiased bg-[#F4F7FB]`}
       >
         <AuthStoreProvider>{children}</AuthStoreProvider>
         <Toaster
@@ -90,3 +85,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

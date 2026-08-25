@@ -17,7 +17,7 @@ import {
   UsersRound,
   MessageCircle,
   Activity,
-  UserSquare,
+  UserSquare, BriefcaseMedical,
 } from "lucide-react";
 import { useSidebar } from "../provider/SidebarContext";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -94,7 +94,7 @@ export function Sidebar() {
     {
       id: "patients",
       label: "Patients",
-      icon: UserSquare,
+      icon: UserSquare, BriefcaseMedical,
       href: "/patients",
       subItems: [],
     },
@@ -191,8 +191,8 @@ export function Sidebar() {
       <aside
         className={`
           fixed sm:relative h-screen w-64
-          bg-white/80 backdrop-blur-2xl
-          border-r border-slate-200/60 shadow-lg shadow-slate-200/20
+          bg-white/60 backdrop-blur-2xl
+          border-r border-white/40 shadow-[4px_0_24px_rgba(0,35,111,0.03)]
           flex flex-col z-40
           transition-[width,transform] duration-300
           ${isCollapsed ? "sm:w-20" : "sm:w-64"}
@@ -209,17 +209,21 @@ export function Sidebar() {
 
         {/* LOGO */}
         <div
-          className={`h-16 flex items-center justify-center ${
+          className={`h-20 flex items-center ${
             isCollapsed ? "justify-center" : "px-6"
-          } border-b border-slate-200/60`}
+          } border-b border-white/30`}
         >
-          <Image
-            src={"/logo.png"}
-            alt="logo"
-            width={100}
-            height={100}
-            className="object-cover w-[70%]"
-          />
+          <div className="flex items-center gap-3">
+            <div className="bg-[#00236F] text-white p-2 rounded-xl shadow-md shadow-[#00236F]/20">
+               <BriefcaseMedical size={24} />
+            </div>
+            {!isCollapsed && (
+              <div className="flex flex-col whitespace-nowrap">
+                <span className="text-[17px] font-bold text-[#00236F] tracking-tight leading-tight">Healthcare CRM</span>
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Elite Health Systems</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* LIGHT MENU SECTION */}
@@ -240,18 +244,18 @@ export function Sidebar() {
                         : router.push(item.href || `/${item.id}`)
                     }
                     className={`
-                      flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 group
+                      flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all duration-300 group hover:scale-[1.02]
                       ${
                         isActive
-                          ? "bg-blue-50/80 text-blue-primary shadow-sm ring-1 ring-blue-100"
-                          : "text-slate-500 hover:bg-slate-50/80 hover:text-slate-800"
+                          ? "bg-white/80 text-[#00236F] shadow-sm ring-1 ring-white/50 font-bold"
+                          : "text-[#00236F]/70 hover:bg-white/50 hover:text-[#00236F] font-medium"
                       }
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`w-5 h-5 transition-colors ${isActive ? "text-blue-primary" : "text-slate-400 group-hover:text-blue-primary/70"}`} />
+                      <Icon className={`w-5 h-5 transition-colors ${isActive ? "text-[#2DD4BF]" : "text-[#00236F]/50 group-hover:text-[#2DD4BF]"}`} />
                       {!isCollapsed && (
-                        <span className="text-sm font-medium">
+                        <span className="text-sm">
                           {item.label}
                         </span>
                       )}
@@ -259,24 +263,24 @@ export function Sidebar() {
                     {hasSubItems && !isCollapsed && (
                       <ChevronDown
                         className={`w-4 h-4 transition-transform ${
-                          isExpanded ? "rotate-180" : ""
+                          isExpanded ? "rotate-180 text-[#2DD4BF]" : "text-[#00236F]/40"
                         }`}
                       />
                     )}
                   </div>
 
                   {hasSubItems && isExpanded && !isCollapsed && (
-                    <ul className="mt-1.5 ml-9 space-y-1 border-l-2 border-slate-100 pl-3">
+                    <ul className="mt-1.5 ml-9 space-y-1 border-l-2 border-white/40 pl-3">
                       {item.subItems.map((sub) => {
                         const isSubActive = pathname === sub.href.split("?")[0];
                         return (
                           <li key={sub.label}>
                             <Link
                               href={sub.href}
-                              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                              className={`block px-3 py-2 rounded-lg text-sm transition-all hover:scale-[1.02] ${
                                 isSubActive
-                                  ? "bg-blue-50 text-blue-primary font-medium"
-                                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                  ? "bg-white/60 text-[#00236F] font-bold"
+                                  : "text-[#00236F]/60 hover:bg-white/40 hover:text-[#00236F] font-medium"
                               }`}
                             >
                               {sub.label}
@@ -357,3 +361,6 @@ export function Sidebar() {
     </>
   );
 }
+
+
+

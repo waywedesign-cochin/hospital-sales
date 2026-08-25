@@ -14,17 +14,17 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
 
   return (
     <section className="space-y-4">
-      <h3 className="text-sm font-semibold text-green-700">Quick Overview</h3>
+      <h3 className="text-lg font-bold text-[#00236F]">Quick Overview</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* ---------------- Today Appointments ---------------- */}
-        <div className="bg-white rounded-3xl border border-[#0D4209] p-5 space-y-4">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-4 md:p-5 space-y-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.02]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-3xl font-semibold text-gray-900">
+              <p className="text-2xl font-black text-[#00236F]">
                 {todayAppointments.total}
               </p>
-              <p className="text-sm font-medium text-gray-800">
+              <p className="text-[10px] font-bold tracking-[0.15em] text-[#00236F]/60 uppercase whitespace-nowrap mt-2">
                 Today’s Appointments
               </p>
             </div>
@@ -44,16 +44,16 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
         </div>
 
         {/* ---------------- Consultation Breakdown ---------------- */}
-        <div className="bg-white rounded-2xl border border-[#0D4209] p-5 space-y-4">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-4 md:p-5 space-y-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.02]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-3xl font-semibold text-gray-900">
+              <p className="text-2xl font-black text-[#00236F]">
                 {Object.values(consultationBreakdown).reduce(
                   (a, b) => a + b,
                   0
                 )}
               </p>
-              <p className="text-sm font-medium text-gray-800">
+              <p className="text-[10px] font-bold tracking-[0.15em] text-[#00236F]/60 uppercase whitespace-nowrap mt-2">
                 Today’s Consultation Breakdown
               </p>
             </div>
@@ -77,13 +77,13 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
         </div>
 
         {/* ---------------- Tomorrow Schedule ---------------- */}
-        <div className="bg-white rounded-2xl border border-[#0D4209] p-5 space-y-4">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-4 md:p-5 space-y-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.02]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-3xl font-semibold text-gray-900">
+              <p className="text-2xl font-black text-[#00236F]">
                 {tomorrowAppointments}
               </p>
-              <p className="text-sm font-medium text-gray-800">
+              <p className="text-[10px] font-bold tracking-[0.15em] text-[#00236F]/60 uppercase whitespace-nowrap mt-2">
                 Tomorrow’s schedule
               </p>
             </div>
