@@ -3,11 +3,12 @@ import { IUser } from "./User";
 
 export interface IEnquiry {
   _id: string;
+  clinicId: mongoose.Types.ObjectId;
   firstName: string;
   lastName?: string;
   email: string;
   phone: string;
-  treatmentCategory: "SKIN" | "BODY" | "HAIR";
+  treatmentCategory: string;
   message: string;
   status: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED";
   patientId?: mongoose.Types.ObjectId | any;
@@ -19,6 +20,12 @@ export interface IEnquiry {
 
 const enquirySchema = new Schema<IEnquiry>(
   {
+    clinicId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Clinic",
+      required: true,
+      index: true,
+    },
     firstName: { type: String, required: true },
     lastName: { type: String },
     email: { type: String, required: true },
@@ -26,7 +33,6 @@ const enquirySchema = new Schema<IEnquiry>(
 
     treatmentCategory: {
       type: String,
-      enum: ["SKIN", "BODY", "HAIR"],
       required: true,
     },
 

@@ -6,6 +6,7 @@ import {
   getEnquirySummary,
 } from "../controllers/enquiryController";
 import { dbConnect } from "../lib/dbConnect";
+import { requireAuth } from "../lib/auth";
 
 export const getEnquiriesAction = async (
   page: number,
@@ -18,7 +19,9 @@ export const getEnquiriesAction = async (
   toDate?: string
 ) => {
   await dbConnect();
+  const user = await requireAuth();
   return await getEnquiries(
+    user.clinicId,
     page,
     limit,
     search,
@@ -32,7 +35,8 @@ export const getEnquiriesAction = async (
 
 export const getEnquiryReportAction = async (year?: string) => {
   await dbConnect();
-  return await getEnquiryReport(year);
+  const user = await requireAuth();
+  return await getEnquiryReport(user.clinicId, year);
 };
 
 export const getEnquirySummaryAction = async (
@@ -40,5 +44,6 @@ export const getEnquirySummaryAction = async (
   toDate?: string
 ) => {
   await dbConnect();
-  return await getEnquirySummary(fromDate, toDate);
+  const user = await requireAuth();
+  return await getEnquirySummary(user.clinicId, fromDate, toDate);
 };

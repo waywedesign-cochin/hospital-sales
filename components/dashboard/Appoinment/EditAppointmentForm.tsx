@@ -18,7 +18,9 @@ import { appointmentSchema } from "@/app/validations/appointmentSchemas";
 import { Doctor } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
-import { ArrowLeft, CalendarIcon } from "lucide-react";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
+import { Loader2, ArrowLeft, Plus, Calendar as CalendarIcon } from "lucide-react";
+import QuickAddCategoryDialog from "../Settings/QuickAddCategoryDialog";
 
 type BlockedSlot = {
   time: string;
@@ -34,6 +36,17 @@ export default function EditAppointmentForm({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const clinic = useAuthStore((state: any) => state.clinic);
+  const categories: string[] = clinic?.departments || [];
+
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [localCategories, setLocalCategories] = useState<string[]>(categories);
+
+  useEffect(() => {
+    if (categories) {
+      setLocalCategories(categories);
+    }
+  }, [categories]);
 
   const initialDoctorId = appointment.doctor?._id || appointment.doctor || "";
   const initialTreatmentCategory = appointment.treatmentCategory || "";
@@ -189,10 +202,7 @@ export default function EditAppointmentForm({
 
   return (
     <div className="min-h-screen p-2 space-y-6 relative">
-      {/* Background – same as Appointments page */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-       
-      </div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none"></div>
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
@@ -213,7 +223,7 @@ export default function EditAppointmentForm({
           ]}
         />
       </div>
-      {/* Header – matched style */}
+      
       <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="relative flex items-center gap-4 p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 ">
           <div className="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-500/30">
@@ -229,6 +239,15 @@ export default function EditAppointmentForm({
           </div>
         </div>
       </div>
+
+      <QuickAddCategoryDialog
+        open={quickAddOpen}
+        setOpen={setQuickAddOpen}
+        onAdded={(newCategory) => {
+          setLocalCategories((prev) => [...prev, newCategory]);
+          onChange("treatmentCategory", newCategory);
+        }}
+      />
 
       {/* Form Card */}
       <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
@@ -265,11 +284,20 @@ export default function EditAppointmentForm({
                 <SelectValue placeholder="Treatment Category" />
               </SelectTrigger>
               <SelectContent>
-                {["Skin", "Body", "Hair"].map((c) => (
+                {localCategories.map((c: string) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
                 ))}
+                <div className="p-2 border-t mt-1">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Add New Category
+                  </Button>
+                </div>
               </SelectContent>
             </Select>
             {errors.treatmentCategory && (

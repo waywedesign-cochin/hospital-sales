@@ -11,6 +11,7 @@ import { ArrowLeft, Loader2, StethoscopeIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
 
 /* ---------------- Error Message ---------------- */
 interface ErrorMessageProps {
@@ -91,13 +92,13 @@ export default function AddDoctorPage() {
       ? "border-red-500 focus:ring-red-500"
       : "border-gray-300 focus:border-blue-500 focus:ring-blue-500";
 
-  const specializationOptions = [
-    { value: "skin", label: "Skin" },
-    { value: "hair", label: "Hair" },
-    { value: "body", label: "Body" },
-  ];
+  const clinic = useAuthStore((state) => state.clinic);
+  const specializationOptions = clinic?.departments?.map(dept => ({
+    value: dept,
+    label: dept
+  })) || [];
 
-  type Option = (typeof specializationOptions)[0];
+  type Option = { value: string; label: string };
 
   return (
     <div className="min-h-screen p-2 space-y-6 relative">

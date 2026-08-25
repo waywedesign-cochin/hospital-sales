@@ -11,7 +11,7 @@ import { sendApiResponse } from "@/app/utils/nextResponseHandler";
 import { enquiryActivitySchema } from "@/app/validations/enquirySchemas";
 import { NextRequest } from "next/server";
 
-export const POST = async (req: NextRequest) => {
+export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const [data, errorResponse] = await validate(enquiryActivitySchema, req);
@@ -21,7 +21,7 @@ export const POST = async (req: NextRequest) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await addEnquiryActivity(data);
+    return await addEnquiryActivity({ ...data, clinicId: user.clinicId, createdBy: user._id });
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -29,9 +29,9 @@ export const POST = async (req: NextRequest) => {
     }
     return sendApiResponse(false, message, null);
   }
-};
+});
 
-export const PUT = async (req: NextRequest) => {
+export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const activityId = req.nextUrl.searchParams.get("activityId");
@@ -45,7 +45,7 @@ export const PUT = async (req: NextRequest) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await updateEnquiryActivity(activityId, data);
+    return await updateEnquiryActivity(user.clinicId, activityId, user._id, data);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -53,16 +53,16 @@ export const PUT = async (req: NextRequest) => {
     }
     return sendApiResponse(false, message, null);
   }
-};
+});
 
-export const DELETE = async (req: NextRequest) => {
+export const DELETE = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteEnquiryActivity(id);
+    return await deleteEnquiryActivity(user.clinicId, id, user._id);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -70,4 +70,4 @@ export const DELETE = async (req: NextRequest) => {
     }
     return sendApiResponse(false, message, null);
   }
-};
+});

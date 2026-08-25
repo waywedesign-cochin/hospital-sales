@@ -32,6 +32,7 @@ import { EnquirySummary } from "@/app/controllers/enquiryController";
 import EnquirySummaryCards from "./EnquirySummaryCards";
 import Link from "next/link";
 import BASE_URL from "@/app/utils/baseUrl";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
 const statusStyles: Record<string, string> = {
   NEW: "bg-yellow-50 text-yellow-700 border border-yellow-200",
   CONTACTED: "bg-blue-50 text-blue-700 border border-blue-200",
@@ -49,7 +50,7 @@ export interface EnquirySummaryCardsData {
   // Monthly overview
   totalEnquiries: number;
   conversionRate: number; // %
-  topCategory: "SKIN" | "HAIR" | "BODY";
+  topCategory: string;
 }
 
 export default function EnquiryPage({
@@ -73,6 +74,8 @@ export default function EnquiryPage({
   const [fromDate, setFromDate] = useState(searchParams.get("fromDate") ?? "");
   const [toDate, setToDate] = useState(searchParams.get("toDate") ?? "");
   const [exporting, setExporting] = useState(false);
+  const clinic = useAuthStore((state) => state.clinic);
+  const categories = clinic?.departments || [];
   // Debounce search
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -359,9 +362,11 @@ export default function EnquiryPage({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Types</SelectItem>
-              <SelectItem value="SKIN">Skin Related</SelectItem>
-              <SelectItem value="HAIR">Hair Related</SelectItem>
-              <SelectItem value="BODY">Body Related</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 

@@ -18,6 +18,8 @@ import {
   MessageCircle,
   Activity,
   UserSquare, BriefcaseMedical,
+  BookOpen,
+  Settings,
 } from "lucide-react";
 import { useSidebar } from "../provider/SidebarContext";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -167,6 +169,25 @@ export function Sidebar() {
           },
         ]
       : []),
+    ...(user?.role === "ADMIN"
+      ? [
+          {
+            id: "settings",
+            label: "Settings",
+            icon: Settings,
+            subItems: [
+              { label: "Treatment Categories", href: "/settings/treatment-category" }
+            ],
+          },
+        ]
+      : []),
+    {
+      id: "architecture",
+      label: "Architecture Guide",
+      icon: BookOpen,
+      href: "/architecture",
+      subItems: [],
+    },
   ];
 
   return (
@@ -191,7 +212,6 @@ export function Sidebar() {
       <aside
         className={`
           fixed sm:relative h-screen w-64
-          bg-white/60 backdrop-blur-2xl
           border-r border-white/40 shadow-[4px_0_24px_rgba(0,35,111,0.03)]
           flex flex-col z-40
           transition-[width,transform] duration-300
@@ -199,6 +219,13 @@ export function Sidebar() {
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"}
         `}
       >
+        {/* Background Image Layer */}
+        <div 
+          className="absolute inset-0 z-[-2] bg-cover bg-center opacity-60 mix-blend-multiply"
+          style={{ backgroundImage: "url('/sidebar-bg.jpg')" }}
+        />
+        {/* Glass Effect Overlay */}
+        <div className="absolute inset-0 z-[-1] bg-white/50 backdrop-blur-xl" />
         {/* TOGGLE */}
         <button
           onClick={toggleSidebar}
@@ -214,13 +241,13 @@ export function Sidebar() {
           } border-b border-white/30`}
         >
           <div className="flex items-center gap-3">
-            <div className="bg-[#00236F] text-white p-2 rounded-xl shadow-md shadow-[#00236F]/20">
+            <div className="bg-[#00236F] text-white p-2 rounded-xl shadow-md shadow-[#00236F]/20 relative z-10">
                <BriefcaseMedical size={24} />
             </div>
             {!isCollapsed && (
-              <div className="flex flex-col whitespace-nowrap">
+              <div className="flex flex-col whitespace-nowrap relative z-10">
                 <span className="text-[17px] font-bold text-[#00236F] tracking-tight leading-tight">Healthcare CRM</span>
-                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Elite Health Systems</span>
+                <span className="text-[10px] uppercase font-bold text-slate-600 tracking-wider">Elite Health Systems</span>
               </div>
             )}
           </div>
@@ -244,16 +271,17 @@ export function Sidebar() {
                         : router.push(item.href || `/${item.id}`)
                     }
                     className={`
-                      flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all duration-300 group hover:scale-[1.02]
+                      flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-3"} py-3 rounded-xl cursor-pointer transition-all duration-300 group hover:scale-[1.02]
+                      relative z-10
                       ${
                         isActive
                           ? "bg-white/80 text-[#00236F] shadow-sm ring-1 ring-white/50 font-bold"
-                          : "text-[#00236F]/70 hover:bg-white/50 hover:text-[#00236F] font-medium"
+                          : "text-[#00236F]/80 hover:bg-white/60 hover:text-[#00236F] font-medium"
                       }
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`w-5 h-5 transition-colors ${isActive ? "text-[#2DD4BF]" : "text-[#00236F]/50 group-hover:text-[#2DD4BF]"}`} />
+                      <Icon className={`w-5 h-5 transition-colors ${isActive ? "text-[#2DD4BF]" : "text-[#00236F]/60 group-hover:text-[#2DD4BF]"}`} />
                       {!isCollapsed && (
                         <span className="text-sm">
                           {item.label}
@@ -270,7 +298,7 @@ export function Sidebar() {
                   </div>
 
                   {hasSubItems && isExpanded && !isCollapsed && (
-                    <ul className="mt-1.5 ml-9 space-y-1 border-l-2 border-white/40 pl-3">
+                    <ul className="mt-1.5 ml-9 space-y-1 border-l-2 border-white/40 pl-3 relative z-10">
                       {item.subItems.map((sub) => {
                         const isSubActive = pathname === sub.href.split("?")[0];
                         return (
@@ -279,8 +307,8 @@ export function Sidebar() {
                               href={sub.href}
                               className={`block px-3 py-2 rounded-lg text-sm transition-all hover:scale-[1.02] ${
                                 isSubActive
-                                  ? "bg-white/60 text-[#00236F] font-bold"
-                                  : "text-[#00236F]/60 hover:bg-white/40 hover:text-[#00236F] font-medium"
+                                  ? "bg-white/70 text-[#00236F] font-bold"
+                                  : "text-[#00236F]/70 hover:bg-white/50 hover:text-[#00236F] font-medium"
                               }`}
                             >
                               {sub.label}
@@ -298,7 +326,7 @@ export function Sidebar() {
 
         {/* FOOTER */}
         {/* FOOTER – SaaS STYLE */}
-        <div className="border-t border-slate-200/60 bg-transparent px-4 py-4">
+        <div className="border-t border-white/40 bg-transparent px-4 py-4 relative z-10">
           <div
             className={`flex items-center justify-between ${
               isCollapsed ? "justify-center" : ""
@@ -323,7 +351,7 @@ export function Sidebar() {
                   <p className="text-sm font-semibold text-slate-800">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-[11px] font-medium tracking-wide text-slate-500">
+                  <p className="text-[11px] font-medium tracking-wide text-slate-600">
                     {user?.role}
                   </p>
                 </div>
@@ -334,7 +362,7 @@ export function Sidebar() {
             {!isCollapsed && (
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="text-slate-400 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
+                  <button className="text-slate-500 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-white/50">
                     <LogOut size={18} />
                   </button>
                 </DialogTrigger>

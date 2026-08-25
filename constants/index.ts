@@ -51,55 +51,6 @@ export const BOOKING_STATUS_COLORS: Record<
   },
 };
 
-export const DEPARTMENTS: Department[] = [
-  {
-    id: "1",
-    name: "Cardiology",
-    code: "CARD",
-    icon: "Heart",
-    description: "Heart and cardiovascular system",
-    activeCount: 8,
-  },
-  {
-    id: "2",
-    name: "Neurology",
-    code: "NEUR",
-    icon: "Brain",
-    description: "Brain and nervous system",
-    activeCount: 6,
-  },
-  {
-    id: "3",
-    name: "Orthopedics",
-    code: "ORTH",
-    icon: "Bone",
-    description: "Bones, joints, and muscles",
-    activeCount: 10,
-  },
-  {
-    id: "4",
-    name: "Pediatrics",
-    code: "PEDI",
-    icon: "Baby",
-    description: "Children's health",
-    activeCount: 7,
-  },
-  {
-    id: "5",
-    name: "Dermatology",
-    code: "DERM",
-    icon: "Scan",
-    description: "Skin, hair, and nails",
-    activeCount: 5,
-  },
-  {
-    id: "6",
-    name: "General Medicine",
-    code: "GENM",
-    icon: "Stethoscope",
-    description: "General medical care",
-    activeCount: 12,
-  },
-];
+
 
 

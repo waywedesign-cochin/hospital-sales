@@ -9,7 +9,7 @@ export async function requireAuth(allowedRoles?: string[] | string) {
     throw new Error("Unauthorized: No token provided");
   }
 
-  const decoded = verifyJwt<{ _id: string; role: string }>(token);
+  const decoded = verifyJwt<{ _id: string; role: string; clinicId: string }>(token);
 
   if (!decoded) {
     throw new Error("Unauthorized: Invalid or expired token");

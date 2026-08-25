@@ -3,6 +3,7 @@ import mongoose, { Schema, Model } from "mongoose";
 
 export interface DoctorLeave {
   _id?: string;
+  clinicId: mongoose.Types.ObjectId;
   doctor: mongoose.Types.ObjectId | Doctor; // Doctor ObjectId
   fromDate: Date;
   toDate: Date;
@@ -17,6 +18,12 @@ export interface DoctorLeave {
 
 const doctorLeaveSchema = new Schema<DoctorLeave>(
   {
+    clinicId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Clinic",
+      required: true,
+      index: true,
+    },
     doctor: {
       type: mongoose.Types.ObjectId,
       ref: "Doctor",

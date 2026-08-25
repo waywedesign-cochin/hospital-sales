@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPatients } from "@/app/controllers/patientController";
 import { dbConnect } from "@/app/lib/dbConnect";
 
-export async function GET(req: NextRequest) {
+import { withAuth } from "@/app/middlewares/withAuth";
+
+export const GET = withAuth(["ADMIN", "STAFF", "DOCTOR"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const searchParams = req.nextUrl.searchParams;
@@ -10,9 +12,9 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || undefined;
 
-    const response = await getPatients(page, limit, search);
-    return NextResponse.json(response);
+    const response = await getPatients(user.clinicId, page, limit, search);
+    return response;
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
-}
+});

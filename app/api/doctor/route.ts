@@ -31,13 +31,13 @@ import { NextRequest } from "next/server";
 //   }
 // });
 
-export const POST = withAuth(["ADMIN"])(async (req: NextRequest) => {
+export const POST = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
     const data = await req.json(); 
 
-    return await addDoctor(data);
+    return await addDoctor({ ...data, clinicId: user.clinicId, userId: user._id });
   } catch (error) {
     let message = "Server error";
 
@@ -48,7 +48,7 @@ export const POST = withAuth(["ADMIN"])(async (req: NextRequest) => {
   }
 });
 
-export const PUT = withAuth(["ADMIN"])(async (req: NextRequest) => {
+export const PUT = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
@@ -65,7 +65,7 @@ export const PUT = withAuth(["ADMIN"])(async (req: NextRequest) => {
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await updateDoctor(id, data);
+    return await updateDoctor(user.clinicId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
 
@@ -76,14 +76,14 @@ export const PUT = withAuth(["ADMIN"])(async (req: NextRequest) => {
   }
 });
 
-export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest) => {
+export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
     const id = req.nextUrl.searchParams.get("id");
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteDoctor(id);
+    return await deleteDoctor(user.clinicId, id, user._id);
   } catch (error) {
     let message = "Server error";
 

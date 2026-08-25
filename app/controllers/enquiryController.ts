@@ -4,6 +4,7 @@ import { sendResponse } from "../utils/responseHandler";
 import User, { IUser } from "../models/User";
 import EnquiryActivity from "../models/EnquiryActivity";
 import Patient from "../models/Patient";
+import { logActivity } from "./activityLogController";
 export interface EnquirySummary {
   totalEnquiries: number;
   appointmentsBooked: number;
@@ -14,18 +15,25 @@ export interface EnquirySummary {
   body: number;
 }
 export const createEnquiry = async (data: {
+  clinicId: string;
+  userId?: string;
   firstName: string;
   lastName?: string;
   email: string;
   phone: string;
   treatmentCategory: string;
   message: string;
-  source: string;
+  source: "OTHER" | "WEBSITE" | "PHONE" | "WHATSAPP";
 }) => {
-  // Identify patient by phone or create a new one
-  let patient = await Patient.findOne({ phone: data.phone });
+  // Identify patient by phone and first name within the same clinic
+  let patient = await Patient.findOne({ 
+    clinicId: data.clinicId,
+    phone: data.phone,
+    firstName: { $regex: new RegExp(`^${data.firstName}$`, "i") } 
+  });
   if (!patient) {
     patient = await Patient.create({
+      clinicId: data.clinicId,
       firstName: data.firstName,
       lastName: data.lastName || "",
       email: data.email,
@@ -37,10 +45,23 @@ export const createEnquiry = async (data: {
     ...data,
     patientId: patient._id,
   });
+
+  if (data.userId) {
+    await logActivity(
+      data.clinicId,
+      data.userId,
+      "CREATED_ENQUIRY",
+      "Enquiry",
+      `Created new lead/enquiry for ${data.firstName} ${data.lastName || ""}`.trim(),
+      newEnquiry._id
+    );
+  }
+
   return sendApiResponse(true, "Enquiry created successfully", newEnquiry);
 };
 
 export const getEnquiries = async (
+  clinicId: string,
   page: number = 1,
   limit: number = 10,
   search?: string,
@@ -52,7 +73,7 @@ export const getEnquiries = async (
 ) => {
   const skip = (page - 1) * limit;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const whereClause: any = {};
+  const whereClause: any = { clinicId };
   if (search) {
     whereClause.$or = [
       { firstName: { $regex: search, $options: "i" } },
@@ -181,12 +202,14 @@ export const getEnquiries = async (
 
 //update status
 export const updateEnquiryStatus = async (
+  clinicId: string,
   id: string,
+  userId: string,
   status: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED",
   handledBy?: string,
   staffNotes?: string,
 ) => {
-  const enquiry = await Enquiry.findById(id);
+  const enquiry = await Enquiry.findOne({ _id: id, clinicId });
 
   if (!enquiry) {
     return sendApiResponse(false, "Enquiry not found");
@@ -207,23 +230,46 @@ export const updateEnquiryStatus = async (
     { new: true },
   );
 
+  if (userId) {
+    await logActivity(
+      clinicId,
+      userId,
+      "UPDATED_ENQUIRY_STATUS",
+      "Enquiry",
+      `Updated lead status to ${status}`,
+      id
+    );
+  }
+
   return sendApiResponse(true, "Enquiry status updated successfully", {
     enquiry: updatedEnquiry,
   });
 };
 
 //delete enquiry
-export const deleteEnquiry = async (id: string) => {
-  const enquiry = await Enquiry.findById(id);
+export const deleteEnquiry = async (clinicId: string, id: string, userId: string) => {
+  const enquiry = await Enquiry.findOne({ _id: id, clinicId });
   if (!enquiry) {
     return sendApiResponse(false, "Enquiry not found");
   }
-  await Enquiry.findByIdAndDelete(id);
+  await Enquiry.findOneAndDelete({ _id: id, clinicId });
+
+  if (userId) {
+    await logActivity(
+      clinicId,
+      userId,
+      "DELETED_ENQUIRY",
+      "Enquiry",
+      `Deleted lead/enquiry`,
+      id
+    );
+  }
+
   return sendApiResponse(true, "Enquiry deleted successfully");
 };
 
 //enquiry report
-export const getEnquiryReport = async (year?: string) => {
+export const getEnquiryReport = async (clinicId: string, year?: string) => {
   // Default year → current year
   const currentYear = year ? Number(year) : new Date().getFullYear();
 
@@ -234,6 +280,7 @@ export const getEnquiryReport = async (year?: string) => {
   const rawReport = await Enquiry.aggregate([
     {
       $match: {
+        clinicId: new (require('mongoose').Types.ObjectId)(clinicId),
         createdAt: { $gte: startDate, $lte: endDate },
       },
     },
@@ -308,10 +355,10 @@ export const getEnquiryReport = async (year?: string) => {
 };
 
 //enquiry summary
-export const getEnquirySummary = async (fromDate?: string, toDate?: string) => {
+export const getEnquirySummary = async (clinicId: string, fromDate?: string, toDate?: string) => {
   /* ---------------- Snapshot Date Logic ---------------- */
-  let snapshotMatch: any = {};
-  let overviewMatch: any = {};
+  let snapshotMatch: any = { clinicId: new (require('mongoose').Types.ObjectId)(clinicId) };
+  let overviewMatch: any = { clinicId: new (require('mongoose').Types.ObjectId)(clinicId) };
 
   if (fromDate || toDate) {
     const start = fromDate ? new Date(fromDate) : new Date();
@@ -336,8 +383,8 @@ export const getEnquirySummary = async (fromDate?: string, toDate?: string) => {
       $lte: todayEnd,
     };
 
-    // Default OVERVIEW = ALL (no date filter)
-    overviewMatch = {};
+    // Default OVERVIEW = ALL within this clinic (no date filter)
+    overviewMatch = { clinicId: new (require('mongoose').Types.ObjectId)(clinicId) };
   }
 
   /* ---------------- TODAY / RANGE SNAPSHOT ---------------- */
@@ -422,8 +469,8 @@ export const getEnquirySummary = async (fromDate?: string, toDate?: string) => {
 };
 
 // In your enquiryController
-export async function getEnquiriesForExport(filters: any) {
-  const query: any = {};
+export async function getEnquiriesForExport(clinicId: string, filters: any) {
+  const query: any = { clinicId };
 
   if (filters.search) {
     query.$or = [

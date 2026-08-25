@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import DeleteDialog from "@/components/shared/DeleteDialog";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
 
 const getStatusBadge = (status: string) => {
   if (status === "ACTIVE")
@@ -65,6 +66,8 @@ export default function DoctorsPage({
   const searchParams = useSearchParams();
   const router = useRouter();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const clinic = useAuthStore((state) => state.clinic);
+  const categories = clinic?.departments || [];
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -176,9 +179,11 @@ export default function DoctorsPage({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Specializations</SelectItem>
-            <SelectItem value="skin">Skin</SelectItem>
-            <SelectItem value="body">Body</SelectItem>
-            <SelectItem value="hair">Hair</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c} value={c.toLowerCase()}>
+                {c}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

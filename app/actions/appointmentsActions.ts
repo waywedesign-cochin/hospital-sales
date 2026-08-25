@@ -2,6 +2,7 @@
 
 import { getAllAppointments, getAppointmentById, getMonthWiseReport } from "../controllers/appoinmentController";
 import { dbConnect } from "../lib/dbConnect";
+import { requireAuth } from "../lib/auth";
 
 export const  getAppointmentsAction = async (
   page: number,
@@ -13,15 +14,18 @@ export const  getAppointmentsAction = async (
   month?: string
 ) => {
   await dbConnect();
-  return await getAllAppointments(page, limit, doctor, search, status,undefined, undefined, year, month);
+  const user = await requireAuth();
+  return await getAllAppointments(user.clinicId, page, limit, doctor, search, status,undefined, undefined, year, month);
 };
 
 export const getAppointmentByIdAction = async (id: string) => {
   await dbConnect();
-  return await getAppointmentById(id);
+  const user = await requireAuth();
+  return await getAppointmentById(user.clinicId, id);
 };
 
 export const getMonthWiseReportAction = async (year?: string, doctorId?: string) => {
   await dbConnect();
-  return await getMonthWiseReport(year, doctorId);
+  const user = await requireAuth();
+  return await getMonthWiseReport(user.clinicId, year, doctorId);
 };

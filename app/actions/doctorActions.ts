@@ -3,6 +3,7 @@
 import { getAllDoctors, getDoctorById } from "../controllers/doctorController";
 import { getLeaves } from "../controllers/doctorLeaveController";
 import { dbConnect } from "../lib/dbConnect";
+import { requireAuth } from "../lib/auth";
 
 export const getDoctorsAction = async (
   page: number,
@@ -11,15 +12,18 @@ export const getDoctorsAction = async (
   specialization?: string
 ) => {
   await dbConnect();
-  return await getAllDoctors(page, limit, search, specialization);
+  const user = await requireAuth();
+  return await getAllDoctors(user.clinicId, page, limit, search, specialization);
 };
 
 export const getDoctorByIdAction = async (id: string) => {
   await dbConnect();
-  return await getDoctorById(id);
+  const user = await requireAuth();
+  return await getDoctorById(user.clinicId, id);
 };
 
 export const getDoctorsLeavesAction = async (id?: string,page: number = 1, limit: number = 10, search?: string, doctor?: string, month?: string, year?: string, type?: string) => {
   await dbConnect();
-  return await getLeaves(id,page, limit, search, doctor, month, year, type);
+  const user = await requireAuth();
+  return await getLeaves(user.clinicId, id, page, limit, search, doctor, month, year, type);
 };

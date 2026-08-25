@@ -2,6 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 
 export interface Doctor {
   _id?: string;
+  clinicId: mongoose.Types.ObjectId;
   prefix: string;
   firstName: string;
   lastName: string;
@@ -19,34 +20,18 @@ export interface Doctor {
   updatedAt?: Date;
 }
 
-// const doctorSchema = new Schema<Doctor>(
-//   {
-//     prefix: { type: String, required: true },
-//     firstName: { type: String, required: true },
-//     lastName: { type: String },
-//     email: { type: String, required: true, unique: true },
-//     contactNumber: { type: String, required: true },
-//     address: { type: String, required: true },
-//     qualification: { type: String, required: true },
-//     specialization: { type: [String], required: true },
-//     education: { type: String, required: true },
-//     experience: { type: String, required: true },
-//     registrationNumber: { type: String, required: true },
-//     avatar: { type: String },
-//     status: {
-//       type: String,
-//       enum: ["ACTIVE", "INACTIVE", "ON_LEAVE"],
-//       default: "ACTIVE",
-//     },
-//   },
-//   { timestamps: true }
-// );
 const doctorSchema = new Schema<Doctor>(
   {
+    clinicId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Clinic",
+      required: true,
+      index: true,
+    },
     prefix: { type: String, required: true },
     firstName: { type: String },
     lastName: { type: String },
-    email: { type: String, unique: true },
+    email: { type: String },
     contactNumber: { type: String },
     address: { type: String },
     qualification: { type: String },
@@ -63,6 +48,9 @@ const doctorSchema = new Schema<Doctor>(
   },
   { timestamps: true },
 );
+
+// Same doctor email can exist in different clinics
+doctorSchema.index({ email: 1, clinicId: 1 }, { unique: true, sparse: true });
 
 const Doctor: Model<Doctor> =
   mongoose.models.Doctor || mongoose.model<Doctor>("Doctor", doctorSchema);

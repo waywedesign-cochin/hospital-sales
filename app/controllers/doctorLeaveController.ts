@@ -1,24 +1,40 @@
 import DoctorLeave from "../models/DoctorLeave";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 import { sendResponse } from "../utils/responseHandler";
+import { logActivity } from "./activityLogController";
 
 //manage leave
 export const createLeave = async (data: {
+  clinicId: string;
+  userId?: string;
   doctor: string;
   fromDate: string;
   toDate: string;
-  type: string;
+  type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE";
   slots: string[];
   startTime: string;
   endTime: string;
   reason: string;
 }) => {
   const leave = await DoctorLeave.create(data);
+
+  if (data.userId) {
+    await logActivity(
+      data.clinicId,
+      data.userId,
+      "CREATED_LEAVE",
+      "DoctorLeave",
+      `Added leave from ${data.fromDate} to ${data.toDate}`,
+      leave._id
+    );
+  }
+
   return sendApiResponse(true, "Leave added successfully", leave);
 };
 
 //get leaves
 export const getLeaves = async (
+  clinicId: string,
   id?: string,
   page: number = 1,
   limit: number = 10,
@@ -33,7 +49,7 @@ export const getLeaves = async (
 
   // FETCH SINGLE LEAVE
   if (id) {
-    const leave = await DoctorLeave.findById(id).populate("doctor").lean();
+    const leave = await DoctorLeave.findOne({ _id: id, clinicId }).populate("doctor").lean();
     if (!leave) return sendResponse(false, "Leave not found", null);
 
     const responseData = {
@@ -64,7 +80,7 @@ export const getLeaves = async (
   }
 
   // FILTERS
-  const whereClause: any = {};
+  const whereClause: any = { clinicId };
 
   // Monthly filter using fromDate + toDate overlap
   if (month && year) {
@@ -143,23 +159,49 @@ export const getLeaves = async (
 };
 
 export const updateLeave = async (
+  clinicId: string,
   id: string,
+  userId: string,
   data: {
     doctor: string;
     fromDate: string;
     toDate: string;
-    type: string;
+    type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE";
     slots: string[];
     startTime: string;
     endTime: string;
     reason: string;
   }
 ) => {
-  const leave = await DoctorLeave.findByIdAndUpdate(id, data, { new: true });
+  const leave = await DoctorLeave.findOneAndUpdate({ _id: id, clinicId }, data, { new: true });
+
+  if (userId) {
+    await logActivity(
+      clinicId,
+      userId,
+      "UPDATED_LEAVE",
+      "DoctorLeave",
+      `Updated leave details from ${data.fromDate} to ${data.toDate}`,
+      id
+    );
+  }
+
   return sendApiResponse(true, "Leave updated successfully", leave);
 };
 
-export const deleteLeave = async (id: string) => {
-  const leave = await DoctorLeave.findByIdAndDelete(id);
+export const deleteLeave = async (clinicId: string, id: string, userId: string) => {
+  const leave = await DoctorLeave.findOneAndDelete({ _id: id, clinicId });
+
+  if (userId) {
+    await logActivity(
+      clinicId,
+      userId,
+      "DELETED_LEAVE",
+      "DoctorLeave",
+      `Deleted doctor leave`,
+      id
+    );
+  }
+
   return sendApiResponse(true, "Leave deleted successfully", leave);
 };

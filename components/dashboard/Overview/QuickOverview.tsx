@@ -62,17 +62,28 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium border border-[#FFC9A7]">
-              Skin:{consultationBreakdown.skin ?? 0}
-            </span>
-
-            <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700 font-medium border border-[#C1B3FF]">
-              Hair:{consultationBreakdown.hair ?? 0}
-            </span>
-
-            <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium border border-[#FFEEA6]">
-              Body:{consultationBreakdown.body ?? 0}
-            </span>
+            {Object.entries(consultationBreakdown || {}).length > 0 ? (
+              Object.entries(consultationBreakdown || {}).map(([category, count], idx) => {
+                const colors = [
+                  "bg-orange-100 text-orange-700 border-[#FFC9A7]",
+                  "bg-purple-100 text-purple-700 border-[#C1B3FF]",
+                  "bg-yellow-100 text-yellow-700 border-[#FFEEA6]",
+                  "bg-blue-100 text-blue-700 border-[#88ABFF]",
+                  "bg-green-100 text-green-700 border-[#ADF5D3]",
+                ];
+                const colorClass = colors[idx % colors.length];
+                return (
+                  <span
+                    key={category}
+                    className={`text-xs px-2 py-1 rounded-full font-medium border ${colorClass}`}
+                  >
+                    {category}: {count}
+                  </span>
+                );
+              })
+            ) : (
+              <span className="text-xs text-slate-400">No data today</span>
+            )}
           </div>
         </div>
 

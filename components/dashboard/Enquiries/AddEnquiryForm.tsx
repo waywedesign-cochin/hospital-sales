@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,19 +15,32 @@ import {
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/providers/AuthStoreProvider";
 import { ArrowLeft } from "lucide-react";
 import { enquirySchema } from "@/app/validations/enquirySchemas";
+import { Plus } from "lucide-react";
+import QuickAddCategoryDialog from "../Settings/QuickAddCategoryDialog";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
 
 /* ---------------- CONSTANTS ---------------- */
 
-const categories = ["SKIN", "BODY", "HAIR"];
 const sources = ["PHONE", "WHATSAPP", "OTHER"];
 
 /* ---------------- PAGE ---------------- */
 
 export default function AddEnquiryForm() {
   const router = useRouter();
+  const clinic = useAuthStore((state: any) => state.clinic);
+  const user = useAuthStore((state: any) => state.user);
+  const categories = clinic?.departments || [];
+
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [localCategories, setLocalCategories] = useState<string[]>(categories);
+
+  useEffect(() => {
+    if (categories) {
+      setLocalCategories(categories);
+    }
+  }, [categories]);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -166,11 +179,20 @@ export default function AddEnquiryForm() {
                 <SelectValue placeholder="Treatment Category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((c) => (
+                {localCategories.map((c: string) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
                 ))}
+                <div className="p-2 border-t mt-1">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Add New Category
+                  </Button>
+                </div>
               </SelectContent>
             </Select>
 
@@ -226,6 +248,15 @@ export default function AddEnquiryForm() {
           {loading ? "Saving..." : "Create Enquiry"}
         </Button>
       </div>
+
+      <QuickAddCategoryDialog
+        open={quickAddOpen}
+        setOpen={setQuickAddOpen}
+        onAdded={(newCategory) => {
+          setLocalCategories((prev) => [...prev, newCategory]);
+          onChange("treatmentCategory", newCategory);
+        }}
+      />
     </div>
   );
 }

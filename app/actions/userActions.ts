@@ -19,12 +19,13 @@ export const getUsersAction = async (page: number, limit: number, role?: string,
   await dbConnect();
 
   //role based access
-  await requireAuth(["ADMIN", "STAFF"]);
-  return await getUsers(page, limit, role, search);
+  const user = await requireAuth(["ADMIN", "STAFF"]);
+  return await getUsers(user.clinicId, page, limit, role, search);
 };
 
 //user by id action
 export const getUserByIdAction = async (id: string) => {
   await dbConnect();
-  return await getUserById(id);
+  const user = await requireAuth();
+  return await getUserById(user.clinicId, id);
 };

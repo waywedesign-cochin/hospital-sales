@@ -1,5 +1,5 @@
 import { createStore } from "zustand/vanilla";
-import { User } from "@/lib/types";
+import { User, Clinic } from "@/lib/types";
 import {
   logoutAction,
   signInAction,
@@ -8,6 +8,7 @@ import {
 
 export interface AuthState {
   user: User | null;
+  clinic: Clinic | null;
   isLoading: boolean;
   signin: (email: string, password: string) => Promise<void>;
   signup: (
@@ -18,14 +19,28 @@ export interface AuthState {
   ) => Promise<void>;
   signout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  fetchClinic: () => Promise<void>;
 }
 
 export const createAuthStore = () =>
   createStore<AuthState>((set) => ({
     user: null,
+    clinic: null,
     isLoading: false,
 
     setUser: (user) => set({ user }),
+
+    fetchClinic: async () => {
+      try {
+        const res = await fetch("/api/clinic");
+        const data = await res.json();
+        if (data.success) {
+          set({ clinic: data.data });
+        }
+      } catch (error) {
+        console.error("Failed to fetch clinic", error);
+      }
+    },
 
     // ================= SIGN IN =================
     signin: async (email, password) => {
