@@ -10,7 +10,7 @@ export interface AuthState {
   user: User | null;
   clinic: Clinic | null;
   isLoading: boolean;
-  signin: (email: string, password: string) => Promise<void>;
+  signin: (email: string, password: string) => Promise<User>;
   signup: (
     firstName: string,
     lastName: string,
@@ -53,10 +53,12 @@ export const createAuthStore = () =>
           throw new Error(response.message);
         }
 
+        const user = response.data as User;
         set({
-          user: response.data as User,
+          user: user,
           isLoading: false,
         });
+        return user;
       } catch (error) {
         set({ isLoading: false });
         throw error;
