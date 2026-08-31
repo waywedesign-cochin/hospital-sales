@@ -20,7 +20,7 @@ export const GET = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
       toDate: searchParams.get("toDate") ?? "",
     };
 
-    const data = await getEnquiriesForExport(user.clinicId, filters);
+    const data = await getEnquiriesForExport(user.organizationId, filters);
     return sendApiResponse(true, "Exported successfully", data);
   } catch (error) {
     let message = "Server error";

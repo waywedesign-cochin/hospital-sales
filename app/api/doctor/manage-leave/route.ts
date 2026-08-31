@@ -24,7 +24,7 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) 
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await createLeave({ ...data, clinicId: user.clinicId, userId: user._id });
+    return await createLeave({ ...data, organizationId: user.organizationId, userId: user._id });
   } catch (error) {
     let message = "Server error";
 
@@ -52,7 +52,7 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await updateLeave(user.clinicId, id, user._id, data);
+    return await updateLeave(user.organizationId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
 
@@ -70,7 +70,7 @@ export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteLeave(user.clinicId, id, user._id);
+    return await deleteLeave(user.organizationId, id, user._id);
   } catch (error) {
     let message = "Server error";
 

@@ -2,7 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 
 export interface ISubscription {
   _id?: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   plan: "BASIC" | "PRO" | "ENTERPRISE";
   amount: number;
   currency: string;
@@ -16,9 +16,9 @@ export interface ISubscription {
 
 const subscriptionSchema = new Schema<ISubscription>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
     },
     plan: {

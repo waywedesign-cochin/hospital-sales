@@ -2,8 +2,8 @@ import Appointment from "../models/Appointment";
 import Enquiry from "../models/Enquiry";
 import { sendResponse } from "../utils/responseHandler";
 
-export const dashboardtotalSummaries = async (clinicId: string, year?: string) => {
-  const whereClause: any = { clinicId };
+export const dashboardtotalSummaries = async (organizationId: string, year?: string) => {
+  const whereClause: any = { organizationId };
 
   if (year) {
     whereClause.createdAt = {
@@ -34,8 +34,8 @@ export const dashboardtotalSummaries = async (clinicId: string, year?: string) =
   });
 };
 
-export const doctorsAppointmentsSummary = async (clinicId: string, year?: string) => {
-  const matchStage: any = { clinicId: new (require('mongoose').Types.ObjectId)(clinicId) };
+export const doctorsAppointmentsSummary = async (organizationId: string, year?: string) => {
+  const matchStage: any = { organizationId: new (require('mongoose').Types.ObjectId)(organizationId) };
 
   if (year) {
     matchStage.createdAt = {
@@ -122,7 +122,7 @@ export const doctorsAppointmentsSummary = async (clinicId: string, year?: string
   );
 };
 
-export const getQuickOverviewSummary = async (clinicId: string, date: string) => {
+export const getQuickOverviewSummary = async (organizationId: string, date: string) => {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
 
@@ -130,7 +130,7 @@ export const getQuickOverviewSummary = async (clinicId: string, date: string) =>
   end.setHours(23, 59, 59, 999);
 
   const todayQuery = {
-    clinicId,
+    organizationId,
     date: { $gte: start, $lte: end },
   };
 
@@ -181,7 +181,7 @@ export const getQuickOverviewSummary = async (clinicId: string, date: string) =>
 
   /* -------- Tomorrow Schedule -------- */
   const tomorrowAppointments = await Appointment.countDocuments({
-    clinicId,
+    organizationId,
     date: { $gte: tomorrowStart, $lte: tomorrowEnd },
   });
 

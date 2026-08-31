@@ -18,10 +18,10 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const doctor = searchParams.get("doctor") ?? "";
     const date = searchParams.get("date") ?? "";
-    const clinicId = searchParams.get("clinicId");
-    if (!clinicId) throw new Error("Clinic ID is required");
+    const organizationId = searchParams.get("organizationId");
+    if (!organizationId) throw new Error("Clinic ID is required");
   
-    const result = await getBookedSlots(clinicId, date, doctor);
+    const result = await getBookedSlots(organizationId, date, doctor);
 
     // If controller already returned a NextResponse, just return it.
     if (result instanceof NextResponse) return result;
@@ -51,7 +51,7 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) 
     }
     return await createAppointment({
       ...data,
-      clinicId: user.clinicId,
+      organizationId: user.organizationId,
       userId: user._id,
       enquiryId: data.enquiryId ?? undefined,
     });
@@ -79,7 +79,7 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await updateAppointment(user.clinicId, id, user._id, data);
+    return await updateAppointment(user.organizationId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -96,7 +96,7 @@ export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteAppointment(user.clinicId, id, user._id);
+    return await deleteAppointment(user.organizationId, id, user._id);
   } catch (error) {
     let message = "Server error";
 

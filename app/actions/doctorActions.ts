@@ -13,17 +13,17 @@ export const getDoctorsAction = async (
 ) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getAllDoctors(user.clinicId, page, limit, search, specialization);
+  return await getAllDoctors(user.organizationId, page, limit, search, specialization);
 };
 
 export const getDoctorByIdAction = async (id: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getDoctorById(user.clinicId, id);
+  return await getDoctorById(user.organizationId, id);
 };
 
 export const getDoctorsLeavesAction = async (id?: string,page: number = 1, limit: number = 10, search?: string, doctor?: string, month?: string, year?: string, type?: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getLeaves(user.clinicId, id, page, limit, search, doctor, month, year, type);
+  return await getLeaves(user.organizationId, id, page, limit, search, doctor, month, year, type);
 };

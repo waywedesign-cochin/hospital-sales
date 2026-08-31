@@ -8,7 +8,7 @@ import { logActivity } from "./activityLogController";
 
 //add doctor
 export const addDoctor = async (data: {
-  clinicId: string;
+  organizationId: string;
   userId?: string;
   prefix: string;
   firstName: string;
@@ -40,7 +40,7 @@ export const addDoctor = async (data: {
     password,
   } = data;
 
-  const doctorExists = await Doctor.findOne({ email, clinicId: data.clinicId });
+  const doctorExists = await Doctor.findOne({ email, organizationId: data.organizationId });
   if (doctorExists) {
     return sendApiResponse(false, "Doctor already exists in this clinic");
   }
@@ -53,13 +53,13 @@ export const addDoctor = async (data: {
   }
   if (password && email) {
     const lowercasedEmail = email.toLowerCase();
-    const userExists = await User.findOne({ email: lowercasedEmail, clinicId: data.clinicId });
+    const userExists = await User.findOne({ email: lowercasedEmail, organizationId: data.organizationId });
     if (userExists) {
       return sendApiResponse(false, "User already exists in this clinic");
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({
-      clinicId: data.clinicId,
+      organizationId: data.organizationId,
       firstName,
       lastName,
       email: lowercasedEmail,
@@ -70,7 +70,7 @@ export const addDoctor = async (data: {
 
   if (data.userId) {
     await logActivity(
-      data.clinicId,
+      data.organizationId,
       data.userId,
       "ADDED_DOCTOR",
       "Doctor",
@@ -84,7 +84,7 @@ export const addDoctor = async (data: {
 
 //get all doctors
 export const getAllDoctors = async (
-  clinicId: string,
+  organizationId: string,
   page: number,
   limit: number,
   search?: string,
@@ -93,7 +93,7 @@ export const getAllDoctors = async (
   try {
     const skip = (page - 1) * limit;
 
-    const whereClause: any = { clinicId };
+    const whereClause: any = { organizationId };
     if (search) {
       whereClause.$or = [
         { firstName: { $regex: search, $options: "i" } },
@@ -146,16 +146,16 @@ export const getAllDoctors = async (
 };
 
 //get doctor by id
-export const getDoctorById = async (clinicId: string, id: string) => {
+export const getDoctorById = async (organizationId: string, id: string) => {
   if (!id) {
     return sendResponse(false, "Invalid request", null);
   }
-  const doctorExists = await Doctor.findOne({ _id: id, clinicId });
+  const doctorExists = await Doctor.findOne({ _id: id, organizationId });
   if (!doctorExists) {
     return sendResponse(false, "Doctor not found", null);
   }
 
-  const doctor = await Doctor.findOne({ _id: id, clinicId }).lean();
+  const doctor = await Doctor.findOne({ _id: id, organizationId }).lean();
   console.log(doctor);
 
   return sendResponse(true, "Doctor fetched successfully", {
@@ -166,7 +166,7 @@ export const getDoctorById = async (clinicId: string, id: string) => {
 
 //update doctor
 export const updateDoctor = async (
-  clinicId: string,
+  organizationId: string,
   id: string,
   userId: string,
   data: {
@@ -185,7 +185,7 @@ export const updateDoctor = async (
     //avatar?: string;
   }
 ) => {
-  const doctorExists = await Doctor.findOne({ _id: id, clinicId });
+  const doctorExists = await Doctor.findOne({ _id: id, organizationId });
   if (!doctorExists) {
     return sendApiResponse(false, "Doctor not found");
   }
@@ -196,7 +196,7 @@ export const updateDoctor = async (
 
   if (userId) {
     await logActivity(
-      clinicId,
+      organizationId,
       userId,
       "UPDATED_DOCTOR",
       "Doctor",
@@ -209,8 +209,8 @@ export const updateDoctor = async (
 };
 
 //delete doctor
-export const deleteDoctor = async (clinicId: string, id: string, userId: string) => {
-  const doctorExists = await Doctor.findOne({ _id: id, clinicId });
+export const deleteDoctor = async (organizationId: string, id: string, userId: string) => {
+  const doctorExists = await Doctor.findOne({ _id: id, organizationId });
   if (!doctorExists) {
     return sendApiResponse(false, "Doctor not found");
   }
@@ -218,11 +218,11 @@ export const deleteDoctor = async (clinicId: string, id: string, userId: string)
   if (!doctor) {
     return sendApiResponse(false, "Failed to delete doctor");
   }
-  await User.findOneAndDelete({ email: doctor.email.toLowerCase(), clinicId });
+  await User.findOneAndDelete({ email: doctor.email.toLowerCase(), organizationId });
 
   if (userId) {
     await logActivity(
-      clinicId,
+      organizationId,
       userId,
       "DELETED_DOCTOR",
       "Doctor",

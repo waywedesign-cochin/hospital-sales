@@ -37,7 +37,7 @@ export const getCurrentUser = async () => {
     //  Convert Mongo document to frontend-safe User object
     const user = {
       _id: userDoc._id.toString(),
-      clinicId: userDoc.clinicId?.toString() || null,
+      organizationId: userDoc.organizationId?.toString() || null,
       firstName: userDoc.firstName,
       lastName: userDoc.lastName,
       email: userDoc.email,
@@ -53,7 +53,7 @@ export const getCurrentUser = async () => {
 
 // ================= GET USERS =================
 export const getUsers = async (
-  clinicId: string,
+  organizationId: string,
   page: number,
   limit: number,
   role?: string,
@@ -61,7 +61,7 @@ export const getUsers = async (
 ) => {
   try {
     const skip = (page - 1) * limit;
-    let whereClause: any = { clinicId };
+    let whereClause: any = { organizationId };
     if (role) {
       whereClause.role = role;
     }
@@ -107,10 +107,10 @@ export const getUsers = async (
 };
 
 // ================= GET USER BY ID =================
-export const getUserById = async (clinicId: string, id: string) => {
+export const getUserById = async (organizationId: string, id: string) => {
   try {
 
-    const userDoc = await User.findOne({ _id: id, clinicId }).select("-password");
+    const userDoc = await User.findOne({ _id: id, organizationId }).select("-password");
 
     if (!userDoc) {
       return sendResponse(false, "User not found", null);
@@ -136,13 +136,13 @@ export const getUserById = async (clinicId: string, id: string) => {
 
 // ================= UPDATE USER =================
 export const updateUser = async (
-  clinicId: string,
+  organizationId: string,
   id: string,
   userId: string,
   data: { firstName?: string; lastName?: string; email?: string; role?: string }
 ) => {
   try {
-    const user = await User.findOne({ _id: id, clinicId });
+    const user = await User.findOne({ _id: id, organizationId });
     if (!user) {
       return sendResponse(false, "User not found", null);
     }
@@ -151,7 +151,7 @@ export const updateUser = async (
 
     if (userId) {
       await logActivity(
-        clinicId,
+        organizationId,
         userId,
         "UPDATED_USER",
         "User",
@@ -168,9 +168,9 @@ export const updateUser = async (
 };
 
 // ================= DELETE USER =================
-export const deleteUser = async (clinicId: string, id: string, userId: string) => {
+export const deleteUser = async (organizationId: string, id: string, userId: string) => {
   try {
-    const user = await User.findOne({ _id: id, clinicId });
+    const user = await User.findOne({ _id: id, organizationId });
     if (!user) {
       return sendResponse(false, "User not found", null);
     }
@@ -179,7 +179,7 @@ export const deleteUser = async (clinicId: string, id: string, userId: string) =
 
     if (userId) {
       await logActivity(
-        clinicId,
+        organizationId,
         userId,
         "DELETED_USER",
         "User",

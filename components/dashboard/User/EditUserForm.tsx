@@ -194,7 +194,7 @@ export const EditUserForm = ({
           <Select
             value={roleValue}
             onValueChange={(value) =>
-              setValue("role", value as "ADMIN" | "STAFF" | "GUEST", {
+              setValue("role", value as "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "GUEST", {
                 shouldDirty: true,
               })
             }

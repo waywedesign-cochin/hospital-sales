@@ -21,7 +21,7 @@ export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) 
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await addEnquiryActivity({ ...data, clinicId: user.clinicId, createdBy: user._id });
+    return await addEnquiryActivity({ ...data, organizationId: user.organizationId, createdBy: user._id });
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -45,7 +45,7 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await updateEnquiryActivity(user.clinicId, activityId, user._id, data);
+    return await updateEnquiryActivity(user.organizationId, activityId, user._id, data);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -62,7 +62,7 @@ export const DELETE = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteEnquiryActivity(user.clinicId, id, user._id);
+    return await deleteEnquiryActivity(user.organizationId, id, user._id);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {

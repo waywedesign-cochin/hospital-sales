@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { signJwt } from "../lib/jwt";
 import User from "../models/User";
-import Clinic from "../models/Clinic";
+import Organization from "../models/Organization";
 import { sendResponse } from "../utils/responseHandler";
 import bcrypt from "bcrypt";
 import { sendApiResponse } from "../utils/nextResponseHandler";
@@ -14,14 +14,14 @@ export const signUp = async (data: {
   email: string;
   password: string;
   role?: "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
-  clinicId?: string;
+  organizationId?: string;
 }) => {
   try {
     const lowercasedEmail = data.email.toLowerCase();
 
-    const userExists = await User.findOne({ email: lowercasedEmail, clinicId: data.clinicId });
+    const userExists = await User.findOne({ email: lowercasedEmail, organizationId: data.organizationId });
     if (userExists) {
-      return sendResponse(false, "User already exists in this clinic");
+      return sendResponse(false, "User already exists in this organization");
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -57,16 +57,16 @@ export const registerClinic = async (data: {
     let baseSlug = data.clinicName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
     let slug = baseSlug;
     let counter = 1;
-    while (await Clinic.findOne({ slug })) {
+    while (await Organization.findOne({ slug })) {
       slug = `${baseSlug}-${counter}`;
       counter++;
     }
 
-    // 2. Create the Clinic
+    // 2. Create the Organization
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + 30); // 30-day trial
 
-    const newClinic = await Clinic.create({
+    const newOrganization = await Organization.create({
       name: data.clinicName,
       slug,
       email: lowercasedEmail,
@@ -88,14 +88,14 @@ export const registerClinic = async (data: {
       email: lowercasedEmail,
       password: hashedPassword,
       role: "ADMIN",
-      clinicId: newClinic._id,
+      organizationId: newOrganization._id,
     });
 
-    // 4. Update Clinic Owner ID
-    await Clinic.findByIdAndUpdate(newClinic._id, { ownerId: newAdmin._id });
+    // 4. Update Organization Owner ID
+    await Organization.findByIdAndUpdate(newOrganization._id, { ownerId: newAdmin._id });
 
     // 5. Auto login
-    const token = signJwt({ _id: newAdmin._id, role: newAdmin.role, clinicId: newClinic._id }, "7d");
+    const token = signJwt({ _id: newAdmin._id, role: newAdmin.role, organizationId: newOrganization._id }, "7d");
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
       httpOnly: true,
@@ -111,7 +111,7 @@ export const registerClinic = async (data: {
       lastName: newAdmin.lastName,
       email: newAdmin.email,
       role: newAdmin.role,
-      clinicId: newClinic._id.toString(),
+      organizationId: newOrganization._id.toString(),
     });
 
   } catch (error: any) {
@@ -142,8 +142,8 @@ export const signIn = async (data: { email: string; password: string }) => {
       return sendResponse(false, "Access denied. Contact admin.");
     }
 
-    // ✅ Sign JWT with clinicId
-    const token = signJwt({ _id: user._id, role: user.role, clinicId: user.clinicId }, "7d");
+    // ✅ Sign JWT with organizationId
+    const token = signJwt({ _id: user._id, role: user.role, organizationId: user.organizationId }, "7d");
     const cookieStore = await cookies();
 
     // ✅ Set JWT in HttpOnly cookie
@@ -161,7 +161,7 @@ export const signIn = async (data: { email: string; password: string }) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
-      clinicId: user.clinicId?.toString() || null,
+      organizationId: user.organizationId?.toString() || null,
     });
   } catch (error) {
     console.error("Signin Error:", error);

@@ -7,5 +7,5 @@ import { requireAuth } from "../lib/auth";
 export const getTreatmentCategoriesAction = async () => {
     await dbConnect();
     const user = await requireAuth();
-    return await getTreatmentCategories(user.clinicId);
+    return await getTreatmentCategories(user.organizationId);
 };

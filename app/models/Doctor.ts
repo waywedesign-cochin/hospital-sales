@@ -2,7 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 
 export interface Doctor {
   _id?: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId?: mongoose.Types.ObjectId;
   prefix: string;
   firstName: string;
   lastName: string;
@@ -22,9 +22,9 @@ export interface Doctor {
 
 const doctorSchema = new Schema<Doctor>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
       index: true,
     },
@@ -50,7 +50,7 @@ const doctorSchema = new Schema<Doctor>(
 );
 
 // Same doctor email can exist in different clinics
-doctorSchema.index({ email: 1, clinicId: 1 }, { unique: true, sparse: true });
+doctorSchema.index({ email: 1, organizationId: 1 }, { unique: true, sparse: true });
 
 const Doctor: Model<Doctor> =
   mongoose.models.Doctor || mongoose.model<Doctor>("Doctor", doctorSchema);

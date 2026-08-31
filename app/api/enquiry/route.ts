@@ -23,7 +23,7 @@ export const POST = async (req: NextRequest) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    if (!data.clinicId) {
+    if (!data.organizationId) {
       return sendApiResponse(false, "Clinic ID is required", null);
     }
     return await createEnquiry(data);
@@ -55,7 +55,7 @@ export const PATCH = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user)
       return sendApiResponse(false, "Invalid request", null);
     }
     return await updateEnquiryStatus(
-      user.clinicId,
+      user.organizationId,
       id,
       user._id,
       data.status,
@@ -78,7 +78,7 @@ export const DELETE = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteEnquiry(user.clinicId, id, user._id);
+    return await deleteEnquiry(user.organizationId, id, user._id);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {

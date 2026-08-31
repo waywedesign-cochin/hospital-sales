@@ -3,7 +3,7 @@ import { sendApiResponse } from "../utils/nextResponseHandler";
 import mongoose from "mongoose";
 
 export const logActivity = async (
-  clinicId: string | mongoose.Types.ObjectId,
+  organizationId: string | mongoose.Types.ObjectId,
   userId: string | mongoose.Types.ObjectId,
   action: string,
   resourceType: string,
@@ -12,7 +12,7 @@ export const logActivity = async (
 ) => {
   try {
     await ActivityLog.create({
-      clinicId,
+      organizationId,
       userId,
       action,
       resourceType,
@@ -25,14 +25,14 @@ export const logActivity = async (
 };
 
 export const getActivityLogs = async (
-  clinicId: string,
+  organizationId: string,
   page: number = 1,
   limit: number = 20
 ) => {
   const skip = (page - 1) * limit;
 
-  const totalCount = await ActivityLog.countDocuments({ clinicId });
-  const logs = await ActivityLog.find({ clinicId })
+  const totalCount = await ActivityLog.countDocuments({ organizationId });
+  const logs = await ActivityLog.find({ organizationId })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)

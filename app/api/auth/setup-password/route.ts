@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       _id: user._id.toString(),
       email: user.email,
       role: user.role,
-      clinicId: user.clinicId.toString(),
+      organizationId: user.organizationId.toString(),
     });
 
     // Set cookie
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        clinicId: user.clinicId,
+        organizationId: user.organizationId,
       }
     });
     } catch (error: any) {

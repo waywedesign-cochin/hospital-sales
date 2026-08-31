@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
-import User from "@/app/models/Clinic"; // Wait, I need User model, let's fix imports
+import Organization from "@/app/models/Organization";
 import UserModel from "@/app/models/User";
 import { withAuth } from "@/app/middlewares/withAuth";
 import { sendApiResponse } from "@/app/utils/nextResponseHandler";
@@ -21,7 +21,7 @@ export const POST = withAuth(["ADMIN", "PLATFORM_ADMIN"])(
       }
 
       // Check if user already exists
-      const existingUser = await UserModel.findOne({ email, clinicId: user.clinicId });
+      const existingUser = await UserModel.findOne({ email, organizationId: user.organizationId });
       if (existingUser) {
         return sendApiResponse(false, "User already exists in this clinic", null);
       }
@@ -34,7 +34,7 @@ export const POST = withAuth(["ADMIN", "PLATFORM_ADMIN"])(
       const placeholderPassword = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
 
       const newUser = await UserModel.create({
-        clinicId: user.clinicId,
+        organizationId: user.organizationId,
         email,
         firstName,
         lastName,
@@ -54,7 +54,7 @@ export const POST = withAuth(["ADMIN", "PLATFORM_ADMIN"])(
 
       // Log the activity
       await logActivity(
-        user.clinicId,
+        user.organizationId,
         user._id,
         "INVITED_USER",
         "User",

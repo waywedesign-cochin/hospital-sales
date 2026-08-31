@@ -41,12 +41,12 @@ export default function ArchitecturePage() {
           <p className="mb-4">Since this is a platform where hundreds of different clinics will sign up, the biggest challenge is making sure <strong>Clinic A never sees Clinic B&apos;s data</strong>.</p>
           <p className="mb-4">We don&apos;t create a new database for every clinic. Instead, we use one big database and put a special label on every single piece of data.</p>
           
-          <h3 className="text-lg font-semibold text-slate-800 mb-3">The Secret Ingredient: <code>clinicId</code></h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-3">The Secret Ingredient: <code>organizationId</code></h3>
           <ol className="space-y-3 list-decimal pl-5">
             <li>When a new clinic registers, the database creates a master record for them called the <strong>Clinic Model</strong>. It gives them a unique ID (e.g., <code>12345</code>).</li>
-            <li>When that clinic adds a new Patient, the system doesn&apos;t just save the patient&apos;s name. It saves the patient&apos;s name AND adds <code>clinicId: 12345</code> to the patient&apos;s file.</li>
-            <li>When they add an Appointment, it also saves <code>clinicId: 12345</code>.</li>
-            <li><strong>The Security Check:</strong> Whenever the clinic asks to see their patients, our backend system says, <em>&quot;Only give me patients who have the label <code>clinicId: 12345</code>.&quot;</em> Because of this, it is physically impossible for Clinic A to see Clinic B&apos;s patients.</li>
+            <li>When that clinic adds a new Patient, the system doesn&apos;t just save the patient&apos;s name. It saves the patient&apos;s name AND adds <code>organizationId: 12345</code> to the patient&apos;s file.</li>
+            <li>When they add an Appointment, it also saves <code>organizationId: 12345</code>.</li>
+            <li><strong>The Security Check:</strong> Whenever the clinic asks to see their patients, our backend system says, <em>&quot;Only give me patients who have the label <code>organizationId: 12345</code>.&quot;</em> Because of this, it is physically impossible for Clinic A to see Clinic B&apos;s patients.</li>
           </ol>
         </section>
 
@@ -54,12 +54,12 @@ export default function ArchitecturePage() {
         <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mt-8">
           <h2 className="text-2xl font-bold text-slate-800 border-b pb-4 mb-6">🚦 Part 3: The Security Guard (<code>withAuth</code>)</h2>
           <p className="mb-4">If you look in the code, you will see a file called <code>withAuth.ts</code>. This is the security guard of our backend.</p>
-          <p className="mb-4">Normally, if someone tries to run a backend command (like deleting a patient), we would have to write 20 lines of code checking if they are logged in, checking if they are an admin, and checking their <code>clinicId</code>.</p>
+          <p className="mb-4">Normally, if someone tries to run a backend command (like deleting a patient), we would have to write 20 lines of code checking if they are logged in, checking if they are an admin, and checking their <code>organizationId</code>.</p>
           <p className="mb-4">Instead, we wrapped all our backend commands in <code>withAuth</code>. When the frontend asks the backend to do something, <code>withAuth</code> intercepts the request and does this:</p>
           <ul className="space-y-3 list-disc pl-5">
             <li><em>&quot;Show me your VIP badge (JWT cookie).&quot;</em></li>
             <li><em>&quot;Are you an ADMIN or just STAFF? Are you allowed to do this?&quot;</em></li>
-            <li><em>&quot;Okay, you are verified. Your <code>clinicId</code> is 12345. I will now pass this <code>clinicId</code> to the database so you can only edit your own stuff.&quot;</em></li>
+            <li><em>&quot;Okay, you are verified. Your <code>organizationId</code> is 12345. I will now pass this <code>organizationId</code> to the database so you can only edit your own stuff.&quot;</em></li>
           </ul>
         </section>
 

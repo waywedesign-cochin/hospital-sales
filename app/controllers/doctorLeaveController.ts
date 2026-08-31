@@ -5,12 +5,12 @@ import { logActivity } from "./activityLogController";
 
 //manage leave
 export const createLeave = async (data: {
-  clinicId: string;
+  organizationId: string;
   userId?: string;
   doctor: string;
   fromDate: string;
   toDate: string;
-  type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE";
+  type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE" | "HALF_DAY";
   slots: string[];
   startTime: string;
   endTime: string;
@@ -20,7 +20,7 @@ export const createLeave = async (data: {
 
   if (data.userId) {
     await logActivity(
-      data.clinicId,
+      data.organizationId,
       data.userId,
       "CREATED_LEAVE",
       "DoctorLeave",
@@ -34,7 +34,7 @@ export const createLeave = async (data: {
 
 //get leaves
 export const getLeaves = async (
-  clinicId: string,
+  organizationId: string,
   id?: string,
   page: number = 1,
   limit: number = 10,
@@ -49,7 +49,7 @@ export const getLeaves = async (
 
   // FETCH SINGLE LEAVE
   if (id) {
-    const leave = await DoctorLeave.findOne({ _id: id, clinicId }).populate("doctor").lean();
+    const leave = await DoctorLeave.findOne({ _id: id, organizationId }).populate("doctor").lean();
     if (!leave) return sendResponse(false, "Leave not found", null);
 
     const responseData = {
@@ -80,7 +80,7 @@ export const getLeaves = async (
   }
 
   // FILTERS
-  const whereClause: any = { clinicId };
+  const whereClause: any = { organizationId };
 
   // Monthly filter using fromDate + toDate overlap
   if (month && year) {
@@ -159,25 +159,25 @@ export const getLeaves = async (
 };
 
 export const updateLeave = async (
-  clinicId: string,
+  organizationId: string,
   id: string,
   userId: string,
   data: {
     doctor: string;
     fromDate: string;
     toDate: string;
-    type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE";
+    type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE" | "HALF_DAY";
     slots: string[];
     startTime: string;
     endTime: string;
     reason: string;
   }
 ) => {
-  const leave = await DoctorLeave.findOneAndUpdate({ _id: id, clinicId }, data, { new: true });
+  const leave = await DoctorLeave.findOneAndUpdate({ _id: id, organizationId }, data, { new: true });
 
   if (userId) {
     await logActivity(
-      clinicId,
+      organizationId,
       userId,
       "UPDATED_LEAVE",
       "DoctorLeave",
@@ -189,12 +189,12 @@ export const updateLeave = async (
   return sendApiResponse(true, "Leave updated successfully", leave);
 };
 
-export const deleteLeave = async (clinicId: string, id: string, userId: string) => {
-  const leave = await DoctorLeave.findOneAndDelete({ _id: id, clinicId });
+export const deleteLeave = async (organizationId: string, id: string, userId: string) => {
+  const leave = await DoctorLeave.findOneAndDelete({ _id: id, organizationId });
 
   if (userId) {
     await logActivity(
-      clinicId,
+      organizationId,
       userId,
       "DELETED_LEAVE",
       "DoctorLeave",

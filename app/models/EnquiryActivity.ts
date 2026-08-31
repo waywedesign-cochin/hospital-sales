@@ -1,7 +1,7 @@
 import mongoose, { Schema, Model } from "mongoose";
 
 export interface IEnquiryActivity {
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   enquiryId: mongoose.Types.ObjectId;
   type: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED";
   note: string;
@@ -12,9 +12,9 @@ export interface IEnquiryActivity {
 
 const enquiryActivitySchema = new Schema<IEnquiryActivity>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
       index: true,
     },

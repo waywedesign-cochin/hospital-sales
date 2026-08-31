@@ -37,7 +37,7 @@ export const POST = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
 
     const data = await req.json(); 
 
-    return await addDoctor({ ...data, clinicId: user.clinicId, userId: user._id });
+    return await addDoctor({ ...data, organizationId: user.organizationId, userId: user._id });
   } catch (error) {
     let message = "Server error";
 
@@ -65,7 +65,7 @@ export const PUT = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await updateDoctor(user.clinicId, id, user._id, data);
+    return await updateDoctor(user.organizationId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
 
@@ -83,7 +83,7 @@ export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteDoctor(user.clinicId, id, user._id);
+    return await deleteDoctor(user.organizationId, id, user._id);
   } catch (error) {
     let message = "Server error";
 

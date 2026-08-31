@@ -16,7 +16,7 @@ export const POST = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await addTreatmentCategory({ ...data, clinicId: user.clinicId });
+    return await addTreatmentCategory({ ...data, organizationId: user.organizationId });
   } catch (error) {
     let message = "Server error";
 
@@ -41,7 +41,7 @@ export const PUT = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await updateTreatmentCategory(user.clinicId, id, user._id, data);
+    return await updateTreatmentCategory(user.organizationId, id, user._id, data);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
@@ -58,7 +58,7 @@ export const DELETE = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!id) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await deleteTreatmentCategory(user.clinicId, id, user._id);
+    return await deleteTreatmentCategory(user.organizationId, id, user._id);
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
