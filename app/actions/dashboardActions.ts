@@ -11,17 +11,17 @@ import { requireAuth } from "../lib/auth";
 export const getDashboardSummaryAction = async (year: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await dashboardtotalSummaries(user.clinicId, year);
+  return await dashboardtotalSummaries(user.organizationId, year);
 };
 
 export const getDoctorsAppointmentsSummaryAction = async (year: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await doctorsAppointmentsSummary(user.clinicId, year);
+  return await doctorsAppointmentsSummary(user.organizationId, year);
 };
 
 export const getQuickOverviewSummaryAction=async(date:string)=>{
   await dbConnect();
   const user = await requireAuth();
-  return await getQuickOverviewSummary(user.clinicId, date);
+  return await getQuickOverviewSummary(user.organizationId, date);
 }

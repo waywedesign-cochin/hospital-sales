@@ -15,17 +15,17 @@ export const  getAppointmentsAction = async (
 ) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getAllAppointments(user.clinicId, page, limit, doctor, search, status,undefined, undefined, year, month);
+  return await getAllAppointments(user.organizationId, page, limit, doctor, search, status,undefined, undefined, year, month);
 };
 
 export const getAppointmentByIdAction = async (id: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getAppointmentById(user.clinicId, id);
+  return await getAppointmentById(user.organizationId, id);
 };
 
 export const getMonthWiseReportAction = async (year?: string, doctorId?: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getMonthWiseReport(user.clinicId, year, doctorId);
+  return await getMonthWiseReport(user.organizationId, year, doctorId);
 };

@@ -18,10 +18,10 @@ export async function GET(
 
     const token = (await cookies()).get("token")?.value;
     if (!token) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    const user = verifyJwt<{ clinicId: string }>(token);
-    if (!user || !user.clinicId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const user = verifyJwt<{ organizationId: string }>(token);
+    if (!user || !user.organizationId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
-    const response = await getPatientById(user.clinicId, id);
+    const response = await getPatientById(user.organizationId, id);
     return response;
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

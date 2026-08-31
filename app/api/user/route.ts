@@ -18,7 +18,7 @@ export const PUT = withAuth(["PLATFORM_ADMIN", "ADMIN"])(async (req: NextRequest
       );
     }
 
-    const result = await updateUser(user.clinicId, id, user._id, body);
+    const result = await updateUser(user.organizationId, id, user._id, body);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -43,7 +43,7 @@ export const DELETE = withAuth(["PLATFORM_ADMIN", "ADMIN"])(async (req: NextRequ
       );
     }
 
-    const result = await deleteUser(user.clinicId, id, user._id);
+    const result = await deleteUser(user.organizationId, id, user._id);
 
     return NextResponse.json(result);
   } catch (error) {

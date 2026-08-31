@@ -2,7 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 
 export interface IPatient {
   _id?: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   firstName: string;
   lastName: string;
   email?: string;
@@ -18,9 +18,9 @@ export interface IPatient {
 
 const patientSchema = new Schema<IPatient>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
       index: true,
     },

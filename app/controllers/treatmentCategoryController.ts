@@ -4,14 +4,14 @@ import { sendResponse } from "../utils/responseHandler";
 import { logActivity } from "./activityLogController";
 
 export const addTreatmentCategory = async (data: {
-  clinicId: string;
+  organizationId: string;
   userId?: string;
   name: string;
   description: string;
 }) => {
   const existingTreatmentCategory = await TreatmentCategory.findOne({
     name: data.name,
-    clinicId: data.clinicId,
+    organizationId: data.organizationId,
   });
   if (existingTreatmentCategory) {
     return sendApiResponse(false, "Treatment Category already exists in this clinic");
@@ -20,7 +20,7 @@ export const addTreatmentCategory = async (data: {
 
   if (data.userId) {
     await logActivity(
-      data.clinicId,
+      data.organizationId,
       data.userId,
       "ADDED_TREATMENT_CATEGORY",
       "TreatmentCategory",
@@ -36,8 +36,8 @@ export const addTreatmentCategory = async (data: {
   );
 };
 
-export const getTreatmentCategories = async (clinicId: string) => {
-  const treatmentCategories = await TreatmentCategory.find({ clinicId });
+export const getTreatmentCategories = async (organizationId: string) => {
+  const treatmentCategories = await TreatmentCategory.find({ organizationId });
   const formattedTreatmentCategories = treatmentCategories.map((category) => ({
     _id: category._id.toString(),
     name: category.name,
@@ -50,16 +50,16 @@ export const getTreatmentCategories = async (clinicId: string) => {
   );
 };
 
-export const updateTreatmentCategory = async (clinicId: string, id: string, userId: string, data: any) => {
+export const updateTreatmentCategory = async (organizationId: string, id: string, userId: string, data: any) => {
   const updatedTreatmentCategory = await TreatmentCategory.findOneAndUpdate(
-    { _id: id, clinicId },
+    { _id: id, organizationId },
     data,
     { new: true }
   );
 
   if (userId) {
     await logActivity(
-      clinicId,
+      organizationId,
       userId,
       "UPDATED_TREATMENT_CATEGORY",
       "TreatmentCategory",
@@ -75,14 +75,14 @@ export const updateTreatmentCategory = async (clinicId: string, id: string, user
   );
 };
 
-export const deleteTreatmentCategory = async (clinicId: string, id: string, userId: string) => {
+export const deleteTreatmentCategory = async (organizationId: string, id: string, userId: string) => {
   const deletedTreatmentCategory = await TreatmentCategory.findOneAndDelete(
-    { _id: id, clinicId }
+    { _id: id, organizationId }
   );
 
   if (userId) {
     await logActivity(
-      clinicId,
+      organizationId,
       userId,
       "DELETED_TREATMENT_CATEGORY",
       "TreatmentCategory",

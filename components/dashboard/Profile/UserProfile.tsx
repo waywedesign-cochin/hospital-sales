@@ -32,7 +32,7 @@ export interface IUser {
   lastName?: string;
   email: string;
   password?: string;
-  role: "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
+  role: "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -2,7 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 
 export interface IMessageLog {
   _id?: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   recipientPhone: string;
   patientId?: mongoose.Types.ObjectId;
   messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL";
@@ -17,9 +17,9 @@ export interface IMessageLog {
 
 const messageLogSchema = new Schema<IMessageLog>(
   {
-    clinicId: {
+    organizationId: {
       type: Schema.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
       index: true,
     },

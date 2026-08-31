@@ -4,7 +4,7 @@ import { IEnquiry } from "./Enquiry";
 
 export interface IAppointment {
   _id: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   bookingId: string;
   enquiryId: mongoose.Types.ObjectId | IEnquiry;
   patientId?: mongoose.Types.ObjectId | any;
@@ -22,9 +22,9 @@ export interface IAppointment {
 
 const appointmentSchema = new Schema<IAppointment>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
       index: true,
     },

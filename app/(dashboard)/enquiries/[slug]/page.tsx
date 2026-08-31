@@ -1,6 +1,6 @@
 "use server";
 import ActivityPage from "@/components/dashboard/Enquiries/ActivityPage";
-import { getEnquiryActivities } from "@/app/controllers/enquiryActivityController";
+import { getEnquiryActivitiesAction } from "@/app/actions/enquiryActivityActions";
 
 export default async function ActivtyPage(props: {
   params: Promise<{ slug: string }>;
@@ -12,7 +12,7 @@ export default async function ActivtyPage(props: {
   const page = Number(searchParams.page) || 1;
   const limit = Number(searchParams.limit) || 10;
 
-  const res = await getEnquiryActivities(slug, page, limit);
+  const res = await getEnquiryActivitiesAction(slug, page, limit);
   const safeData = res?.data ?? {
     activities: [],
     pagination: {

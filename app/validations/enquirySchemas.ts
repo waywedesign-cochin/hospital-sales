@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const enquirySchema = z.object({
-  clinicId: z.string().min(1, "Clinic ID is required"),
+  organizationId: z.string().min(1, "Clinic ID is required"),
   firstName: z.string().min(2, "First name must be at least 2 characters long"),
   lastName: z.string().optional(),
   email: z.string().email("Invalid email address"),

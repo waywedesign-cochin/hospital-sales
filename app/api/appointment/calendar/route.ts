@@ -21,7 +21,7 @@ export const GET = withAuth(["ADMIN", "STAFF", "DOCTOR"])(async (req: NextReques
 
     // Controller call (matches your function signature)
     const result = await getAllAppointments(
-      user.clinicId,
+      user.organizationId,
       page,
       limit,
       doctor,

@@ -5,7 +5,7 @@ import { sendResponse } from "../utils/responseHandler";
 import { logActivity } from "./activityLogController";
 
 export const addEnquiryActivity = async (data: {
-  clinicId: string;
+  organizationId: string;
   enquiryId: string;
   type: "NEW" | "CONTACTED" | "FOLLOW_UP" | "APPOINTMENT_BOOKED";
   note: string;
@@ -33,7 +33,7 @@ export const addEnquiryActivity = async (data: {
 
     if (data.createdBy) {
       await logActivity(
-        data.clinicId,
+        data.organizationId,
         data.createdBy,
         "ADDED_LEAD_ACTIVITY",
         "EnquiryActivity",
@@ -52,7 +52,7 @@ export const addEnquiryActivity = async (data: {
 };
 
 export const getEnquiryActivities = async (
-  clinicId: string,
+  organizationId: string,
   enquiryId: string,
   page: number = 1,
   limit: number = 10,
@@ -61,10 +61,10 @@ export const getEnquiryActivities = async (
     const skip = (page - 1) * limit;
 
     // Count total within clinic
-    const totalCount = await EnquiryActivity.countDocuments({ enquiryId, clinicId });
+    const totalCount = await EnquiryActivity.countDocuments({ enquiryId, organizationId });
 
     // Fetch paginated data within clinic
-    const activities = await EnquiryActivity.find({ enquiryId, clinicId })
+    const activities = await EnquiryActivity.find({ enquiryId, organizationId })
       .populate("createdBy", "firstName lastName")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -110,7 +110,7 @@ export const getEnquiryActivities = async (
 };
 
 export const updateEnquiryActivity = async (
-  clinicId: string,
+  organizationId: string,
   activityId: string,
   userId: string,
   data: {
@@ -120,7 +120,7 @@ export const updateEnquiryActivity = async (
   },
 ) => {
   try {
-    const enquiryActivity = await EnquiryActivity.findOne({ _id: activityId, clinicId });
+    const enquiryActivity = await EnquiryActivity.findOne({ _id: activityId, organizationId });
     if (!enquiryActivity) {
       return sendApiResponse(false, "Enquiry activity not found");
     }
@@ -147,7 +147,7 @@ export const updateEnquiryActivity = async (
 
     if (userId) {
       await logActivity(
-        clinicId,
+        organizationId,
         userId,
         "UPDATED_LEAD_ACTIVITY",
         "EnquiryActivity",
@@ -165,9 +165,9 @@ export const updateEnquiryActivity = async (
   }
 };
 
-export const deleteEnquiryActivity = async (clinicId: string, id: string, userId: string) => {
+export const deleteEnquiryActivity = async (organizationId: string, id: string, userId: string) => {
   try {
-    const deletedActivity = await EnquiryActivity.findOneAndDelete({ _id: id, clinicId });
+    const deletedActivity = await EnquiryActivity.findOneAndDelete({ _id: id, organizationId });
 
     if (!deletedActivity) {
       return sendApiResponse(false, "Enquiry activity not found");
@@ -175,7 +175,7 @@ export const deleteEnquiryActivity = async (clinicId: string, id: string, userId
 
     if (userId) {
       await logActivity(
-        clinicId,
+        organizationId,
         userId,
         "DELETED_LEAD_ACTIVITY",
         "EnquiryActivity",

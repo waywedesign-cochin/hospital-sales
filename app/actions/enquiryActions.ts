@@ -21,7 +21,7 @@ export const getEnquiriesAction = async (
   await dbConnect();
   const user = await requireAuth();
   return await getEnquiries(
-    user.clinicId,
+    user.organizationId,
     page,
     limit,
     search,
@@ -36,7 +36,7 @@ export const getEnquiriesAction = async (
 export const getEnquiryReportAction = async (year?: string) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getEnquiryReport(user.clinicId, year);
+  return await getEnquiryReport(user.organizationId, year);
 };
 
 export const getEnquirySummaryAction = async (
@@ -45,5 +45,5 @@ export const getEnquirySummaryAction = async (
 ) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getEnquirySummary(user.clinicId, fromDate, toDate);
+  return await getEnquirySummary(user.organizationId, fromDate, toDate);
 };

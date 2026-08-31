@@ -1,6 +1,6 @@
 import { z } from "zod"; // Import zod for schema definitions
 
-export const userRoles = z.enum(["ADMIN", "STAFF", "DOCTOR", "GUEST"]); // members user roles
+export const userRoles = z.enum(["PLATFORM_ADMIN", "ADMIN", "STAFF", "DOCTOR", "GUEST"]); // members user roles
 
 // Schema for Editing an Existing User (Password excluded)
 export const editUserSchema = z.object({

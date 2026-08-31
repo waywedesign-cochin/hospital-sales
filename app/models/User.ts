@@ -2,7 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 
 export interface IUser {
   _id?: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   firstName: string;
   lastName?: string;
   email: string;
@@ -18,9 +18,9 @@ export interface IUser {
 
 const userSchema = new Schema<IUser>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: function (this: IUser) {
         return this.role !== "PLATFORM_ADMIN";
       },
@@ -44,7 +44,7 @@ const userSchema = new Schema<IUser>(
 );
 
 // Same email can exist in different clinics, but must be unique within a clinic
-userSchema.index({ email: 1, clinicId: 1 }, { unique: true });
+userSchema.index({ email: 1, organizationId: 1 }, { unique: true });
 
 const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>("User", userSchema);

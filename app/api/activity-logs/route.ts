@@ -11,7 +11,7 @@ export const GET = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
-    const response = await getActivityLogs(user.clinicId, page, limit);
+    const response = await getActivityLogs(user.organizationId, page, limit);
     return response;
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

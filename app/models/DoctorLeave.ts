@@ -3,11 +3,11 @@ import mongoose, { Schema, Model } from "mongoose";
 
 export interface DoctorLeave {
   _id?: string;
-  clinicId: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   doctor: mongoose.Types.ObjectId | Doctor; // Doctor ObjectId
   fromDate: Date;
   toDate: Date;
-  type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE";
+  type: "FULL_DAY" | "PARTIAL_SLOTS" | "TIME_RANGE" | "HALF_DAY";
   slots?: string[];
   startTime?: string; // "10:00"
   endTime?: string; // "14:00"
@@ -18,9 +18,9 @@ export interface DoctorLeave {
 
 const doctorLeaveSchema = new Schema<DoctorLeave>(
   {
-    clinicId: {
+    organizationId: {
       type: mongoose.Types.ObjectId,
-      ref: "Clinic",
+      ref: "Organization",
       required: true,
       index: true,
     },
@@ -42,7 +42,7 @@ const doctorLeaveSchema = new Schema<DoctorLeave>(
 
     type: {
       type: String,
-      enum: ["FULL_DAY", "PARTIAL_SLOTS", "TIME_RANGE"],
+      enum: ["FULL_DAY", "PARTIAL_SLOTS", "TIME_RANGE", "HALF_DAY"],
       default: "FULL_DAY",
       required: true,
     },
