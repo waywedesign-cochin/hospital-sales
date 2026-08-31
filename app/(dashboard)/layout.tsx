@@ -27,10 +27,15 @@ export default async function DashboardLayout({
     redirect("/auth");
   }
 
+  let payload: any;
   try {
-    verifyJwt(token);
+    payload = verifyJwt(token);
   } catch {
     redirect("/auth");
+  }
+
+  if (payload?.role === "PLATFORM_ADMIN") {
+    redirect("/admin");
   }
 
   return (

@@ -118,9 +118,13 @@ const AuthForm = () => {
           password: "",
         });
       } else {
-        await signin(formData.email, formData.password);
+        const user = await signin(formData.email, formData.password);
         toast.success("Login successful");
-        router.push("/dashboard");
+        if (user.role === "PLATFORM_ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Something went wrong");
