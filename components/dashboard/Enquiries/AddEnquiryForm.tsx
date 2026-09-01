@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectTrigger,
@@ -171,10 +172,10 @@ export default function AddEnquiryForm({ initialCategories = [] }: { initialCate
           </div>
 
           <div>
-            <Input
+            <PhoneInput
               placeholder="Phone"
               value={form.phone}
-              onChange={(e) => onChange("phone", e.target.value)}
+              onChange={(val: string) => onChange("phone", val || "")}
             />
             {errors.phone && (
               <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
@@ -196,15 +197,7 @@ export default function AddEnquiryForm({ initialCategories = [] }: { initialCate
                     {c}
                   </SelectItem>
                 ))}
-                <div className="p-2 border-t mt-1">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    onClick={() => setQuickAddOpen(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" /> Add New Category
-                  </Button>
-                </div>
+
               </SelectContent>
             </Select>
 

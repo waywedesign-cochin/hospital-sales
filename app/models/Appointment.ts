@@ -8,7 +8,8 @@ export interface IAppointment {
   bookingId: string;
   enquiryId: mongoose.Types.ObjectId | IEnquiry;
   patientId?: mongoose.Types.ObjectId | any;
-  patientName: string;
+  firstName: string;
+  lastName?: string;
   patientPhone: string;
   patientEmail?: string;
   isNewPatient?: boolean;
@@ -37,7 +38,8 @@ const appointmentSchema = new Schema<IAppointment>(
       type: mongoose.Types.ObjectId,
       ref: "Patient",
     },
-    patientName: { type: String, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, default: "" },
     patientPhone: { type: String, required: true },
     patientEmail: { type: String },
     isNewPatient: { type: Boolean, default: false },

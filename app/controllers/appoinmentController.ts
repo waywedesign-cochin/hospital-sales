@@ -17,7 +17,8 @@ export const createAppointment = async (data: {
   organizationId: string;
   userId?: string;
   enquiryId?: string;
-  patientName: string;
+  firstName: string;
+  lastName?: string;
   patientPhone: string;
   patientEmail?: string;
   isNewPatient?: boolean;
@@ -29,20 +30,31 @@ export const createAppointment = async (data: {
   handledBy?: string;
   notes?: string;
 }) => {
-  // Check existing patient within clinic
-  let existingPatient = await Patient.findOne({
-    organizationId: data.organizationId,
-    phone: data.patientPhone,
-  });
-  
+  // If booking from an enquiry, try to reuse the enquiry's linked patient first
+  let existingPatient = null;
+
+  if (data.enquiryId) {
+    const enquiry = await Enquiry.findById(data.enquiryId).lean();
+    if (enquiry?.patientId) {
+      existingPatient = await Patient.findById(enquiry.patientId);
+    }
+  }
+
+  // Fallback: look up by phone within the same clinic
+  if (!existingPatient) {
+    existingPatient = await Patient.findOne({
+      organizationId: data.organizationId,
+      phone: data.patientPhone,
+    });
+  }
+
   const isActuallyNew = !existingPatient;
 
   if (!existingPatient) {
-    const [first, ...rest] = data.patientName.split(" ");
     existingPatient = await Patient.create({
       organizationId: data.organizationId,
-      firstName: first,
-      lastName: rest.join(" ") || "",
+      firstName: data.firstName,
+      lastName: data.lastName || "",
       email: data.patientEmail,
       phone: data.patientPhone,
     });
@@ -68,10 +80,11 @@ export const createAppointment = async (data: {
       note: data.notes || "Appointment booked",
       date: new Date(),
     });
-    // Actually update the Enquiry's main status field
+    // Actually update the Enquiry's main status field and link patient
     await Enquiry.findOneAndUpdate({ _id: enquiryId.toString(), organizationId: data.organizationId }, {
       status: "APPOINTMENT_BOOKED",
       handledBy: data.handledBy || undefined,
+      patientId: existingPatient._id,
     });
   }
 
@@ -93,7 +106,7 @@ export const createAppointment = async (data: {
       "en-IN",
     );
 
-    const customerMessage = `Hello ${newAppointment?.patientName} 👋,
+    const customerMessage = `Hello ${newAppointment?.firstName} 👋,
 
 Your dermatology appointment has been confirmed ✅
 
@@ -133,7 +146,7 @@ Dermatology Center`;
       data.userId,
       "CREATED_APPOINTMENT",
       "Appointment",
-      `Booked appointment for ${data.patientName} on ${data.date} at ${data.startTime}`,
+      `Booked appointment for ${data.firstName} ${data.lastName || ""} on ${data.date} at ${data.startTime}`.trim(),
       appointment._id
     );
   }
@@ -162,7 +175,8 @@ export const getAllAppointments = async (
   if (doctor) whereClause.doctor = doctor;
   if (search) {
     whereClause.$or = [
-      { patientName: { $regex: search, $options: "i" } },
+      { firstName: { $regex: search, $options: "i" } },
+      { lastName: { $regex: search, $options: "i" } },
       { patientPhone: { $regex: search, $options: "i" } },
       { patientEmail: { $regex: search, $options: "i" } },
       { notes: { $regex: search, $options: "i" } },
@@ -214,7 +228,8 @@ export const getAllAppointments = async (
             _id: appointment.enquiryId._id.toString(),
           }
         : null,
-      patientName: appointment.patientName,
+      firstName: appointment.firstName || (appointment as any).patientName?.split(" ")[0] || "Unknown",
+      lastName: appointment.lastName || (appointment as any).patientName?.split(" ").slice(1).join(" ") || "",
       patientPhone: appointment.patientPhone,
       patientEmail: appointment.patientEmail,
       isNewPatient: appointment.isNewPatient,
@@ -248,7 +263,8 @@ export const updateAppointment = async (
   id: string,
   userId: string,
   data: {
-    patientName: string;
+    firstName: string;
+    lastName?: string;
     patientPhone: string;
     patientEmail?: string;
     isNewPatient?: boolean;
@@ -275,7 +291,7 @@ export const updateAppointment = async (
       userId,
       "UPDATED_APPOINTMENT",
       "Appointment",
-      `Updated appointment for ${data.patientName}`,
+      `Updated appointment for ${data.firstName} ${data.lastName || ""}`.trim(),
       id
     );
   }
@@ -299,7 +315,7 @@ export const deleteAppointment = async (organizationId: string, id: string, user
       userId,
       "DELETED_APPOINTMENT",
       "Appointment",
-      `Deleted appointment for ${appopintmentExists.patientName}`,
+      `Deleted appointment for ${appopintmentExists.firstName} ${appopintmentExists.lastName || ""}`.trim(),
       id
     );
   }
@@ -320,6 +336,8 @@ export const getAppointmentById = async (organizationId: string, id: string) => 
     .lean();
   return sendResponse(true, "Appoinment found successfully", {
     ...appointment,
+    firstName: appointment?.firstName || (appointment as any)?.patientName?.split(" ")[0] || "Unknown",
+    lastName: appointment?.lastName || (appointment as any)?.patientName?.split(" ").slice(1).join(" ") || "",
     _id: appointment?._id.toString(),
     doctor: appointment?.doctor
       ? {

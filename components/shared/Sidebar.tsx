@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import {
   ChevronDown,
   LayoutDashboard,
@@ -76,12 +76,16 @@ export function Sidebar() {
     toast.success("Logged out successfully");
   };
 
+  const params = useParams();
+  const slug = params.slug as string;
+  const baseUrl = slug ? `/${slug}` : "";
+
   const menuItems = [
     {
       id: "dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
-      href: "/dashboard",
+      href: `${baseUrl}/dashboard`,
       subItems: [],
     },
     ...(user?.role === "ADMIN" || user?.role === "STAFF"
@@ -98,14 +102,14 @@ export function Sidebar() {
       id: "patients",
       label: "Patients",
       icon: UserSquare, BriefcaseMedical,
-      href: "/patients",
+      href: `${baseUrl}/patients`,
       subItems: [],
     },
     {
       id: "messaging",
       label: "Messaging",
       icon: MessageCircle,
-      href: "/messaging",
+      href: `${baseUrl}/messaging`,
       subItems: [],
     },
     {
@@ -117,20 +121,20 @@ export function Sidebar() {
           ? [
               {
                 label: "All Appointments",
-                href: `/appointments?year=${currentYear}&month=${currentMonth}`,
+                href: `${baseUrl}/appointments?year=${currentYear}&month=${currentMonth}`,
               },
-              { label: "Calendar", href: "/appointments/calendar" },
+              { label: "Calendar", href: `${baseUrl}/appointments/calendar` },
             ]
           : [
               {
                 label: "All Appointments",
-                href: `/appointments?year=${currentYear}&month=${currentMonth}`,
+                href: `${baseUrl}/appointments?year=${currentYear}&month=${currentMonth}`,
               },
               {
                 label: "Create Appointment",
-                href: "/appointments/create-appointment",
+                href: `${baseUrl}/appointments/create-appointment`,
               },
-              { label: "Calendar", href: "/appointments/calendar" },
+              { label: "Calendar", href: `${baseUrl}/appointments/calendar` },
             ],
     },
     ...(user?.role === "ADMIN"
@@ -140,13 +144,13 @@ export function Sidebar() {
             label: "Doctors",
             icon: Stethoscope,
             subItems: [
-              { label: "Doctors List", href: "/doctors" },
-              { label: "Add Doctor", href: "/doctors/add-doctor" },
+              { label: "Doctors List", href: `${baseUrl}/doctors` },
+              { label: "Add Doctor", href: `${baseUrl}/doctors/add-doctor` },
               {
                 label: "Doctors Leave List",
-                href: `/doctors/leave/leaves-list?year=${currentYear}&month=${currentMonth}`,
+                href: `${baseUrl}/doctors/leave/leaves-list?year=${currentYear}&month=${currentMonth}`,
               },
-              { label: "Create Leave", href: "/doctors/leave/create-leave" },
+              { label: "Create Leave", href: `${baseUrl}/doctors/leave/create-leave` },
             ],
           },
         ]
@@ -158,14 +162,14 @@ export function Sidebar() {
             id: "users",
             label: "Staff Users",
             icon: Users,
-            href: "/users",
+            href: `${baseUrl}/users`,
             subItems: [],
           },
           {
             id: "activity-logs",
             label: "Activity Log",
             icon: Activity,
-            href: "/activity-logs",
+            href: `${baseUrl}/activity-logs`,
             subItems: [],
           },
         ]
@@ -177,7 +181,7 @@ export function Sidebar() {
             label: "Settings",
             icon: Settings,
             subItems: [
-              { label: "Treatment Categories", href: "/settings/treatment-category" }
+              { label: "Treatment Categories", href: `${baseUrl}/settings/treatment-category` }
             ],
           },
         ]
@@ -186,7 +190,7 @@ export function Sidebar() {
       id: "architecture",
       label: "Architecture Guide",
       icon: BookOpen,
-      href: "/architecture",
+      href: `${baseUrl}/architecture`,
       subItems: [],
     },
   ];

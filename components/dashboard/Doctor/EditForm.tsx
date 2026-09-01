@@ -16,6 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Button } from "@/components/ui/button";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 /* ---------------- Error Message ---------------- */
 interface ErrorMessageProps {
@@ -200,11 +201,17 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData, initialCategorie
         {/* Contact */}
         <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Contact Number</label>
-          <input
-            {...register("contactNumber")}
-            disabled={isSubmitting}
-            placeholder="e.g. +1 234 567 8900"
-            className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("contactNumber")}`}
+          <Controller
+            name="contactNumber"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                {...field}
+                disabled={isSubmitting}
+                placeholder="e.g. +1 234 567 8900"
+                className={`mt-1 w-full bg-gray-50 border rounded-lg ${getErrorClass("contactNumber")}`}
+              />
+            )}
           />
           <ErrorMessage fieldName="contactNumber" errors={errors} />
         </div>

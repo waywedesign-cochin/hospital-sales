@@ -95,7 +95,12 @@ export const registerClinic = async (data: {
     await Organization.findByIdAndUpdate(newOrganization._id, { ownerId: newAdmin._id });
 
     // 5. Auto login
-    const token = signJwt({ _id: newAdmin._id.toString(), role: newAdmin.role, organizationId: newOrganization._id.toString() }, "7d");
+    const token = signJwt({ 
+      _id: newAdmin._id.toString(), 
+      role: newAdmin.role, 
+      organizationId: newOrganization._id.toString(),
+      organizationSlug: newOrganization.slug 
+    }, "7d");
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
       httpOnly: true,
@@ -142,8 +147,17 @@ export const signIn = async (data: { email: string; password: string }) => {
       return sendResponse(false, "Access denied. Contact admin.");
     }
 
-    // ✅ Sign JWT with organizationId
-    const token = signJwt({ _id: user._id, role: user.role, organizationId: user.organizationId }, "7d");
+    // Fetch the organization to get its slug
+    const organization = await Organization.findById(user.organizationId).select("slug");
+    const organizationSlug = organization ? organization.slug : null;
+
+    // ✅ Sign JWT with organizationId and organizationSlug
+    const token = signJwt({ 
+      _id: user._id, 
+      role: user.role, 
+      organizationId: user.organizationId,
+      organizationSlug
+    }, "7d");
     const cookieStore = await cookies();
 
     // ✅ Set JWT in HttpOnly cookie

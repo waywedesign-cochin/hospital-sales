@@ -21,10 +21,10 @@ export const getDoctorsAppointmentsSummaryAction = async (year: string) => {
   return await doctorsAppointmentsSummary(user.organizationId, year);
 };
 
-export const getQuickOverviewSummaryAction=async(date:string)=>{
+export const getQuickOverviewSummaryAction=async(date:string, range: string = "daily")=>{
   await dbConnect();
   const user = await requireAuth();
-  return await getQuickOverviewSummary(user.organizationId, date);
+  return await getQuickOverviewSummary(user.organizationId, date, range as any);
 }
 
 export const getSetupStatusAction = async () => {

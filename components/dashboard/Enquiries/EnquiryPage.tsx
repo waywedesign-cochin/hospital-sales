@@ -14,7 +14,7 @@ import {
   ClipboardList,
   ArrowRight,
 } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -81,6 +81,8 @@ export default function EnquiryPage({
   const clinic = useAuthStore((state: any) => state.clinic);
   const user = useAuthStore((state: any) => state.user);
   const categories = clinic?.departments || [];
+  const paramsHook = useParams();
+  const slug = paramsHook?.slug || clinic?.slug || "";
   // Debounce search
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -89,7 +91,7 @@ export default function EnquiryPage({
       if (search) params.set("search", search);
       else params.delete("search");
 
-      router.push(`/enquiries?${params.toString()}`);
+      router.push(`/${slug}/enquiries?${params.toString()}`);
     }, 300);
 
     return () => clearTimeout(timeout);
@@ -102,7 +104,7 @@ export default function EnquiryPage({
     if (value === "ALL") params.delete(key);
     else params.set(key, value);
 
-    router.push(`/enquiries?${params.toString()}`);
+    router.push(`/${slug}/enquiries?${params.toString()}`);
   };
   // Date Filter
   const handleDateRangeFilter = (from: string, to: string) => {
@@ -115,7 +117,7 @@ export default function EnquiryPage({
     else params.delete("toDate");
 
     params.delete("page"); // reset pagination on filter change
-    router.push(`/enquiries?${params.toString()}`);
+    router.push(`/${slug}/enquiries?${params.toString()}`);
   };
 
   //clear filters
@@ -123,7 +125,7 @@ export default function EnquiryPage({
     setSearch("");
     setFromDate("");
     setToDate("");
-    router.push("/enquiries");
+    router.push(`/${slug}/enquiries`);
   };
 
   // Pagination
@@ -153,7 +155,7 @@ export default function EnquiryPage({
   // Appointment
   const handleAppointmentBook = async (enquiry: IEnquiry) => {
     const params = new URLSearchParams({
-      name: enquiry.firstName + " " + enquiry.lastName || "",
+      name: `${enquiry.firstName || ""} ${enquiry.lastName && enquiry.lastName !== "-" ? enquiry.lastName : ""}`.trim(),
       email: enquiry.email || "",
       phone: enquiry.phone || "",
       enquiryId: enquiry._id,
@@ -161,7 +163,7 @@ export default function EnquiryPage({
       staffNotes: enquiry.staffNotes || "",
     });
 
-    router.push(`/appointments/create-appointment?${params.toString()}`);
+    router.push(`/${clinic?.slug || ""}/appointments/create-appointment?${params.toString()}`);
   };
 
   // Export to Excel
@@ -307,14 +309,14 @@ export default function EnquiryPage({
           <div>
             {!setupStatus.hasTreatmentCategories ? (
               <button 
-                onClick={() => router.push("/settings/treatment-category")}
+                onClick={() => router.push(`/${slug}/settings/treatment-category`)}
                 className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
               >
                 Create Category <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
               <button 
-                onClick={() => router.push("/doctors")}
+                onClick={() => router.push(`/${slug}/doctors`)}
                 className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
               >
                 Add Doctor <ArrowRight className="w-4 h-4" />
@@ -343,7 +345,7 @@ export default function EnquiryPage({
           </div>
           <Button
             type="button"
-            onClick={() => router.push("/enquiries/add-enquiry")}
+            onClick={() => router.push(`/${slug}/enquiries/add-enquiry`)}
             disabled={setupStatus && (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors)}
             className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -402,7 +404,7 @@ export default function EnquiryPage({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Types</SelectItem>
-              {categories.map((c) => (
+              {categories.map((c: string) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
@@ -642,7 +644,7 @@ export default function EnquiryPage({
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 px-2">
                         <Button
-                          onClick={() => router.push(`/enquiries/${enq?._id}`)}
+                          onClick={() => router.push(`/${slug}/enquiries/${enq?._id}`)}
                           size="sm"
                           className="text-xs bg-white shadow-sm text-blue-primary hover:text-blue-600 px-2 py-1 rounded-md hover:bg-blue-50 transition-all shrink-0"
                         >

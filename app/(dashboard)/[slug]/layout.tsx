@@ -6,7 +6,7 @@ import { verifyJwt } from "@/app/lib/jwt";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { Header } from "@/components/shared/Header";
 import { SidebarProvider } from "@/components/provider/SidebarContext";
-import "../globals.css";
+import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -46,11 +46,11 @@ export default async function DashboardLayout({
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-200/40 rounded-full blur-[120px] z-0 pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-200/30 rounded-full blur-[150px] z-0 pointer-events-none"></div>
         
-        <div className="flex z-10 w-full h-full">
+        <div className="flex z-10 w-full h-full min-h-0">
           <Sidebar />
-          <div className="flex flex-1 flex-col overflow-hidden relative">
+          <div className="flex flex-1 flex-col overflow-hidden relative min-h-0">
             <Header />
-            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 modern-scrollbar">
+            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 modern-scrollbar min-h-0">
               {children}
             </main>
           </div>

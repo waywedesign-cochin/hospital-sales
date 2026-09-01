@@ -1,8 +1,15 @@
 "use client";
 
-import { CalendarCheck, Users, CalendarDays } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { QuickOverviewData } from "./DashboardOverview";
 import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface QuickOverviewProps {
   data: QuickOverviewData;
@@ -12,12 +19,38 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
   const { todayAppointments, consultationBreakdown, tomorrowAppointments } =
     data;
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const range = searchParams.get("quickOverviewRange") || "daily";
+
+  const handleRangeChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("quickOverviewRange", value);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const currentLabel = range === "daily" ? "Today's" : range === "weekly" ? "This Week's" : "This Month's";
+  const nextLabel = range === "daily" ? "Tomorrow's" : range === "weekly" ? "Next Week's" : "Next Month's";
+
   return (
     <section className="space-y-4">
-      <h3 className="text-lg font-bold text-[#00236F]">Quick Overview</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-bold text-[#00236F]">Quick Overview</h3>
+        <Select value={range} onValueChange={handleRangeChange}>
+          <SelectTrigger className="w-[120px] h-9 text-xs font-semibold bg-white border-slate-200 rounded-lg">
+            <SelectValue placeholder="Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="daily">Daily</SelectItem>
+            <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="monthly">Monthly</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* ---------------- Today Appointments ---------------- */}
+        {/* ---------------- Current Appointments ---------------- */}
         <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-4 md:p-5 space-y-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.02]">
           <div className="flex justify-between items-start">
             <div>
@@ -25,7 +58,7 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
                 {todayAppointments.total}
               </p>
               <p className="text-[10px] font-bold tracking-[0.15em] text-[#00236F]/60 uppercase whitespace-nowrap mt-2">
-                Today’s Appointments
+                {currentLabel} Appointments
               </p>
             </div>
 
@@ -54,7 +87,7 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
                 )}
               </p>
               <p className="text-[10px] font-bold tracking-[0.15em] text-[#00236F]/60 uppercase whitespace-nowrap mt-2">
-                Today’s Consultation Breakdown
+                {currentLabel} Consultation Breakdown
               </p>
             </div>
 
@@ -87,7 +120,7 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
           </div>
         </div>
 
-        {/* ---------------- Tomorrow Schedule ---------------- */}
+        {/* ---------------- Next Period Schedule ---------------- */}
         <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-4 md:p-5 space-y-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.02]">
           <div className="flex justify-between items-start">
             <div>
@@ -95,7 +128,7 @@ export default function QuickOverview({ data }: QuickOverviewProps) {
                 {tomorrowAppointments}
               </p>
               <p className="text-[10px] font-bold tracking-[0.15em] text-[#00236F]/60 uppercase whitespace-nowrap mt-2">
-                Tomorrow’s schedule
+                {nextLabel} schedule
               </p>
             </div>
 

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ITreatmentCategory } from "@/app/models/TreatmentCategory";
@@ -65,9 +66,11 @@ export default function AppointmentForm({
     }
   }, [initialCategories]);
 
+  const prefillNameSplit = (prefill?.name || "").split(" ");
   const [form, setForm] = useState({
     enquiryId: prefill?.enquiryId ?? undefined,
-    patientName: prefill?.name || "",
+    firstName: prefillNameSplit[0] || "",
+    lastName: prefillNameSplit.slice(1).join(" ") || "",
     patientPhone: prefill?.phone || "",
     patientEmail: prefill?.email || "",
     doctor: "",
@@ -101,23 +104,29 @@ export default function AppointmentForm({
     setErrors((p) => ({ ...p, [key]: "" }));
   };
 
-  const now = new Date();
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const isPastSlot = (slot: string) => {
-    if (!form.date) return false;
-    return new Date(`${form.date}T${slot}:00`) < now;
+    if (!form.date || !now) return false;
+    // ensure robust date parsing
+    const d = new Date(form.date).toISOString().split("T")[0];
+    return new Date(`${d}T${slot}:00`) < now;
   };
 
   const getSlotReason = (time: string) =>
     blockedSlots.find((s) => s.time === time)?.reason;
 
   const fetchSlots = async () => {
-    if (!form.doctor || !form.date) return;
+    if (!form.doctor || !form.date || !user?.organizationId) return;
 
     try {
       setLoadingSlots(true);
       const res = await axios.get(
-        `/api/appointment?doctor=${form.doctor}&date=${form.date}&organizationId=${clinic?._id}`,
+        `/api/appointment?doctor=${form.doctor}&date=${form.date}&organizationId=${(user as any)?.organizationId}`,
       );
 
       if (res.data.success) {
@@ -132,7 +141,7 @@ export default function AppointmentForm({
 
   useEffect(() => {
     fetchSlots();
-  }, [form.doctor, form.date]);
+  }, [form.doctor, form.date, user?.organizationId]);
 
   useEffect(() => {
     if (!form.treatmentCategory) return;
@@ -143,6 +152,48 @@ export default function AppointmentForm({
     router.replace(`?${params.toString()}`);
     router.refresh();
   }, [form.treatmentCategory]);
+
+  // Patient suggestions by phone
+  const [patientSuggestions, setPatientSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (form.patientPhone.length < 5) {
+        setPatientSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      try {
+        const res = await axios.get(`/api/patients?search=${form.patientPhone}&limit=5`);
+        if (res.data.success && res.data.data.patients.length > 0) {
+          setPatientSuggestions(res.data.data.patients);
+          setShowSuggestions(true);
+        } else {
+          setPatientSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch suggestions", error);
+      }
+    };
+    
+    // Only search if we are typing a phone number manually, not when autofilled (unless modified)
+    // To avoid infinite loops or annoyances, we add a simple debounce
+    const timeout = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeout);
+  }, [form.patientPhone]);
+
+  const handleSelectSuggestion = (patient: any) => {
+    setForm((prev) => ({
+      ...prev,
+      firstName: patient.firstName,
+      lastName: patient.lastName && patient.lastName !== "-" ? patient.lastName : "",
+      patientPhone: patient.phone,
+      patientEmail: patient.email || prev.patientEmail,
+    }));
+    setShowSuggestions(false);
+  };
 
   //handle form submit
   const handleAddAppointment = async () => {
@@ -279,24 +330,58 @@ export default function AppointmentForm({
       <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
         {/* Patient Info */}
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12 md:col-span-4">
-            <label className="text-sm font-medium">Patient Name</label>
+          <div className="col-span-12 md:col-span-4 lg:col-span-2">
+            <label className="text-sm font-medium">First Name</label>
             <Input
-              placeholder="e.g. John Doe"
+              placeholder="e.g. John"
               className="mt-1"
-              value={form.patientName}
-              onChange={(e) => onChange("patientName", e.target.value)}
+              value={form.firstName}
+              onChange={(e) => onChange("firstName", e.target.value)}
             />
           </div>
           
-          <div className="col-span-12 md:col-span-4">
-            <label className="text-sm font-medium">Phone Number</label>
+          <div className="col-span-12 md:col-span-4 lg:col-span-2">
+            <label className="text-sm font-medium">Last Name</label>
             <Input
+              placeholder="e.g. Doe"
+              className="mt-1"
+              value={form.lastName}
+              onChange={(e) => onChange("lastName", e.target.value)}
+            />
+          </div>
+          
+          <div className="col-span-12 md:col-span-4 relative">
+            <label className="text-sm font-medium">Phone Number</label>
+            <PhoneInput
               placeholder="e.g. +1 234 567 8900"
               className="mt-1"
               value={form.patientPhone}
-              onChange={(e) => onChange("patientPhone", e.target.value)}
+              onChange={(val: string) => onChange("patientPhone", val || "")}
+              onFocus={() => {
+                if (patientSuggestions.length > 0) setShowSuggestions(true);
+              }}
+              onBlur={() => {
+                // Delay hiding so clicks register
+                setTimeout(() => setShowSuggestions(false), 200);
+              }}
             />
+            {showSuggestions && patientSuggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                {patientSuggestions.map((p) => (
+                  <div
+                    key={p._id}
+                    className="p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
+                    onClick={() => handleSelectSuggestion(p)}
+                  >
+                    <div className="font-semibold text-sm text-slate-800">
+                      {p.firstName} {p.lastName && p.lastName !== "-" ? p.lastName : ""}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">{p.phone}</div>
+                    {p.email && <div className="text-[10px] text-slate-400 mt-0.5">{p.email}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="col-span-12 md:col-span-4">
@@ -367,15 +452,7 @@ export default function AppointmentForm({
                         {c}
                       </SelectItem>
                     ))}
-                    <div className="p-2 border-t mt-1">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => setQuickAddOpen(true)}
-                      >
-                        <Plus className="w-4 h-4 mr-2" /> Add New Category
-                      </Button>
-                    </div>
+
                   </SelectContent>
                 </Select>
                 {errors.treatmentCategory && (

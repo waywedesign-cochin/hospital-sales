@@ -111,7 +111,7 @@ export default function TreatmentCategoryPage({
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-2 space-y-6">
+    <div className="min-h-screen p-2 space-y-6 relative">
       <Breadcrumb
         items={[
           { label: "Dashboard", href: "/dashboard" },
@@ -121,33 +121,36 @@ export default function TreatmentCategoryPage({
       />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border">
-        <div className="flex items-center gap-4">
-          <div className="bg-indigo-50 p-4 rounded-2xl">
-            <Tag className="w-8 h-8 text-indigo-600" />
+      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
+        <div className="absolute inset-0" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-blue-100/50 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
+              <Tag className="w-8 h-8 text-white" />
+            </div>
+
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+                Treatment Categories
+              </h1>
+              <p className="text-slate-600 font-medium text-sm mt-1">
+                Manage clinic treatment category list.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Treatment Categories
-            </h1>
-            <p className="text-slate-500 text-sm">
-              Manage clinic treatment category list.
-            </p>
-          </div>
+          {/* ADD Category Button */}
+          <button
+            onClick={openAddModal}
+            className="bg-linear-to-r from-green-600 to-emerald-600 text-white px-5 py-3 rounded-xl hover:from-green-700 hover:to-emerald-700 transition flex items-center gap-2 shadow-sm font-semibold"
+          >
+            <Plus className="w-4 h-4" /> Add Category
+          </button>
         </div>
-
-        {/* ADD Category Button */}
-        <button
-          onClick={openAddModal}
-          className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition flex items-center gap-2 shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Add Category
-        </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-blue-50/60">
             <tr>
@@ -247,7 +250,7 @@ export default function TreatmentCategoryPage({
               Cancel
             </Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
               onClick={handleSubmit}
               disabled={loading}
             >

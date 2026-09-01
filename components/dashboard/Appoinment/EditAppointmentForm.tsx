@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -37,24 +38,29 @@ export default function EditAppointmentForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const clinic = useAuthStore((state: any) => state.clinic);
-  const categories: string[] = clinic?.departments || [];
-
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [localCategories, setLocalCategories] = useState<string[]>(categories);
-
-  useEffect(() => {
-    if (categories) {
-      setLocalCategories(categories);
-    }
-  }, [categories]);
-
+  const user = useAuthStore((state: any) => state.user);
   const initialDoctorId = appointment.doctor?._id || appointment.doctor || "";
   const initialTreatmentCategory = appointment.treatmentCategory || "";
   const originalSlot = appointment.startTime;
 
+  const categories: string[] = clinic?.departments || [];
+  
+  // Ensure the appointment's current category is always in the list even if it was deleted from clinic settings
+  const allCategories = Array.from(new Set([...categories, initialTreatmentCategory].filter(Boolean)));
+
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [localCategories, setLocalCategories] = useState<string[]>(allCategories);
+
+  useEffect(() => {
+    if (allCategories && allCategories.length > 0) {
+      setLocalCategories(allCategories);
+    }
+  }, [clinic?.departments]);
+
   const [form, setForm] = useState({
     enquiryId: appointment.enquiryId?._id ?? undefined,
-    patientName: appointment.patientName || "",
+    firstName: appointment.firstName || "",
+    lastName: appointment.lastName || "",
     patientPhone: appointment.patientPhone || "",
     patientEmail: appointment.patientEmail || "",
     doctor: initialDoctorId,
@@ -88,10 +94,14 @@ export default function EditAppointmentForm({
     });
   };
 
-  const now = new Date();
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const isPastSlot = (slot: string) => {
-    if (!form.date) return false;
+    if (!form.date || !now) return false;
     const d = new Date(form.date).toISOString().split("T")[0];
     return new Date(`${d}T${slot}:00`) < now;
   };
@@ -100,7 +110,7 @@ export default function EditAppointmentForm({
     blockedSlots.find((s) => s.time === time)?.reason;
 
   const fetchSlots = async () => {
-    if (!form.doctor || !form.date) return;
+    if (!form.doctor || !form.date || !user?.organizationId) return;
 
     try {
       setLoadingSlots(true);
@@ -108,7 +118,7 @@ export default function EditAppointmentForm({
       const formattedDate = new Date(form.date).toISOString().split("T")[0];
 
       const res = await axios.get(
-        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}`
+        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}&organizationId=${(user as any)?.organizationId}`
       );
 
       if (res.data.success) {
@@ -129,9 +139,9 @@ export default function EditAppointmentForm({
   };
 
   useEffect(() => {
-    if (!form.doctor || !form.date) return;
+    if (!form.doctor || !form.date || !user?.organizationId) return;
     fetchSlots();
-  }, [form.doctor, form.date]);
+  }, [form.doctor, form.date, user?.organizationId]);
 
   useEffect(() => {
     if (form.doctor !== initialDoctorId) {
@@ -255,15 +265,21 @@ export default function EditAppointmentForm({
         {/* Patient Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            placeholder="Patient Name"
-            value={form.patientName}
-            onChange={(e) => onChange("patientName", e.target.value)}
+            placeholder="First Name"
+            value={form.firstName}
+            onChange={(e) => onChange("firstName", e.target.value)}
           />
 
           <Input
+            placeholder="Last Name"
+            value={form.lastName}
+            onChange={(e) => onChange("lastName", e.target.value)}
+          />
+
+          <PhoneInput
             placeholder="Phone Number"
             value={form.patientPhone}
-            onChange={(e) => onChange("patientPhone", e.target.value)}
+            onChange={(val: string) => onChange("patientPhone", val || "")}
           />
 
           <Input
@@ -289,15 +305,7 @@ export default function EditAppointmentForm({
                     {c}
                   </SelectItem>
                 ))}
-                <div className="p-2 border-t mt-1">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    onClick={() => setQuickAddOpen(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" /> Add New Category
-                  </Button>
-                </div>
+
               </SelectContent>
             </Select>
             {errors.treatmentCategory && (
@@ -348,12 +356,17 @@ export default function EditAppointmentForm({
                 const reason = getSlotReason(time);
                 const isPast = isPastSlot(time);
                 const isSelected = form.startTime === time;
-                const disabled = isPast || !!reason;
+                const isOriginalSlot = time === originalSlot;
+                
+                // Allow the originally booked slot to remain selected and active even if it's in the past
+                const disabled = (isPast && !isOriginalSlot) || !!reason;
 
                 let cls =
                   "h-11 rounded-xl text-sm border transition flex items-center justify-center";
 
-                if (isPast)
+                if (isSelected)
+                  cls += " bg-blue-600 text-white border-blue-700";
+                else if (isPast && !isOriginalSlot)
                   cls +=
                     " bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed";
                 else if (reason === "LEAVE")
@@ -362,8 +375,6 @@ export default function EditAppointmentForm({
                 else if (reason === "BOOKED")
                   cls +=
                     " bg-red-100 text-red-500 border-red-200 cursor-not-allowed";
-                else if (isSelected)
-                  cls += " bg-blue-600 text-white border-blue-700";
                 else cls += " bg-blue-50 border-blue-300 hover:bg-blue-100";
 
                 return (

@@ -12,7 +12,7 @@ export const GET = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
     const limit = parseInt(searchParams.get("limit") || "20");
 
     const response = await getActivityLogs(user.organizationId, page, limit);
-    return response;
+    return NextResponse.json(response);
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 // Assuming these messages are defined elsewhere in your file or imports
 const minLengthErrorMessage = "Password must be at least 8 characters.";
@@ -41,7 +42,7 @@ export const doctorSchema = z
     email: z.email({ error: "Invalid email address" }),
     contactNumber: z
       .string()
-      .min(10, { message: "Contact number must be at least 10 digits long." }),
+      .refine((val) => isValidPhoneNumber(val), { message: "Invalid international phone number format." }),
     address: z
       .string()
       .min(5, { message: "Address must be at least 5 characters long." }),
@@ -100,7 +101,7 @@ export const doctorUpdateSchema = z.object({
 
   contactNumber: z
     .string()
-    .min(10, { message: "Contact number must be at least 10 digits long." }),
+    .refine((val) => isValidPhoneNumber(val), { message: "Invalid international phone number format." }),
 
   address: z
     .string()

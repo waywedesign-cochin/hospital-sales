@@ -405,7 +405,7 @@ export default function AppointmentsPage({
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-sm">
-                          {apt.patientName}
+                          {apt.firstName} {apt.lastName || ""}
                         </span>
                         <span className="text-xs text-gray-500 flex items-center gap-1">
                           <Phone className="w-3 h-3" />
