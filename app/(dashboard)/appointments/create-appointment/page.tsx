@@ -1,4 +1,5 @@
 import { getDoctorsAction } from "@/app/actions/doctorActions";
+import { getTreatmentCategoriesAction } from "@/app/actions/treatmentCategoryActions";
 import AppointmentForm from "@/components/dashboard/Appoinment/CreateAppoinmentForm";
 import React from "react";
 
@@ -25,7 +26,11 @@ const page = async (props: { searchParams: Promise<any> }) => {
     consultationFee: doctor.consultationFee || 0,
     ...doctor,
   }));
-  return <AppointmentForm doctors={doctors} date={date} prefill={prefillData} />;
+
+  const catRes = await getTreatmentCategoriesAction();
+  const categories = (catRes?.data || []).map((c: any) => c.name);
+
+  return <AppointmentForm doctors={doctors} date={date} prefill={prefillData} initialCategories={categories} />;
 };
 
 export default page;

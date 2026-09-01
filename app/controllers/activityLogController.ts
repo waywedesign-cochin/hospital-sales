@@ -1,5 +1,6 @@
 import ActivityLog from "../models/ActivityLog";
 import { sendApiResponse } from "../utils/nextResponseHandler";
+import { sendResponse } from "../utils/responseHandler";
 import mongoose from "mongoose";
 
 export const logActivity = async (
@@ -39,7 +40,7 @@ export const getActivityLogs = async (
     .populate("userId", "firstName lastName role")
     .lean();
 
-  return sendApiResponse(true, "Logs fetched successfully", {
+  return sendResponse(true, "Logs fetched successfully", {
     logs,
     pagination: {
       page,
