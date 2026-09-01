@@ -29,6 +29,7 @@ const sources = ["PHONE", "WHATSAPP", "OTHER"];
 
 export default function AddEnquiryForm({ initialCategories = [] }: { initialCategories?: string[] }) {
   const router = useRouter();
+  const clinic = useAuthStore((state: any) => state.clinic);
 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [localCategories, setLocalCategories] = useState<string[]>(initialCategories);
@@ -64,7 +65,12 @@ export default function AddEnquiryForm({ initialCategories = [] }: { initialCate
   const handleSubmit = async () => {
     setErrors({});
 
-    const validation = enquirySchema.safeParse(form);
+    const payload = {
+      ...form,
+      organizationId: clinic?._id || "",
+    };
+
+    const validation = enquirySchema.safeParse(payload);
 
     if (!validation.success) {
       const e: Record<string, string> = {};
@@ -81,7 +87,7 @@ export default function AddEnquiryForm({ initialCategories = [] }: { initialCate
     try {
       setLoading(true);
 
-      const res = await axios.post("/api/enquiry", form);
+      const res = await axios.post("/api/enquiry", payload);
 
       if (!res.data.success) {
         toast.error(res.data.message);
