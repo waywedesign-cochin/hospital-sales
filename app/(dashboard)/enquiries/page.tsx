@@ -2,6 +2,7 @@ import {
   getEnquiriesAction,
   getEnquirySummaryAction,
 } from "@/app/actions/enquiryActions";
+import { getSetupStatusAction } from "@/app/actions/dashboardActions";
 // import { EnquirySummary } from "@/app/controllers/enquiryController";
 import EnquiryPage, {
   EnquirySummaryCardsData,
@@ -51,11 +52,15 @@ const page = async (props: { searchParams: Promise<any> }) => {
     topCategory: "SKIN",
   };
 
+  const setupStatusRes = await getSetupStatusAction();
+  const setupStatus = setupStatusRes?.data;
+
   return (
     <EnquiryPage
       enquiries={enquiries}
       pagination={pagination}
       summary={enquirySummary as EnquirySummaryCardsData}
+      setupStatus={setupStatus}
     />
   );
 };

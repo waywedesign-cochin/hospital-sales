@@ -168,23 +168,49 @@ function SummaryCard({
   topColor: string;
   icon: React.ReactNode;
 }) {
+  const accentColor = "#22C55E"; // Green accent
   return (
-    <div className="relative bg-white border-2 border-t-0 border-black rounded-2xl overflow-hidden">
-      {/* TOP SOLID COLOR STRIP */}
-      <div className={`absolute top-0 left-0 w-full h-2 ${topColor}`} />
-
-      <div className="relative p-6">
-        <p className="text-sm font-medium text-gray-800">{title}</p>
-
-        <p className="mt-4 text-5xl font-bold text-black">{value}</p>
-
-        <p className="mt-3 text-sm text-gray-600">{subtitle}</p>
-
-        {/* Icon */}
-        <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
-          {icon}
-        </div>
+    <div
+      className="
+        bg-white/70 backdrop-blur-2xl
+        rounded-2xl
+        border border-white/60
+        shadow-[0_4px_20px_rgba(0,35,111,0.03)]
+        p-3 md:p-4
+        flex items-center justify-between
+        transition-all duration-300
+        hover:shadow-[0_6px_25px_rgba(0,35,111,0.06)]
+        hover:scale-[1.02]
+      "
+    >
+      <div className="flex flex-col gap-1 overflow-hidden mr-2">
+        <p className="text-[9px] font-bold tracking-[0.1em] text-[#00236F]/60 uppercase whitespace-nowrap truncate">
+          {title}
+        </p>
+        <p className="text-xl font-black text-[#00236F]">
+          {value}
+        </p>
+        {subtitle && (
+          <p className="text-[10px] font-medium text-[#00236F]/60 mt-0.5 truncate">
+            {subtitle}
+          </p>
+        )}
       </div>
+
+      {icon && (
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm shrink-0"
+          style={{
+            backgroundColor: `${accentColor}15`,
+            color: accentColor,
+            border: `1px solid ${accentColor}30`
+          }}
+        >
+          <div className="scale-75 flex items-center justify-center">
+            {icon}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

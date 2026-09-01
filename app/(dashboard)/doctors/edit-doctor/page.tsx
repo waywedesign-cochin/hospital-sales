@@ -1,6 +1,7 @@
 "use server";
 
 import { getDoctorByIdAction } from "@/app/actions/doctorActions";
+import { getTreatmentCategoriesAction } from "@/app/actions/treatmentCategoryActions";
 import DoctorForm from "@/components/dashboard/Doctor/EditForm";
 
 export default async function Page(props: { searchParams: Promise<any> }) {
@@ -12,8 +13,12 @@ export default async function Page(props: { searchParams: Promise<any> }) {
   }
 
   const response = await getDoctorByIdAction(id);
-const doctor=response.data??{}
+  const doctor = response.data ?? {};
+
+  const catRes = await getTreatmentCategoriesAction();
+  const categories = (catRes?.data || []).map((c: any) => c.name);
+
   return (
-    <DoctorForm initialData={doctor}  />
+    <DoctorForm initialData={doctor} initialCategories={categories} />
   );
 }

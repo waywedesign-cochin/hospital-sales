@@ -11,6 +11,8 @@ import {
   Plus,
   Eye,
   Download,
+  ClipboardList,
+  ArrowRight,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -57,6 +59,7 @@ export default function EnquiryPage({
   enquiries,
   pagination,
   summary,
+  setupStatus,
 }: {
   enquiries: EnquiryDTO[];
   pagination: {
@@ -66,6 +69,7 @@ export default function EnquiryPage({
     totalPages: number;
   };
   summary: EnquirySummaryCardsData;
+  setupStatus?: { hasTreatmentCategories: boolean; hasDoctors: boolean };
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -74,7 +78,8 @@ export default function EnquiryPage({
   const [fromDate, setFromDate] = useState(searchParams.get("fromDate") ?? "");
   const [toDate, setToDate] = useState(searchParams.get("toDate") ?? "");
   const [exporting, setExporting] = useState(false);
-  const clinic = useAuthStore((state) => state.clinic);
+  const clinic = useAuthStore((state: any) => state.clinic);
+  const user = useAuthStore((state: any) => state.user);
   const categories = clinic?.departments || [];
   // Debounce search
   useEffect(() => {
@@ -285,6 +290,40 @@ export default function EnquiryPage({
         />
       </div>
 
+      {/* Onboarding Setup Banner */}
+      {setupStatus && (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors) && user?.role === "ADMIN" && (
+        <div className="bg-linear-to-r from-indigo-600 to-blue-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-500/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              <ClipboardList className="w-7 h-7 text-indigo-200" />
+              Welcome to your Workspace! Let's get you set up.
+            </h2>
+            <p className="text-indigo-100 mt-2 font-medium">
+              {!setupStatus.hasTreatmentCategories 
+                ? "You must create at least one Treatment Category before you can add Patients or Enquiries."
+                : "You should add your first Doctor to start scheduling appointments."}
+            </p>
+          </div>
+          <div>
+            {!setupStatus.hasTreatmentCategories ? (
+              <button 
+                onClick={() => router.push("/settings/treatment-category")}
+                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+              >
+                Create Category <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => router.push("/doctors")}
+                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+              >
+                Add Doctor <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
         <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5"></div>
@@ -305,7 +344,8 @@ export default function EnquiryPage({
           <Button
             type="button"
             onClick={() => router.push("/enquiries/add-enquiry")}
-            className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900"
+            disabled={setupStatus && (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors)}
+            className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Add Enquiry

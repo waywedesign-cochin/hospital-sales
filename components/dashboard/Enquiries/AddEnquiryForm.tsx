@@ -27,20 +27,17 @@ const sources = ["PHONE", "WHATSAPP", "OTHER"];
 
 /* ---------------- PAGE ---------------- */
 
-export default function AddEnquiryForm() {
+export default function AddEnquiryForm({ initialCategories = [] }: { initialCategories?: string[] }) {
   const router = useRouter();
-  const clinic = useAuthStore((state: any) => state.clinic);
-  const user = useAuthStore((state: any) => state.user);
-  const categories = clinic?.departments || [];
 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [localCategories, setLocalCategories] = useState<string[]>(categories);
+  const [localCategories, setLocalCategories] = useState<string[]>(initialCategories);
 
   useEffect(() => {
-    if (categories) {
-      setLocalCategories(categories);
+    if (initialCategories.length > 0) {
+      setLocalCategories(initialCategories);
     }
-  }, [categories]);
+  }, [initialCategories]);
 
   const [form, setForm] = useState({
     firstName: "",
