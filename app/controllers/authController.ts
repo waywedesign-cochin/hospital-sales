@@ -73,7 +73,7 @@ export const registerClinic = async (data: {
       phone: data.clinicPhone,
       address: data.clinicAddress,
       departments: data.departments?.length ? data.departments : ["General Medicine"],
-      plan: "FREE_TRIAL",
+      plan: "free",
       trialEndsAt,
       subscriptionStatus: "TRIAL",
       maxDoctors: 2,
@@ -95,7 +95,7 @@ export const registerClinic = async (data: {
     await Organization.findByIdAndUpdate(newOrganization._id, { ownerId: newAdmin._id });
 
     // 5. Auto login
-    const token = signJwt({ _id: newAdmin._id, role: newAdmin.role, organizationId: newOrganization._id }, "7d");
+    const token = signJwt({ _id: newAdmin._id.toString(), role: newAdmin.role, organizationId: newOrganization._id.toString() }, "7d");
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
       httpOnly: true,
@@ -119,7 +119,7 @@ export const registerClinic = async (data: {
     if (error.code === 11000) {
       return sendResponse(false, "This email is already registered");
     }
-    return sendResponse(false, "Something went wrong during clinic registration");
+    return sendResponse(false, "Something went wrong during clinic registration: " + (error.message || error.toString()));
   }
 };
 

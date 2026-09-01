@@ -39,6 +39,7 @@ import Image from "next/image";
 export function Sidebar() {
   const { isCollapsed, toggleSidebar } = useSidebar();
   const user = useAuthStore((state) => state.user);
+  const clinic = useAuthStore((state: any) => state.clinic);
   const logout = useAuthStore((state) => state.signout);
   const pathname = usePathname();
   const router = useRouter();
@@ -246,8 +247,12 @@ export function Sidebar() {
             </div>
             {!isCollapsed && (
               <div className="flex flex-col whitespace-nowrap relative z-10">
-                <span className="text-[17px] font-bold text-[#00236F] tracking-tight leading-tight">Healthcare CRM</span>
-                <span className="text-[10px] uppercase font-bold text-slate-600 tracking-wider">Elite Health Systems</span>
+                <span className="text-[17px] font-bold text-[#00236F] tracking-tight leading-tight truncate w-36" title={clinic?.name || "Healthcare CRM"}>
+                  {clinic?.name || "Healthcare CRM"}
+                </span>
+                <span className="text-[10px] uppercase font-bold text-slate-600 tracking-wider truncate w-36">
+                  Workspace
+                </span>
               </div>
             )}
           </div>

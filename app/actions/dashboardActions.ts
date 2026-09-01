@@ -4,6 +4,7 @@ import {
   dashboardtotalSummaries,
   doctorsAppointmentsSummary,
   getQuickOverviewSummary,
+  getSetupStatus,
 } from "../controllers/overviewController";
 import { dbConnect } from "../lib/dbConnect";
 import { requireAuth } from "../lib/auth";
@@ -25,3 +26,9 @@ export const getQuickOverviewSummaryAction=async(date:string)=>{
   const user = await requireAuth();
   return await getQuickOverviewSummary(user.organizationId, date);
 }
+
+export const getSetupStatusAction = async () => {
+  await dbConnect();
+  const user = await requireAuth();
+  return await getSetupStatus(user.organizationId);
+};

@@ -3,6 +3,7 @@ import {
   getDashboardSummaryAction,
   getDoctorsAppointmentsSummaryAction,
   getQuickOverviewSummaryAction,
+  getSetupStatusAction,
 } from "@/app/actions/dashboardActions";
 import { getDoctorsAction } from "@/app/actions/doctorActions";
 import { getEnquiryReportAction } from "@/app/actions/enquiryActions";
@@ -52,6 +53,9 @@ const page = async (props: { searchParams: Promise<any> }) => {
   const quickOverviewRes = await getQuickOverviewSummaryAction(todaysDate);
   const quickOverviewSummary = quickOverviewRes.data;
  
+  //setup status
+  const setupStatusRes = await getSetupStatusAction();
+  const setupStatus = setupStatusRes.data;
   
   return (
     <DashboardHome
@@ -61,6 +65,7 @@ const page = async (props: { searchParams: Promise<any> }) => {
       totalSummary={totalSummary}
       doctorsAppointmentSummary={doctorsAppointmentSummary}
       quickOverview={quickOverviewSummary as QuickOverviewData}
+      setupStatus={setupStatus}
     />
   );
 };

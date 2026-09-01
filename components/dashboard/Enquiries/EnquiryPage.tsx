@@ -467,7 +467,7 @@ export default function EnquiryPage({
                   Phone
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  About
+                  Treatment
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                   Message
