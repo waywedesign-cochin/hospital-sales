@@ -8,8 +8,9 @@ import { useAuthStore } from "@/providers/AuthStoreProvider";
 
 export function Header() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const fetchClinic = useAuthStore((state) => state.fetchClinic);
+  const user = useAuthStore((state: any) => state.user);
+  const fetchClinic = useAuthStore((state: any) => state.fetchClinic);
+  const clinic = useAuthStore((state: any) => state.clinic);
   const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
 
@@ -39,7 +40,7 @@ export function Header() {
   });
 
   return (
-    <header className="shrink-0 relative overflow-hidden sticky top-0 z-10 border-b border-white/40 h-16 px-6 flex items-center justify-between shadow-sm">
+    <header className="shrink-0 overflow-hidden sticky top-0 z-10 border-b border-white/40 h-16 px-6 flex items-center justify-between shadow-sm">
       {/* Background Image Layer */}
       <div 
         className="absolute inset-0 z-[-2] bg-cover bg-center opacity-40 mix-blend-multiply"
@@ -62,7 +63,7 @@ export function Header() {
             {title}
           </h2>
           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
-            Elite Health Systems
+            {clinic?.name || "Workspace"}
           </p>
         </div>
       </div>

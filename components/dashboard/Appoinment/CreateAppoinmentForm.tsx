@@ -266,6 +266,15 @@ export default function AppointmentForm({
       </div>
 
       {/* Form Card – SAME CARD STYLE AS AppointmentsPage */}
+      {localCategories.length === 0 ? (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">
+          <h2 className="text-xl font-bold mb-2">Configuration Required</h2>
+          <p className="mb-6 max-w-md">You must create at least one Treatment Category before you can schedule an Appointment.</p>
+          <Button onClick={() => router.push("/settings/treatment-category")} className="bg-amber-600 hover:bg-amber-700 text-white">
+            Set up Treatment Categories
+          </Button>
+        </div>
+      ) : (
       <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
         {/* Patient Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -468,6 +477,7 @@ export default function AppointmentForm({
           </Button>
         )}
       </div>
+      )}
       <QuickAddCategoryDialog
         open={quickAddOpen}
         setOpen={setQuickAddOpen}

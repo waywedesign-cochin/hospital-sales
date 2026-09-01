@@ -1,6 +1,20 @@
 import Appointment from "../models/Appointment";
 import Enquiry from "../models/Enquiry";
 import { sendResponse } from "../utils/responseHandler";
+import TreatmentCategory from "../models/TreatmentCategory";
+import Doctor from "../models/Doctor";
+
+export const getSetupStatus = async (organizationId: string) => {
+  const [categoriesCount, doctorsCount] = await Promise.all([
+    TreatmentCategory.countDocuments({ organizationId }),
+    Doctor.countDocuments({ organizationId }),
+  ]);
+
+  return sendResponse(true, "Setup status fetched", {
+    hasTreatmentCategories: categoriesCount > 0,
+    hasDoctors: doctorsCount > 0,
+  });
+};
 
 export const dashboardtotalSummaries = async (organizationId: string, year?: string) => {
   const whereClause: any = { organizationId };

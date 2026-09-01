@@ -32,9 +32,10 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ fieldName, errors }) => {
 
 interface EditFormProps {
   initialData: Partial<DoctorUpdateFormData & { _id: string }>;
+  initialCategories?: string[];
 }
 
-const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
+const EditDoctorForm: React.FC<EditFormProps> = ({ initialData, initialCategories = [] }) => {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -70,11 +71,10 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
       ? "border-red-500 focus:ring-red-500"
       : "border-gray-300 focus:ring-blue-500";
 
-  const clinic = useAuthStore((state) => state.clinic);
-  const specializationOptions = clinic?.departments?.map(dept => ({
+  const specializationOptions = initialCategories.map(dept => ({
     value: dept,
     label: dept
-  })) || [];
+  }));
 
   type Option = { value: string; label: string };
 
@@ -99,7 +99,7 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
   };
 
   return (
-    <div className="min-h-screen p-2 space-y-6 relative">
+    <div className="min-h-screen p-2 space-y-4 relative">
       {/* Background blobs */}
 
       <div className="relative z-10 mb-6 flex items-center gap-3">
@@ -142,101 +142,114 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
       {/* Form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
+        className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-5 grid grid-cols-12 gap-4"
       >
         {/* Prefix */}
-        <div>
+        <div className="col-span-12 md:col-span-2">
           <label className="text-sm font-medium">Prefix</label>
-          <input
+          <select
             {...register("prefix")}
             disabled={isSubmitting}
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("prefix")}`}
-          />
+          >
+            <option value="Dr.">Dr.</option>
+            <option value="Mr.">Mr.</option>
+            <option value="Mrs.">Mrs.</option>
+            <option value="Ms.">Ms.</option>
+            <option value="Prof.">Prof.</option>
+          </select>
           <ErrorMessage fieldName="prefix" errors={errors} />
         </div>
 
         {/* First Name */}
-        <div>
+        <div className="col-span-12 md:col-span-5">
           <label className="text-sm font-medium">First Name</label>
           <input
             {...register("firstName")}
             disabled={isSubmitting}
+            placeholder="e.g. John"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("firstName")}`}
           />
           <ErrorMessage fieldName="firstName" errors={errors} />
         </div>
 
         {/* Last Name */}
-        <div>
+        <div className="col-span-12 md:col-span-5">
           <label className="text-sm font-medium">Last Name</label>
           <input
             {...register("lastName")}
             disabled={isSubmitting}
+            placeholder="e.g. Doe"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("lastName")}`}
           />
           <ErrorMessage fieldName="lastName" errors={errors} />
         </div>
 
         {/* Email */}
-        <div>
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Email</label>
           <input
             {...register("email")}
             disabled={isSubmitting}
+            placeholder="e.g. doctor@hospital.com"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("email")}`}
           />
           <ErrorMessage fieldName="email" errors={errors} />
         </div>
 
         {/* Contact */}
-        <div>
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Contact Number</label>
           <input
             {...register("contactNumber")}
             disabled={isSubmitting}
+            placeholder="e.g. +1 234 567 8900"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("contactNumber")}`}
           />
           <ErrorMessage fieldName="contactNumber" errors={errors} />
         </div>
 
         {/* Address */}
-        <div className="md:col-span-2">
+        <div className="col-span-12">
           <label className="text-sm font-medium">Address</label>
           <textarea
             rows={3}
             {...register("address")}
             disabled={isSubmitting}
+            placeholder="e.g. 123 Main St, City, Country"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("address")}`}
           />
           <ErrorMessage fieldName="address" errors={errors} />
         </div>
 
         {/* Qualification */}
-        <div>
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Qualification</label>
           <textarea
             rows={3}
             {...register("qualification")}
             disabled={isSubmitting}
+            placeholder="e.g. MBBS, MD (Dermatology)"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("qualification")}`}
           />
           <ErrorMessage fieldName="qualification" errors={errors} />
         </div>
 
         {/* Education */}
-        <div>
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Education</label>
           <textarea
             rows={3}
             {...register("education")}
             disabled={isSubmitting}
+            placeholder="e.g. Harvard Medical School"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("education")}`}
           />
           <ErrorMessage fieldName="education" errors={errors} />
         </div>
 
         {/* Specialization */}
-        <div className="md:col-span-2">
+        <div className="col-span-12">
           <label className="text-sm font-medium mb-1 block">
             Specialization
           </label>
@@ -265,7 +278,7 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
         </div>
 
         {/* Experience */}
-        <div>
+        <div className="col-span-12 md:col-span-4">
           <label className="text-sm font-medium">Experience (Years)</label>
           <select
             {...register("experience")}
@@ -283,7 +296,7 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
         </div>
 
         {/* Status */}
-        <div>
+        <div className="col-span-12 md:col-span-8">
           <label className="text-sm font-medium">Status</label>
           <select
             {...register("status")}
@@ -299,20 +312,21 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData }) => {
         </div>
 
         {/* Registration Number */}
-        <div className="md:col-span-2">
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">
             Medical Registration No.
           </label>
           <input
             {...register("registrationNumber")}
             disabled={isSubmitting}
+            placeholder="e.g. MED123456789"
             className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass("registrationNumber")}`}
           />
           <ErrorMessage fieldName="registrationNumber" errors={errors} />
         </div>
 
         {/* Submit */}
-        <div className="md:col-span-2">
+        <div className="col-span-12 md:col-span-6 flex items-end">
           <button
             type="submit"
             disabled={isSaving || !isDirty}

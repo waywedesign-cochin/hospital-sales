@@ -32,7 +32,7 @@ export const createAuthStore = () =>
 
     fetchClinic: async () => {
       try {
-        const res = await fetch("/api/clinic");
+        const res = await fetch("/api/organization");
         const data = await res.json();
         if (data.success) {
           set({ clinic: data.data });

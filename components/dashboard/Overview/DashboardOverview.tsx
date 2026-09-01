@@ -30,7 +30,7 @@ import {
   ClipboardList,
   CalendarCheck,
   CheckCircle2,
-  XCircle, Mail, CalendarDays,
+  XCircle, Mail, CalendarDays, ArrowRight,
 } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import DoctorAppointmentSummary from "./DoctorAppointmentSummary";
@@ -134,6 +134,7 @@ const DashboardHome = ({
   totalSummary,
   doctorsAppointmentSummary,
   quickOverview,
+  setupStatus,
 }: {
   appointmentData: MonthWiseReport;
   doctors: Doctor[];
@@ -141,6 +142,7 @@ const DashboardHome = ({
   totalSummary: DashboardTotalSummary;
   doctorsAppointmentSummary: DoctorAppointmentSummaryItem[];
   quickOverview: QuickOverviewData;
+  setupStatus?: { hasTreatmentCategories: boolean; hasDoctors: boolean };
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -271,6 +273,40 @@ const DashboardHome = ({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Onboarding Setup Banner */}
+      {setupStatus && (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors) && user?.role === "ADMIN" && (
+        <div className="bg-linear-to-r from-indigo-600 to-blue-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-500/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              <ClipboardList className="w-7 h-7 text-indigo-200" />
+              Welcome to your Workspace! Let's get you set up.
+            </h2>
+            <p className="text-indigo-100 mt-2 font-medium">
+              {!setupStatus.hasTreatmentCategories 
+                ? "You must create at least one Treatment Category before you can add Patients or Enquiries."
+                : "You should add your first Doctor to start scheduling appointments."}
+            </p>
+          </div>
+          <div>
+            {!setupStatus.hasTreatmentCategories ? (
+              <button 
+                onClick={() => router.push("/settings/treatment-category")}
+                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+              >
+                Create Category <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => router.push("/doctors")}
+                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+              >
+                Add Doctor <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <section className="grid grid-cols-1 gap-6 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
