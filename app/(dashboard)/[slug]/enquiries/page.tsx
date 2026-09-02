@@ -7,6 +7,7 @@ import { getSetupStatusAction } from "@/app/actions/dashboardActions";
 import EnquiryPage, {
   EnquirySummaryCardsData,
 } from "@/components/dashboard/Enquiries/EnquiryPage";
+import { getTreatmentCategoriesAction } from "@/app/actions/treatmentCategoryActions";
 
 const page = async (props: { searchParams: Promise<any> }) => {
   const searchParams = await props.searchParams;
@@ -55,12 +56,16 @@ const page = async (props: { searchParams: Promise<any> }) => {
   const setupStatusRes = await getSetupStatusAction();
   const setupStatus = setupStatusRes?.data;
 
+  const categoriesRes = await getTreatmentCategoriesAction();
+  const categories = categoriesRes?.data?.map((c: any) => c.name) || [];
+
   return (
     <EnquiryPage
       enquiries={enquiries}
       pagination={pagination}
       summary={enquirySummary as EnquirySummaryCardsData}
       setupStatus={setupStatus}
+      categories={categories}
     />
   );
 };

@@ -10,16 +10,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const res = await getAppointmentByIdAction(id);
 
   const appointment = res?.data
-    ? {
-        ...res.data,
-        _id: res.data._id?.toString(),
-        doctor: res.data.doctor
-          ? {
-              ...res.data.doctor,
-              _id: res.data.doctor._id?.toString(),
-            }
-          : null,
-      }
+    ? JSON.parse(JSON.stringify(res.data))
     : null;
 
   return <ViewAppointmentPage appointment={appointment} />;

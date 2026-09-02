@@ -17,7 +17,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { appointmentSchema } from "@/app/validations/appointmentSchemas";
 import { Doctor } from "@/lib/types";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import { Loader2, ArrowLeft, Plus, Calendar as CalendarIcon } from "lucide-react";
@@ -39,6 +39,8 @@ export default function EditAppointmentForm({
   const searchParams = useSearchParams();
   const clinic = useAuthStore((state: any) => state.clinic);
   const user = useAuthStore((state: any) => state.user);
+  const { slug } = useParams() as { slug: string } || { slug: clinic?.slug };
+  
   const initialDoctorId = appointment.doctor?._id || appointment.doctor || "";
   const initialTreatmentCategory = appointment.treatmentCategory || "";
   const originalSlot = appointment.startTime;
@@ -63,6 +65,7 @@ export default function EditAppointmentForm({
     lastName: appointment.lastName || "",
     patientPhone: appointment.patientPhone || "",
     patientEmail: appointment.patientEmail || "",
+    dateOfBirth: (appointment as any).patientId?.dateOfBirth ? new Date((appointment as any).patientId.dateOfBirth).toISOString().split('T')[0] : "",
     doctor: initialDoctorId,
     treatmentCategory: initialTreatmentCategory,
     date: appointment.date || "",
@@ -156,7 +159,6 @@ export default function EditAppointmentForm({
     const params = new URLSearchParams(searchParams.toString());
     params.set("specialization", form.treatmentCategory);
     router.replace(`?${params.toString()}`);
-    router.refresh();
   }, [form.treatmentCategory]);
 
   const handleUpdate = async () => {
@@ -190,8 +192,7 @@ export default function EditAppointmentForm({
       }
 
       toast.success("Appointment updated");
-      router.refresh();
-      router.push(`/appointments`);
+      router.push(`/${slug}/appointments`);
     } catch {
       toast.error("Update failed");
     } finally {
@@ -227,8 +228,8 @@ export default function EditAppointmentForm({
         <div className="h-4 w-px bg-slate-300" />
         <Breadcrumb
           items={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Appointments", href: "/appointments" },
+            { label: "Dashboard", href: `/${slug}/dashboard` },
+            { label: "Appointments", href: `/${slug}/appointments` },
             { label: "Edit Appointment", current: true },
           ]}
         />
@@ -286,6 +287,14 @@ export default function EditAppointmentForm({
             placeholder="Email"
             value={form.patientEmail}
             onChange={(e) => onChange("patientEmail", e.target.value)}
+          />
+
+          <Input
+            type="date"
+            placeholder="Date of Birth"
+            value={form.dateOfBirth}
+            max={new Date().toISOString().split("T")[0]}
+            onChange={(e) => onChange("dateOfBirth", e.target.value)}
           />
         </div>
 

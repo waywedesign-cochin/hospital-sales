@@ -60,6 +60,7 @@ export default function EnquiryPage({
   pagination,
   summary,
   setupStatus,
+  categories,
 }: {
   enquiries: EnquiryDTO[];
   pagination: {
@@ -70,6 +71,7 @@ export default function EnquiryPage({
   };
   summary: EnquirySummaryCardsData;
   setupStatus?: { hasTreatmentCategories: boolean; hasDoctors: boolean };
+  categories: string[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -80,7 +82,6 @@ export default function EnquiryPage({
   const [exporting, setExporting] = useState(false);
   const clinic = useAuthStore((state: any) => state.clinic);
   const user = useAuthStore((state: any) => state.user);
-  const categories = clinic?.departments || [];
   const paramsHook = useParams();
   const slug = paramsHook?.slug || clinic?.slug || "";
   // Debounce search
@@ -395,22 +396,28 @@ export default function EnquiryPage({
         {/* Row 2: Filters + Clear */}
         <div className="flex flex-col lg:flex-row gap-3 items-end">
           {/* Type Filter */}
-          <Select
-            value={searchParams.get("treatmentCategory") ?? ""}
-            onValueChange={(val) => handleFilter("treatmentCategory", val)}
-          >
-            <SelectTrigger className="h-9 w-full lg:w-44 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
-              <SelectValue placeholder="Filter by treatment" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Types</SelectItem>
-              {categories.map((c: string) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {categories && categories.length > 0 ? (
+            <Select
+              value={searchParams.get("treatmentCategory") ?? ""}
+              onValueChange={(val) => handleFilter("treatmentCategory", val)}
+            >
+              <SelectTrigger className="h-9 w-full lg:w-44 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+                <SelectValue placeholder="Filter by treatment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Types</SelectItem>
+                {categories.map((c: string) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="h-9 flex items-center px-3 text-sm text-slate-500 bg-slate-50 rounded-xl border border-slate-200 w-full lg:w-auto">
+              No treatment categories added yet
+            </div>
+          )}
 
           {/* Status Filter */}
           <Select

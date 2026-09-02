@@ -21,6 +21,7 @@ export const createAppointment = async (data: {
   lastName?: string;
   patientPhone: string;
   patientEmail?: string;
+  dateOfBirth?: string;
   isNewPatient?: boolean;
   doctor: string;
   treatmentCategory: string;
@@ -57,6 +58,7 @@ export const createAppointment = async (data: {
       lastName: data.lastName || "",
       email: data.patientEmail,
       phone: data.patientPhone,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
     });
   }
 
@@ -267,6 +269,7 @@ export const updateAppointment = async (
     lastName?: string;
     patientPhone: string;
     patientEmail?: string;
+    dateOfBirth?: string;
     isNewPatient?: boolean;
     doctor: string;
     treatmentCategory: string;
@@ -284,6 +287,21 @@ export const updateAppointment = async (
   const appoinment = await Appointment.findOneAndUpdate({ _id: id, organizationId }, updatedData, {
     new: true,
   });
+
+  if (appoinment && appoinment.patientId) {
+    const patientUpdate: any = {
+      firstName: data.firstName,
+      lastName: data.lastName || "",
+      phone: data.patientPhone,
+    };
+    if (data.patientEmail !== undefined) {
+      patientUpdate.email = data.patientEmail;
+    }
+    if (data.dateOfBirth !== undefined) {
+      patientUpdate.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
+    }
+    await Patient.findByIdAndUpdate(appoinment.patientId, { $set: patientUpdate });
+  }
 
   if (userId) {
     await logActivity(
