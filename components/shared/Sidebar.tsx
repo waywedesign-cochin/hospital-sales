@@ -20,6 +20,7 @@ import {
   UserSquare, BriefcaseMedical,
   BookOpen,
   Settings,
+  CreditCard,
 } from "lucide-react";
 import { useSidebar } from "../provider/SidebarContext";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -181,7 +182,8 @@ export function Sidebar() {
             label: "Settings",
             icon: Settings,
             subItems: [
-              { label: "Treatment Categories", href: `${baseUrl}/settings/treatment-category` }
+              { label: "Treatment Categories", href: `${baseUrl}/settings/treatment-category` },
+              { label: "Billing & Plans", href: `${baseUrl}/billing` },
             ],
           },
         ]

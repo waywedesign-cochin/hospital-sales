@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { signJwt } from "../lib/jwt";
 import User from "../models/User";
 import Organization from "../models/Organization";
+import Subscription from "../models/Subscription";
 import { sendResponse } from "../utils/responseHandler";
 import bcrypt from "bcrypt";
 import { sendApiResponse } from "../utils/nextResponseHandler";
@@ -49,9 +50,17 @@ export const registerClinic = async (data: {
   clinicPhone?: string;
   clinicAddress?: string;
   departments?: string[];
+  plan?: string;
+  billingCycle?: "MONTHLY" | "YEARLY";
 }) => {
   try {
     const lowercasedEmail = data.email.toLowerCase();
+
+    // Check if email already exists
+    const existingUser = await User.findOne({ email: lowercasedEmail });
+    if (existingUser) {
+      return sendResponse(false, "This email is already registered");
+    }
 
     // 1. Generate unique slug for clinic
     let baseSlug = data.clinicName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
@@ -62,9 +71,18 @@ export const registerClinic = async (data: {
       counter++;
     }
 
-    // 2. Create the Organization
+    // 2. Determine plan config
+    const isPaidPlan = data.plan && data.plan !== "free";
+    const planPricing: Record<string, { monthly: number; yearly: number; maxDoctors: number; maxStaff: number }> = {
+      BASIC: { monthly: 999, yearly: 9990, maxDoctors: 2, maxStaff: 5 },
+      PRO: { monthly: 2999, yearly: 29990, maxDoctors: 999, maxStaff: 999 },
+      ENTERPRISE: { monthly: 9999, yearly: 99990, maxDoctors: 999, maxStaff: 999 },
+    };
+
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + 30); // 30-day trial
+
+    const planConfig = isPaidPlan ? planPricing[data.plan!.toUpperCase()] : null;
 
     const newOrganization = await Organization.create({
       name: data.clinicName,
@@ -73,11 +91,11 @@ export const registerClinic = async (data: {
       phone: data.clinicPhone,
       address: data.clinicAddress,
       departments: data.departments?.length ? data.departments : ["General Medicine"],
-      plan: "free",
-      trialEndsAt,
-      subscriptionStatus: "TRIAL",
-      maxDoctors: 2,
-      maxStaff: 5,
+      plan: isPaidPlan ? data.plan!.toLowerCase() : "free",
+      trialEndsAt: isPaidPlan ? undefined : trialEndsAt,
+      subscriptionStatus: isPaidPlan ? "ACTIVE" : "TRIAL",
+      maxDoctors: planConfig?.maxDoctors || 2,
+      maxStaff: planConfig?.maxStaff || 5,
     });
 
     // 3. Create the Admin User
@@ -93,6 +111,33 @@ export const registerClinic = async (data: {
 
     // 4. Update Organization Owner ID
     await Organization.findByIdAndUpdate(newOrganization._id, { ownerId: newAdmin._id });
+
+    // 5. If paid plan, create a mock subscription
+    if (isPaidPlan && planConfig) {
+      const billingCycle = data.billingCycle || "MONTHLY";
+      const amount = billingCycle === "YEARLY" ? planConfig.yearly : planConfig.monthly;
+      const expiresAt = new Date();
+      if (billingCycle === "YEARLY") {
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      } else {
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      }
+
+      await Subscription.create({
+        organizationId: newOrganization._id,
+        plan: data.plan!.toUpperCase(),
+        billingCycle,
+        amount,
+        currency: "INR",
+        paymentId: `mock_pay_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        orderId: `mock_order_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        paymentMethod: "MOCK",
+        status: "PAID",
+        startsAt: new Date(),
+        expiresAt,
+        autoRenew: true,
+      });
+    }
 
     // 5. Auto login
     const token = signJwt({ 

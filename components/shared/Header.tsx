@@ -71,7 +71,7 @@ export function Header() {
         </button>
 
         <div className="flex flex-col">
-          <h2 className="text-sm sm:text-lg font-bold text-[#00236F] tracking-tight leading-tight truncate max-w-[160px] sm:max-w-xs md:max-w-md">
+          <h2 className="text-sm sm:text-lg font-bold text-[#00236F] tracking-tight leading-tight truncate max-w-40 sm:max-w-xs md:max-w-md">
             {title}
           </h2>
           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
