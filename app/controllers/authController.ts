@@ -8,6 +8,7 @@ import bcrypt from "bcrypt";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "../utils/sendPasswordResetMail";
+import { generateApiKey } from "../lib/apiKey";
 // ================= SIGN UP =================
 export const signUp = async (data: {
   firstName: string;
@@ -20,7 +21,10 @@ export const signUp = async (data: {
   try {
     const lowercasedEmail = data.email.toLowerCase();
 
-    const userExists = await User.findOne({ email: lowercasedEmail, organizationId: data.organizationId });
+    const userExists = await User.findOne({
+      email: lowercasedEmail,
+      organizationId: data.organizationId,
+    });
     if (userExists) {
       return sendResponse(false, "User already exists in this organization");
     }
@@ -63,7 +67,10 @@ export const registerClinic = async (data: {
     }
 
     // 1. Generate unique slug for clinic
-    let baseSlug = data.clinicName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    let baseSlug = data.clinicName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
     let slug = baseSlug;
     let counter = 1;
     while (await Organization.findOne({ slug })) {
@@ -73,16 +80,26 @@ export const registerClinic = async (data: {
 
     // 2. Determine plan config
     const isPaidPlan = data.plan && data.plan !== "free";
-    const planPricing: Record<string, { monthly: number; yearly: number; maxDoctors: number; maxStaff: number }> = {
+    const planPricing: Record<
+      string,
+      { monthly: number; yearly: number; maxDoctors: number; maxStaff: number }
+    > = {
       BASIC: { monthly: 999, yearly: 9990, maxDoctors: 2, maxStaff: 5 },
       PRO: { monthly: 2999, yearly: 29990, maxDoctors: 999, maxStaff: 999 },
-      ENTERPRISE: { monthly: 9999, yearly: 99990, maxDoctors: 999, maxStaff: 999 },
+      ENTERPRISE: {
+        monthly: 9999,
+        yearly: 99990,
+        maxDoctors: 999,
+        maxStaff: 999,
+      },
     };
 
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + 30); // 30-day trial
 
-    const planConfig = isPaidPlan ? planPricing[data.plan!.toUpperCase()] : null;
+    const planConfig = isPaidPlan
+      ? planPricing[data.plan!.toUpperCase()]
+      : null;
 
     const newOrganization = await Organization.create({
       name: data.clinicName,
@@ -90,12 +107,15 @@ export const registerClinic = async (data: {
       email: lowercasedEmail,
       phone: data.clinicPhone,
       address: data.clinicAddress,
-      departments: data.departments?.length ? data.departments : ["General Medicine"],
+      departments: data.departments?.length
+        ? data.departments
+        : ["General Medicine"],
       plan: isPaidPlan ? data.plan!.toLowerCase() : "free",
       trialEndsAt: isPaidPlan ? undefined : trialEndsAt,
       subscriptionStatus: isPaidPlan ? "ACTIVE" : "TRIAL",
       maxDoctors: planConfig?.maxDoctors || 2,
       maxStaff: planConfig?.maxStaff || 5,
+      apiKey: generateApiKey(),
     });
 
     // 3. Create the Admin User
@@ -110,12 +130,15 @@ export const registerClinic = async (data: {
     });
 
     // 4. Update Organization Owner ID
-    await Organization.findByIdAndUpdate(newOrganization._id, { ownerId: newAdmin._id });
+    await Organization.findByIdAndUpdate(newOrganization._id, {
+      ownerId: newAdmin._id,
+    });
 
     // 5. If paid plan, create a mock subscription
     if (isPaidPlan && planConfig) {
       const billingCycle = data.billingCycle || "MONTHLY";
-      const amount = billingCycle === "YEARLY" ? planConfig.yearly : planConfig.monthly;
+      const amount =
+        billingCycle === "YEARLY" ? planConfig.yearly : planConfig.monthly;
       const expiresAt = new Date();
       if (billingCycle === "YEARLY") {
         expiresAt.setFullYear(expiresAt.getFullYear() + 1);
@@ -125,7 +148,7 @@ export const registerClinic = async (data: {
 
       await Subscription.create({
         organizationId: newOrganization._id,
-        plan: data.plan!.toUpperCase(),
+        plan: data.plan!.toUpperCase() as "BASIC" | "PRO" | "ENTERPRISE",
         billingCycle,
         amount,
         currency: "INR",
@@ -140,12 +163,16 @@ export const registerClinic = async (data: {
     }
 
     // 5. Auto login
-    const token = signJwt({ 
-      _id: newAdmin._id.toString(), 
-      role: newAdmin.role, 
-      organizationId: newOrganization._id.toString(),
-      organizationSlug: newOrganization.slug 
-    }, "7d");
+    const token = signJwt(
+      {
+        _id: newAdmin._id.toString(),
+        role: newAdmin.role,
+        organizationId: newOrganization._id.toString(),
+        organizationSlug: newOrganization.slug,
+      },
+      "7d",
+    );
+
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
       httpOnly: true,
@@ -163,13 +190,16 @@ export const registerClinic = async (data: {
       role: newAdmin.role,
       organizationId: newOrganization._id.toString(),
     });
-
   } catch (error: any) {
     console.error("Clinic Registration Error:", error);
     if (error.code === 11000) {
       return sendResponse(false, "This email is already registered");
     }
-    return sendResponse(false, "Something went wrong during clinic registration: " + (error.message || error.toString()));
+    return sendResponse(
+      false,
+      "Something went wrong during clinic registration: " +
+        (error.message || error.toString()),
+    );
   }
 };
 
@@ -193,16 +223,22 @@ export const signIn = async (data: { email: string; password: string }) => {
     }
 
     // Fetch the organization to get its slug
-    const organization = await Organization.findById(user.organizationId).select("slug");
+    const organization = await Organization.findById(
+      user.organizationId,
+    ).select("slug");
     const organizationSlug = organization ? organization.slug : null;
 
     // ✅ Sign JWT with organizationId and organizationSlug
-    const token = signJwt({ 
-      _id: user._id, 
-      role: user.role, 
-      organizationId: user.organizationId,
-      organizationSlug
-    }, "7d");
+    const token = signJwt(
+      {
+        _id: user._id,
+        role: user.role,
+        organizationId: user.organizationId,
+        organizationSlug,
+      },
+      "7d",
+    );
+
     const cookieStore = await cookies();
 
     // ✅ Set JWT in HttpOnly cookie
@@ -243,7 +279,7 @@ export const logout = async () => {
 export const changePassword = async (
   id: string,
   currentPassword: string,
-  newPassword: string
+  newPassword: string,
 ) => {
   const user = await User.findById({ _id: id });
   if (!user) {
@@ -258,7 +294,7 @@ export const changePassword = async (
   if (isSame) {
     return sendApiResponse(
       false,
-      "New password cannot be same as old password"
+      "New password cannot be same as old password",
     );
   }
   const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -276,7 +312,7 @@ export const forgotPassword = async (email: string) => {
   if (!user) {
     return sendApiResponse(
       true,
-      "If an account exists, a password reset link has been sent"
+      "If an account exists, a password reset link has been sent",
     );
   }
   const resetToken = crypto.randomBytes(20).toString("hex");
@@ -284,7 +320,7 @@ export const forgotPassword = async (email: string) => {
   await User.findOneAndUpdate(
     { email: lowercasedEmail },
     { resetPasswordToken: resetToken, resetPasswordExpires: resetTokenExpiry },
-    { new: true }
+    { new: true },
   );
   const resetLink = `${process.env.NEXTAUTH_URL}/auth/forgot-password?token=${resetToken}`;
   if (resetLink) {
@@ -292,7 +328,7 @@ export const forgotPassword = async (email: string) => {
   }
   return sendApiResponse(
     true,
-    "If an account exists, a password reset link has been sent"
+    "If an account exists, a password reset link has been sent",
   );
 };
 
@@ -314,7 +350,7 @@ export const resetPassword = async (token: string, password: string) => {
       password: hashedPassword,
       resetPasswordToken: undefined,
       resetPasswordExpires: undefined,
-    }
+    },
   );
   return sendApiResponse(true, "Password reset successful");
 };

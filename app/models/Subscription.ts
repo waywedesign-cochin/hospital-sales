@@ -9,9 +9,9 @@ export interface ISubscription {
   currency: string;
 
   // Payment tracking (mock for now, Razorpay-ready)
-  paymentId?: string;        // Will be razorpayPaymentId later
-  orderId?: string;          // Will be razorpayOrderId later
-  paymentMethod?: string;    // "MOCK" | "RAZORPAY" | "STRIPE"
+  paymentId?: string; // Will be razorpayPaymentId later
+  orderId?: string; // Will be razorpayOrderId later
+  paymentMethod?: string; // "MOCK" | "RAZORPAY" | "STRIPE"
   invoiceNumber?: string;
 
   status: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "CANCELLED";
@@ -59,16 +59,15 @@ const subscriptionSchema = new Schema<ISubscription>(
     cancelledAt: { type: Date },
     autoRenew: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Auto-generate invoice number before save
-subscriptionSchema.pre("save", async function (next) {
+subscriptionSchema.pre("save", async function () {
   if (!this.invoiceNumber && this.status === "PAID") {
     const count = await mongoose.models.Subscription.countDocuments();
     this.invoiceNumber = `INV-${String(count + 1).padStart(6, "0")}`;
   }
-  next();
 });
 
 const Subscription: Model<ISubscription> =
