@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   ShieldAlert,
+  BookOpen,
 } from "lucide-react";
 import { useSidebar } from "../provider/SidebarContext";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -71,6 +72,12 @@ export function PlatformSidebar() {
       label: "Global Users",
       icon: Users,
       href: "/admin/users",
+    },
+    {
+      id: "admin/architecture",
+      label: "Architecture Guide",
+      icon: BookOpen,
+      href: "/admin/architecture",
     },
   ];
 
