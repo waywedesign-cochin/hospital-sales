@@ -38,6 +38,9 @@ export interface IOrganization extends Document {
   // Ownership
   ownerId: mongoose.Types.ObjectId;
 
+  apiKey: string;
+  allowedOrigins: string[];
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -64,7 +67,11 @@ const organizationSchema = new Schema<IOrganization>(
     state: { type: String },
     logo: { type: String },
 
-    plan: { type: String, enum: ["free", "pro", "enterprise"], default: "free" },
+    plan: {
+      type: String,
+      enum: ["free", "pro", "enterprise"],
+      default: "free",
+    },
     trialEndsAt: { type: Date },
     subscriptionStatus: {
       type: String,
@@ -92,8 +99,10 @@ const organizationSchema = new Schema<IOrganization>(
       type: mongoose.Types.ObjectId,
       ref: "User",
     },
+    apiKey: { type: String, required: true, unique: true },
+    allowedOrigins: { type: [String], default: [] },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default models.Organization ||

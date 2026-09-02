@@ -17,7 +17,8 @@ import {
   UsersRound,
   MessageCircle,
   Activity,
-  UserSquare, BriefcaseMedical,
+  UserSquare,
+  BriefcaseMedical,
   BookOpen,
   Settings,
   CreditCard,
@@ -102,7 +103,9 @@ export function Sidebar() {
     {
       id: "patients",
       label: "Patients",
-      icon: UserSquare, BriefcaseMedical,
+
+      icon: UserSquare,
+      BriefcaseMedical,
       href: `${baseUrl}/patients`,
       subItems: [],
     },
@@ -151,7 +154,10 @@ export function Sidebar() {
                 label: "Doctors Leave List",
                 href: `${baseUrl}/doctors/leave/leaves-list?year=${currentYear}&month=${currentMonth}`,
               },
-              { label: "Create Leave", href: `${baseUrl}/doctors/leave/create-leave` },
+              {
+                label: "Create Leave",
+                href: `${baseUrl}/doctors/leave/create-leave`,
+              },
             ],
           },
         ]
@@ -182,8 +188,15 @@ export function Sidebar() {
             label: "Settings",
             icon: Settings,
             subItems: [
-              { label: "Treatment Categories", href: `${baseUrl}/settings/treatment-category` },
+              {
+                label: "Treatment Categories",
+                href: `${baseUrl}/settings/treatment-category`,
+              },
               { label: "Billing & Plans", href: `${baseUrl}/billing` },
+              {
+                label: "Website Integration",
+                href: `${baseUrl}/settings/integrations`,
+              },
             ],
           },
         ]
@@ -227,7 +240,7 @@ export function Sidebar() {
         `}
       >
         {/* Background Image Layer */}
-        <div 
+        <div
           className="absolute inset-0 z-[-2] bg-cover bg-center opacity-60 mix-blend-multiply"
           style={{ backgroundImage: "url('/sidebar-bg.jpg')" }}
         />
@@ -249,11 +262,14 @@ export function Sidebar() {
         >
           <div className="flex items-center gap-3">
             <div className="bg-[#00236F] text-white p-2 rounded-xl shadow-md shadow-[#00236F]/20 relative z-10">
-               <BriefcaseMedical size={24} />
+              <BriefcaseMedical size={24} />
             </div>
             {!isCollapsed && (
               <div className="flex flex-col whitespace-nowrap relative z-10">
-                <span className="text-[17px] font-bold text-[#00236F] tracking-tight leading-tight truncate w-36" title={clinic?.name || "Healthcare CRM"}>
+                <span
+                  className="text-[17px] font-bold text-[#00236F] tracking-tight leading-tight truncate w-36"
+                  title={clinic?.name || "Healthcare CRM"}
+                >
                   {clinic?.name || "Healthcare CRM"}
                 </span>
                 <span className="text-[10px] uppercase font-bold text-slate-600 tracking-wider truncate w-36">
@@ -292,17 +308,19 @@ export function Sidebar() {
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`w-5 h-5 transition-colors ${isActive ? "text-[#2DD4BF]" : "text-[#00236F]/60 group-hover:text-[#2DD4BF]"}`} />
+                      <Icon
+                        className={`w-5 h-5 transition-colors ${isActive ? "text-[#2DD4BF]" : "text-[#00236F]/60 group-hover:text-[#2DD4BF]"}`}
+                      />
                       {!isCollapsed && (
-                        <span className="text-sm">
-                          {item.label}
-                        </span>
+                        <span className="text-sm">{item.label}</span>
                       )}
                     </div>
                     {hasSubItems && !isCollapsed && (
                       <ChevronDown
                         className={`w-4 h-4 transition-transform ${
-                          isExpanded ? "rotate-180 text-[#2DD4BF]" : "text-[#00236F]/40"
+                          isExpanded
+                            ? "rotate-180 text-[#2DD4BF]"
+                            : "text-[#00236F]/40"
                         }`}
                       />
                     )}
@@ -400,6 +418,3 @@ export function Sidebar() {
     </>
   );
 }
-
-
-
