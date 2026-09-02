@@ -13,7 +13,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Breadcrumb from "@/components/shared/Breadcrumb";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -67,7 +67,8 @@ export default function AppointmentsPage({
   const searchParams = useSearchParams();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  //console.log(appointments);
+  const clinic = useAuthStore((state: any) => state.clinic);
+  const { slug } = useParams() as { slug: string } || { slug: clinic?.slug };
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [locked, setLocked] = useState(true);
@@ -203,7 +204,7 @@ export default function AppointmentsPage({
         <div className="h-4 w-px bg-slate-300" />
         <Breadcrumb
           items={[
-            { label: "Dashboard", href: "/dashboard" },
+            { label: "Dashboard", href: `/${slug}/dashboard` },
             { label: "Appointments", current: true },
           ]}
         />
@@ -231,7 +232,7 @@ export default function AppointmentsPage({
           {user?.role !== "DOCTOR" && (
             <Button
               type="button"
-              onClick={() => router.push("/appointments/create-appointment")}
+              onClick={() => router.push(`/${slug}/appointments/create-appointment`)}
               className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900"
             >
               <Plus className="w-4 h-4" />

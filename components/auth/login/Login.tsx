@@ -11,7 +11,6 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   signInSchema,
-  signUpSchema,
 } from "@/app/validations/authSchemas";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import Image from "next/image";
@@ -21,9 +20,7 @@ import axios from "axios";
 const AuthForm = () => {
   const router = useRouter();
   const signin = useAuthStore((state) => state.signin);
-  const signup = useAuthStore((state) => state.signup);
   const [showPassword, setShowPassword] = useState(false);
-  const [showSignUp, setShowSignUp] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -36,11 +33,7 @@ const AuthForm = () => {
     password: "",
   });
 
-  const toggleForm = () => {
-    setShowSignUp(!showSignUp);
-    setShowForgotPassword(false);
-    setErrors({});
-  };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -54,8 +47,6 @@ const AuthForm = () => {
 
     if (showForgotPassword) {
       schema = forgotPasswordSchema;
-    } else if (showSignUp) {
-      schema = signUpSchema;
     } else {
       schema = signInSchema;
     }
@@ -101,22 +92,6 @@ const AuthForm = () => {
             password: "",
           }));
         }
-      } else if (showSignUp) {
-        await signup(
-          formData.firstName,
-          formData.lastName,
-          formData.email,
-          formData.password
-        );
-
-        toast.success("Account created successfully");
-        setShowSignUp(false);
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "",
-        });
       } else {
         const user = await signin(formData.email, formData.password);
         toast.success("Login successful");
@@ -161,44 +136,7 @@ const AuthForm = () => {
             </div>
 
             <div className="space-y-5">
-              {showSignUp && (
-                <>
-                  <div>
-                    <Label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
-                      First Name
-                    </Label>
-                    <Input
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      placeholder="Enter first name"
-                      className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:border-blue-primary focus:ring-4 focus:ring-blue-100 shadow-sm transition-all duration-200"
-                    />
-                    {errors.firstName && (
-                      <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
-                        {errors.firstName}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
-                      Last Name
-                    </Label>
-                    <Input
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      placeholder="Enter last name"
-                      className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:border-blue-primary focus:ring-4 focus:ring-blue-100 shadow-sm transition-all duration-200"
-                    />
-                    {errors.lastName && (
-                      <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
-                        {errors.lastName}
-                      </p>
-                    )}
-                  </div>
-                </>
-              )}
+
 
               <div>
                 <Label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
@@ -225,18 +163,16 @@ const AuthForm = () => {
                     <Label className="block text-sm font-semibold text-slate-700">
                       Password
                     </Label>
-                    {!showSignUp && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowForgotPassword(true);
-                          setErrors({});
-                        }}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
-                      >
-                        Forgot Password?
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setErrors({});
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
+                    >
+                      Forgot Password?
+                    </button>
                   </div>
                   <div className="relative">
                     <Input
@@ -293,18 +229,14 @@ const AuthForm = () => {
                     <span className="tracking-wide">
                       {showForgotPassword
                         ? "Sending Reset Link..."
-                        : showSignUp
-                          ? "Creating Account..."
-                          : "Signing In..."}
+                        : "Signing In..."}
                     </span>
                   </span>
                 ) : (
                   <span className="tracking-wide">
                     {showForgotPassword
                       ? "Send Reset Link"
-                      : showSignUp
-                        ? "Create Account"
-                        : "Sign In"}
+                      : "Sign In"}
                   </span>
                 )}
               </button>
@@ -325,25 +257,15 @@ const AuthForm = () => {
                       Sign In
                     </button>
                   </>
-                ) : showSignUp ? (
-                  <>
-                    Already have an account?{" "}
-                    <button
-                      onClick={toggleForm}
-                      className="text-blue-600 font-bold hover:text-blue-700 transition-colors duration-200 hover:underline underline-offset-2"
-                    >
-                      Sign In
-                    </button>
-                  </>
                 ) : (
                   <>
-                    Don&apos;t have an account?{" "}
-                    <button
-                      onClick={toggleForm}
+                    New clinic?{" "}
+                    <a
+                      href="/onboarding"
                       className="text-blue-600 font-bold hover:text-blue-700 transition-colors duration-200 hover:underline underline-offset-2"
                     >
-                      Sign Up
-                    </button>
+                      Get Started Free
+                    </a>
                   </>
                 )}
               </p>

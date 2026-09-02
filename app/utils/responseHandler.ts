@@ -11,3 +11,17 @@ export const sendResponse = <D = undefined>(
 ): ActionResponse<D> => {
   return { success, message, data };
 };
+
+export const success = <D = undefined>(
+  data?: D,
+  message: string = "Success"
+): ActionResponse<D> => {
+  return { success: true, message, data };
+};
+
+export const error = (
+  message: string,
+  status?: number
+): ActionResponse<any> => {
+  return { success: false, message, data: undefined };
+};

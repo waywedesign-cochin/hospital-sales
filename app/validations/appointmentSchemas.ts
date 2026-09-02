@@ -13,6 +13,8 @@ export const appointmentSchema = z.object({
 
   patientEmail: z.string().email("Invalid email format"),
 
+  dateOfBirth: z.string().optional().or(z.literal("")),
+
   isNewPatient: z.boolean().default(false),
 
   doctor: z.string().min(1, "Doctor is required"),

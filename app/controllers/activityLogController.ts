@@ -28,12 +28,40 @@ export const logActivity = async (
 export const getActivityLogs = async (
   organizationId: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  search?: string
 ) => {
   const skip = (page - 1) * limit;
 
-  const totalCount = await ActivityLog.countDocuments({ organizationId });
-  const logs = await ActivityLog.find({ organizationId })
+  // Build the match query
+  let matchQuery: any = { organizationId: new mongoose.Types.ObjectId(organizationId) };
+
+  if (search) {
+    const searchRegex = { $regex: search, $options: "i" };
+    
+    // Find users matching the search query to include in the $or clause
+    const mongoose = require("mongoose");
+    const User = mongoose.model("User");
+    const matchingUsers = await User.find({
+      organizationId,
+      $or: [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+      ],
+    }).select("_id");
+    
+    const userIds = matchingUsers.map((u: any) => u._id);
+
+    matchQuery.$or = [
+      { action: searchRegex },
+      { resourceType: searchRegex },
+      { details: searchRegex },
+      { userId: { $in: userIds } },
+    ];
+  }
+
+  const totalCount = await ActivityLog.countDocuments(matchQuery);
+  const logs = await ActivityLog.find(matchQuery)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)

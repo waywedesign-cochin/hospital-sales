@@ -12,6 +12,8 @@ import {
   LogOut,
   Menu,
   ShieldAlert,
+  BookOpen,
+  CreditCard,
 } from "lucide-react";
 import { useSidebar } from "../provider/SidebarContext";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -71,6 +73,18 @@ export function PlatformSidebar() {
       label: "Global Users",
       icon: Users,
       href: "/admin/users",
+    },
+    {
+      id: "admin/billing",
+      label: "Billing & Revenue",
+      icon: CreditCard,
+      href: "/admin/billing",
+    },
+    {
+      id: "admin/architecture",
+      label: "Architecture Guide",
+      icon: BookOpen,
+      href: "/admin/architecture",
     },
   ];
 

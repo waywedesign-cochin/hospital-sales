@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Menu, Calendar } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../provider/SidebarContext";
@@ -35,18 +35,24 @@ export function Header() {
   };
 
   const title = getPageTitle(pathname);
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const [today, setToday] = useState<string>("");
+
+  useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    );
+  }, []);
 
   // Extract slug for profile routing
   const slug = pathname.split("/").filter(Boolean)[0] || "";
   const profileUrl = slug ? `/${slug}/profile` : "/profile";
 
   return (
-    <header className="shrink-0 overflow-hidden sticky top-0 z-10 border-b border-white/40 h-16 px-6 flex items-center justify-between shadow-sm">
+    <header className="shrink-0 overflow-hidden sticky top-0 z-10 border-b border-white/40 h-16 px-4 md:px-6 flex items-center justify-between shadow-sm">
       {/* Background Image Layer */}
       <div 
         className="absolute inset-0 z-[-2] bg-cover bg-center opacity-40 mix-blend-multiply"
@@ -65,7 +71,7 @@ export function Header() {
         </button>
 
         <div className="flex flex-col">
-          <h2 className="text-sm sm:text-lg font-bold text-[#00236F] tracking-tight leading-tight">
+          <h2 className="text-sm sm:text-lg font-bold text-[#00236F] tracking-tight leading-tight truncate max-w-40 sm:max-w-xs md:max-w-md">
             {title}
           </h2>
           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
@@ -79,7 +85,7 @@ export function Header() {
         {/* Date Badge (Desktop) */}
         <div className="hidden md:flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 shadow-sm hover:border-blue-200 transition-all duration-200 group">
           <Calendar className="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform" />
-          <span className="text-xs font-semibold text-blue-700">{today}</span>
+          <span className="text-xs font-semibold text-blue-700">{today || "..."}</span>
         </div>
 
         {/* Vertical Separator */}

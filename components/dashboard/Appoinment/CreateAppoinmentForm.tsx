@@ -19,7 +19,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { appointmentSchema } from "@/app/validations/appointmentSchemas";
 import { Doctor } from "@/lib/types";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
 import { ArrowLeft, CalendarIcon, Plus } from "lucide-react";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -54,8 +54,9 @@ export default function AppointmentForm({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const user = useAuthStore((state) => state.user);
   const clinic = useAuthStore((state: any) => state.clinic);
+  const user = useAuthStore((state: any) => state.user);
+  const { slug } = useParams() as { slug: string } || { slug: clinic?.slug };
   
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [localCategories, setLocalCategories] = useState<string[]>(initialCategories);
@@ -73,6 +74,7 @@ export default function AppointmentForm({
     lastName: prefillNameSplit.slice(1).join(" ") || "",
     patientPhone: prefill?.phone || "",
     patientEmail: prefill?.email || "",
+    dateOfBirth: "",
     doctor: "",
     treatmentCategory: "",
     date: date ?? "",
@@ -121,7 +123,7 @@ export default function AppointmentForm({
     blockedSlots.find((s) => s.time === time)?.reason;
 
   const fetchSlots = async () => {
-    if (!form.doctor || !form.date || !user?.organizationId) return;
+    if (!form.doctor || !form.date || !(user as any)?.organizationId) return;
 
     try {
       setLoadingSlots(true);
@@ -141,7 +143,7 @@ export default function AppointmentForm({
 
   useEffect(() => {
     fetchSlots();
-  }, [form.doctor, form.date, user?.organizationId]);
+  }, [form.doctor, form.date, (user as any)?.organizationId]);
 
   useEffect(() => {
     if (!form.treatmentCategory) return;
@@ -150,7 +152,6 @@ export default function AppointmentForm({
     params.set("specialization", form.treatmentCategory);
 
     router.replace(`?${params.toString()}`);
-    router.refresh();
   }, [form.treatmentCategory]);
 
   // Patient suggestions by phone
@@ -226,8 +227,7 @@ export default function AppointmentForm({
       }
 
       toast.success("Appointment added");
-      router.push("/appointments");
-      router.refresh();
+      router.push(`/${slug}/appointments`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Error");
     } finally {
@@ -262,8 +262,7 @@ export default function AppointmentForm({
       }
 
       toast.success("Enquiry updated");
-      router.push("/enquiries");
-      router.refresh();
+      router.push(`/${slug}/enquiries`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Error");
     } finally {
@@ -289,8 +288,8 @@ export default function AppointmentForm({
               <div className="h-4 w-px bg-slate-300" />
               <Breadcrumb
                 items={[
-                  { label: "Dashboard", href: "/dashboard" },
-                  { label: "Appointments", href: "/appointments" },
+                  { label: "Dashboard", href: `/${slug}/dashboard` },
+                  { label: "Appointments", href: `/${slug}/appointments` },
                   { label: "Create Appointment", current: true },
                 ]}
               />
@@ -350,7 +349,7 @@ export default function AppointmentForm({
             />
           </div>
           
-          <div className="col-span-12 md:col-span-4 relative">
+          <div className="col-span-12 md:col-span-4 lg:col-span-2 relative">
             <label className="text-sm font-medium">Phone Number</label>
             <PhoneInput
               placeholder="e.g. +1 234 567 8900"
@@ -384,13 +383,24 @@ export default function AppointmentForm({
             )}
           </div>
           
-          <div className="col-span-12 md:col-span-4">
+          <div className="col-span-12 md:col-span-4 lg:col-span-3">
             <label className="text-sm font-medium">Email Address</label>
             <Input
               placeholder="e.g. john@example.com"
               className="mt-1"
               value={form.patientEmail}
               onChange={(e) => onChange("patientEmail", e.target.value)}
+            />
+          </div>
+          
+          <div className="col-span-12 md:col-span-4 lg:col-span-3">
+            <label className="text-sm font-medium">Date of Birth <span className="text-slate-400 font-normal">(Optional)</span></label>
+            <Input
+              type="date"
+              className="mt-1"
+              value={form.dateOfBirth}
+              max={new Date().toISOString().split("T")[0]}
+              onChange={(e) => onChange("dateOfBirth", e.target.value)}
             />
           </div>
           {/* Enquiry status */}

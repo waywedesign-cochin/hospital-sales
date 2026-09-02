@@ -29,6 +29,7 @@ interface Patient {
   email: string;
   phone: string;
   gender?: string;
+  dateOfBirth?: string;
   createdAt: string;
 }
 
@@ -61,6 +62,40 @@ export default function PatientsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (patients.length === 0) return;
+
+    // Define CSV headers
+    const headers = ["Patient Name", "Phone", "Email", "Gender", "Joined Date"];
+    
+    // Map patient data to rows
+    const rows = patients.map(patient => {
+      const name = `${patient.firstName} ${patient.lastName}`;
+      const joinedDate = new Date(patient.createdAt).toLocaleDateString("en-US");
+      return [
+        `"${name}"`,
+        `"${patient.phone || ""}"`,
+        `"${patient.email || ""}"`,
+        `"${patient.gender || ""}"`,
+        `"${joinedDate}"`
+      ].join(",");
+    });
+
+    // Combine headers and rows
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    
+    // Create Blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `patients_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
@@ -161,6 +196,8 @@ export default function PatientsPage() {
           <Button
             variant="outline"
             className="rounded-xl border-slate-200 text-slate-600 hover:text-blue-primary hover:bg-blue-50"
+            onClick={handleExportCSV}
+            disabled={patients.length === 0}
           >
             <FileText className="w-4 h-4 mr-2" /> Export CSV
           </Button>
@@ -179,6 +216,9 @@ export default function PatientsPage() {
                   Gender
                 </TableHead>
                 <TableHead className="font-semibold text-slate-500">
+                  Date of Birth
+                </TableHead>
+                <TableHead className="font-semibold text-slate-500">
                   Joined Date
                 </TableHead>
                 <TableHead className="text-right font-semibold text-slate-500">
@@ -190,7 +230,7 @@ export default function PatientsPage() {
               {loading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="h-32 text-center text-slate-500"
                   >
                     Loading patients...
@@ -199,7 +239,7 @@ export default function PatientsPage() {
               ) : patients.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="h-32 text-center text-slate-500"
                   >
                     No patients found.
@@ -227,6 +267,19 @@ export default function PatientsPage() {
                       {patient.gender ? (
                         <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-md font-medium">
                           {patient.gender}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-sm">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {patient.dateOfBirth ? (
+                        <span className="text-slate-600 text-sm font-medium">
+                          {new Date(patient.dateOfBirth).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
                         </span>
                       ) : (
                         <span className="text-slate-400 text-sm">-</span>

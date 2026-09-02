@@ -6,6 +6,9 @@ import { verifyJwt } from "@/app/lib/jwt";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { Header } from "@/components/shared/Header";
 import { SidebarProvider } from "@/components/provider/SidebarContext";
+import TrialEnforcer from "@/components/dashboard/TrialEnforcer";
+import Organization from "@/app/models/Organization";
+import { dbConnect } from "@/app/lib/dbConnect";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -38,6 +41,11 @@ export default async function DashboardLayout({
     redirect("/admin");
   }
 
+  await dbConnect();
+  const org = await Organization.findById(payload.organizationId)
+    .select("subscriptionStatus trialEndsAt")
+    .lean();
+
   return (
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden bg-linear-to-br from-[#F0FDF4] via-[#F4F7FB] to-[#E0F2FE] text-[#00236F] font-sans relative">
@@ -51,7 +59,12 @@ export default async function DashboardLayout({
           <div className="flex flex-1 flex-col overflow-hidden relative min-h-0">
             <Header />
             <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 modern-scrollbar min-h-0">
-              {children}
+              <TrialEnforcer
+                subscriptionStatus={org?.subscriptionStatus || "ACTIVE"}
+                trialEndsAt={org?.trialEndsAt ? new Date(org.trialEndsAt).toISOString() : null}
+              >
+                {children}
+              </TrialEnforcer>
             </main>
           </div>
         </div>
