@@ -33,7 +33,7 @@ export default function TreatmentCategoryPage({
   // Form State
   const [form, setForm] = useState({ name: "", description: "" });
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const openAddModal = () => {
@@ -88,7 +88,6 @@ export default function TreatmentCategoryPage({
       });
       router.refresh();
       setOpen(false);
-      router.push("/settings/treatment-category");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Something went wrong");
     } finally {
@@ -237,12 +236,15 @@ export default function TreatmentCategoryPage({
             )}
 
             <Textarea
-              placeholder="Description (optional)"
+              placeholder="Description (e.g., General consultations and routine checkups)"
               value={form.description}
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }
             />
+            {errors.description && (
+              <p className="text-red-500 text-xs">{errors.description}</p>
+            )}
           </div>
 
           <DialogFooter>
