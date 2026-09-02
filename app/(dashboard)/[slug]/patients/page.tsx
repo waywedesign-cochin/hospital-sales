@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, UserPlus, FileText, Activity } from "lucide-react";
+import { Search, UserPlus, FileText, Activity, Calendar } from "lucide-react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,7 @@ export default function PatientsPage() {
     try {
       setLoading(true);
       const res = await axios.get(
-        `/api/patients?page=${currentPage}&limit=10&search=${searchTerm}`
+        `/api/patients?page=${currentPage}&limit=10&search=${searchTerm}`,
       );
       if (res.data.success) {
         setPatients(res.data.data.patients);
@@ -82,16 +82,29 @@ export default function PatientsPage() {
             Manage your patients, view medical history, and analyze engagement.
           </p>
         </div>
-        <Button className="bg-blue-primary hover:bg-blue-600 text-white shadow-sm transition-all shadow-blue-500/20 rounded-full px-6">
-          <UserPlus className="w-4 h-4 mr-2" /> Add New Patient
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => router.push("/enquiries/add-enquiry")}
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all rounded-full px-5"
+          >
+            <UserPlus className="w-4 h-4 mr-2 text-indigo-500" /> New Enquiry
+          </Button>
+          <Button
+            onClick={() => router.push("/appointments/create-appointment")}
+            className="bg-blue-primary hover:bg-blue-600 text-white shadow-sm transition-all shadow-blue-500/20 rounded-full px-5"
+          >
+            <Calendar className="w-4 h-4 mr-2" /> Book Appointment
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl">
           <CardHeader className="pb-2">
-            <CardDescription className="text-slate-500 font-medium">Total Patients</CardDescription>
+            <CardDescription className="text-slate-500 font-medium">
+              Total Patients
+            </CardDescription>
             <CardTitle className="text-3xl text-slate-800">
               {loading ? "..." : totalCount}
             </CardTitle>
@@ -104,7 +117,9 @@ export default function PatientsPage() {
         </Card>
         <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl">
           <CardHeader className="pb-2">
-            <CardDescription className="text-slate-500 font-medium">Active Treatments</CardDescription>
+            <CardDescription className="text-slate-500 font-medium">
+              Active Treatments
+            </CardDescription>
             <CardTitle className="text-3xl text-slate-800">
               {loading ? "..." : activeTreatments}
             </CardTitle>
@@ -117,13 +132,15 @@ export default function PatientsPage() {
         </Card>
         <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl bg-linear-to-br from-blue-primary to-blue-600 text-white">
           <CardHeader className="pb-2">
-            <CardDescription className="text-blue-100 font-medium">Messages Sent</CardDescription>
+            <CardDescription className="text-blue-800 font-medium">
+              Messages Sent
+            </CardDescription>
             <CardTitle className="text-3xl text-white">
               {loading ? "..." : messagesSent.toLocaleString()}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center text-xs text-neon-accent font-semibold">
+            <div className="flex items-center text-xs text-blue-200 font-semibold">
               <Activity className="w-3 h-3 mr-1" /> WhatsApp API Active
             </div>
           </CardContent>
@@ -141,7 +158,10 @@ export default function PatientsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 hover:text-blue-primary hover:bg-blue-50">
+          <Button
+            variant="outline"
+            className="rounded-xl border-slate-200 text-slate-600 hover:text-blue-primary hover:bg-blue-50"
+          >
             <FileText className="w-4 h-4 mr-2" /> Export CSV
           </Button>
         </div>
@@ -149,23 +169,39 @@ export default function PatientsPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-slate-100 hover:bg-transparent">
-                <TableHead className="font-semibold text-slate-500">Patient Name</TableHead>
-                <TableHead className="font-semibold text-slate-500">Contact</TableHead>
-                <TableHead className="font-semibold text-slate-500">Gender</TableHead>
-                <TableHead className="font-semibold text-slate-500">Joined Date</TableHead>
-                <TableHead className="text-right font-semibold text-slate-500">Actions</TableHead>
+                <TableHead className="font-semibold text-slate-500">
+                  Patient Name
+                </TableHead>
+                <TableHead className="font-semibold text-slate-500">
+                  Contact
+                </TableHead>
+                <TableHead className="font-semibold text-slate-500">
+                  Gender
+                </TableHead>
+                <TableHead className="font-semibold text-slate-500">
+                  Joined Date
+                </TableHead>
+                <TableHead className="text-right font-semibold text-slate-500">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-slate-500">
+                  <TableCell
+                    colSpan={5}
+                    className="h-32 text-center text-slate-500"
+                  >
                     Loading patients...
                   </TableCell>
                 </TableRow>
               ) : patients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-slate-500">
+                  <TableCell
+                    colSpan={5}
+                    className="h-32 text-center text-slate-500"
+                  >
                     No patients found.
                   </TableCell>
                 </TableRow>
@@ -182,7 +218,9 @@ export default function PatientsPage() {
                     <TableCell className="text-slate-600">
                       <div>{patient.phone}</div>
                       {patient.email && (
-                        <div className="text-xs text-slate-400">{patient.email}</div>
+                        <div className="text-xs text-slate-400">
+                          {patient.email}
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -198,7 +236,7 @@ export default function PatientsPage() {
                       {new Date(patient.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
-                        year: "numeric"
+                        year: "numeric",
                       })}
                     </TableCell>
                     <TableCell className="text-right">
@@ -220,11 +258,15 @@ export default function PatientsPage() {
             </TableBody>
           </Table>
         </div>
-        
+
         {/* Pagination placeholder */}
         <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between text-sm text-slate-500">
           <div>
-            Showing <span className="font-medium text-slate-800">{patients.length}</span> results
+            Showing{" "}
+            <span className="font-medium text-slate-800">
+              {patients.length}
+            </span>{" "}
+            results
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -232,7 +274,7 @@ export default function PatientsPage() {
               size="sm"
               className="rounded-lg border-slate-200"
               disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
+              onClick={() => setPage((p) => p - 1)}
             >
               Previous
             </Button>
@@ -244,7 +286,7 @@ export default function PatientsPage() {
               size="sm"
               className="rounded-lg border-slate-200"
               disabled={page === totalPages || totalPages === 0}
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => setPage((p) => p + 1)}
             >
               Next
             </Button>

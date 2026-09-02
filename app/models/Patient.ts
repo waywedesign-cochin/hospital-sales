@@ -25,7 +25,7 @@ const patientSchema = new Schema<IPatient>(
       index: true,
     },
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    lastName: { type: String, default: "" },
     email: { type: String, sparse: true },
     phone: { type: String, required: true },
     dateOfBirth: { type: Date },

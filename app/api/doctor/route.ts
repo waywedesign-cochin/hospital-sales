@@ -35,7 +35,15 @@ export const POST = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
     await dbConnect();
 
-    const data = await req.json(); 
+    const [data, errorResponse] = await validate(doctorSchema, req);
+
+    if (errorResponse) {
+      return sendApiResponse(false, "Validation failed", null);
+    }
+
+    if (!data) {
+      return sendApiResponse(false, "Invalid request", null);
+    }
 
     return await addDoctor({ ...data, organizationId: user.organizationId, userId: user._id });
   } catch (error) {

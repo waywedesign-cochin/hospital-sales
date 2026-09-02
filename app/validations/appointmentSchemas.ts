@@ -1,12 +1,15 @@
 import { z } from "zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 export const appointmentSchema = z.object({
 
   enquiryId: z.string().nullable().optional(),
 
-  patientName: z.string().min(1, "Patient name is required"),
+  firstName: z.string().min(1, "First name is required"),
 
-  patientPhone: z.string().min(1, "Patient phone is required"),
+  lastName: z.string().optional(),
+
+  patientPhone: z.string().refine((val) => isValidPhoneNumber(val), { message: "Invalid international phone number format" }),
 
   patientEmail: z.string().email("Invalid email format"),
 

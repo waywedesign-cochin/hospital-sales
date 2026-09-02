@@ -35,7 +35,7 @@ export const createEnquiry = async (data: {
     patient = await Patient.create({
       organizationId: data.organizationId,
       firstName: data.firstName,
-      lastName: data.lastName || "",
+      lastName: data.lastName || "-",
       email: data.email,
       phone: data.phone,
     });

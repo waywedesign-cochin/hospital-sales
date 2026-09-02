@@ -147,7 +147,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
 
           return {
             id: item._id,
-            title: item.patientName,
+            title: `${item.firstName} ${item.lastName || ""}`.trim(),
             start: startISO,
             allDay: false,
             extendedProps: {

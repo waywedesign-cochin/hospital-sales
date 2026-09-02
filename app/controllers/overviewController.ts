@@ -136,25 +136,58 @@ export const doctorsAppointmentsSummary = async (organizationId: string, year?: 
   );
 };
 
-export const getQuickOverviewSummary = async (organizationId: string, date: string) => {
+export const getQuickOverviewSummary = async (organizationId: string, date: string, range: "daily" | "weekly" | "monthly" = "daily") => {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
 
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
+  let end = new Date(date);
+  
+  let nextStart = new Date(start);
+  let nextEnd = new Date(start);
+
+  if (range === "daily") {
+    end.setHours(23, 59, 59, 999);
+    nextStart.setDate(nextStart.getDate() + 1);
+    nextEnd = new Date(nextStart);
+    nextEnd.setHours(23, 59, 59, 999);
+  } else if (range === "weekly") {
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+    start.setDate(diff);
+    
+    end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    
+    nextStart = new Date(end);
+    nextStart.setDate(nextStart.getDate() + 1);
+    nextStart.setHours(0, 0, 0, 0);
+
+    nextEnd = new Date(nextStart);
+    nextEnd.setDate(nextStart.getDate() + 6);
+    nextEnd.setHours(23, 59, 59, 999);
+  } else if (range === "monthly") {
+    start.setDate(1);
+    
+    end = new Date(start);
+    end.setMonth(start.getMonth() + 1);
+    end.setDate(0);
+    end.setHours(23, 59, 59, 999);
+    
+    nextStart = new Date(end);
+    nextStart.setDate(nextStart.getDate() + 1);
+    nextStart.setHours(0, 0, 0, 0);
+    
+    nextEnd = new Date(nextStart);
+    nextEnd.setMonth(nextStart.getMonth() + 1);
+    nextEnd.setDate(0);
+    nextEnd.setHours(23, 59, 59, 999);
+  }
 
   const todayQuery = {
     organizationId,
     date: { $gte: start, $lte: end },
   };
-
-  const tomorrowStart = new Date(start);
-  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
-  const tomorrowEnd = new Date(end);
-  tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-
-  /* -------- Today Appointments -------- */
   const todayAppointmentsAgg = await Appointment.aggregate([
     { $match: todayQuery },
     {
@@ -193,10 +226,10 @@ export const getQuickOverviewSummary = async (organizationId: string, date: stri
     consultationBreakdown[item._id] = item.count;
   });
 
-  /* -------- Tomorrow Schedule -------- */
+  /* -------- Next Period Schedule -------- */
   const tomorrowAppointments = await Appointment.countDocuments({
     organizationId,
-    date: { $gte: tomorrowStart, $lte: tomorrowEnd },
+    date: { $gte: nextStart, $lte: nextEnd },
   });
 
   return sendResponse(true, "Quick overview fetched", {

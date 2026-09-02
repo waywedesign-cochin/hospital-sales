@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ITreatmentCategory } from "@/app/models/TreatmentCategory";
@@ -37,6 +38,7 @@ export default function AppointmentForm({
   doctors,
   date,
   prefill,
+  initialCategories = [],
 }: {
   doctors: Doctor[];
   date?: string;
@@ -48,25 +50,27 @@ export default function AppointmentForm({
     status?: string;
     staffNotes?: string;
   };
+  initialCategories?: string[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
-  const clinic = useAuthStore((state) => state.clinic);
-  const categories = clinic?.departments || [];
+  const clinic = useAuthStore((state: any) => state.clinic);
   
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [localCategories, setLocalCategories] = useState<string[]>(categories);
+  const [localCategories, setLocalCategories] = useState<string[]>(initialCategories);
 
   useEffect(() => {
-    if (categories) {
-      setLocalCategories(categories);
+    if (initialCategories && initialCategories.length > 0) {
+      setLocalCategories(initialCategories);
     }
-  }, [categories]);
+  }, [initialCategories]);
 
+  const prefillNameSplit = (prefill?.name || "").split(" ");
   const [form, setForm] = useState({
     enquiryId: prefill?.enquiryId ?? undefined,
-    patientName: prefill?.name || "",
+    firstName: prefillNameSplit[0] || "",
+    lastName: prefillNameSplit.slice(1).join(" ") || "",
     patientPhone: prefill?.phone || "",
     patientEmail: prefill?.email || "",
     doctor: "",
@@ -100,23 +104,29 @@ export default function AppointmentForm({
     setErrors((p) => ({ ...p, [key]: "" }));
   };
 
-  const now = new Date();
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const isPastSlot = (slot: string) => {
-    if (!form.date) return false;
-    return new Date(`${form.date}T${slot}:00`) < now;
+    if (!form.date || !now) return false;
+    // ensure robust date parsing
+    const d = new Date(form.date).toISOString().split("T")[0];
+    return new Date(`${d}T${slot}:00`) < now;
   };
 
   const getSlotReason = (time: string) =>
     blockedSlots.find((s) => s.time === time)?.reason;
 
   const fetchSlots = async () => {
-    if (!form.doctor || !form.date) return;
+    if (!form.doctor || !form.date || !user?.organizationId) return;
 
     try {
       setLoadingSlots(true);
       const res = await axios.get(
-        `/api/appointment?doctor=${form.doctor}&date=${form.date}`,
+        `/api/appointment?doctor=${form.doctor}&date=${form.date}&organizationId=${(user as any)?.organizationId}`,
       );
 
       if (res.data.success) {
@@ -131,7 +141,7 @@ export default function AppointmentForm({
 
   useEffect(() => {
     fetchSlots();
-  }, [form.doctor, form.date]);
+  }, [form.doctor, form.date, user?.organizationId]);
 
   useEffect(() => {
     if (!form.treatmentCategory) return;
@@ -142,6 +152,48 @@ export default function AppointmentForm({
     router.replace(`?${params.toString()}`);
     router.refresh();
   }, [form.treatmentCategory]);
+
+  // Patient suggestions by phone
+  const [patientSuggestions, setPatientSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (form.patientPhone.length < 5) {
+        setPatientSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      try {
+        const res = await axios.get(`/api/patients?search=${form.patientPhone}&limit=5`);
+        if (res.data.success && res.data.data.patients.length > 0) {
+          setPatientSuggestions(res.data.data.patients);
+          setShowSuggestions(true);
+        } else {
+          setPatientSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch suggestions", error);
+      }
+    };
+    
+    // Only search if we are typing a phone number manually, not when autofilled (unless modified)
+    // To avoid infinite loops or annoyances, we add a simple debounce
+    const timeout = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeout);
+  }, [form.patientPhone]);
+
+  const handleSelectSuggestion = (patient: any) => {
+    setForm((prev) => ({
+      ...prev,
+      firstName: patient.firstName,
+      lastName: patient.lastName && patient.lastName !== "-" ? patient.lastName : "",
+      patientPhone: patient.phone,
+      patientEmail: patient.email || prev.patientEmail,
+    }));
+    setShowSuggestions(false);
+  };
 
   //handle form submit
   const handleAddAppointment = async () => {
@@ -277,38 +329,84 @@ export default function AppointmentForm({
       ) : (
       <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
         {/* Patient Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            placeholder="Patient Name"
-            value={form.patientName}
-            onChange={(e) => onChange("patientName", e.target.value)}
-          />
-          <Input
-            placeholder="Phone Number"
-            value={form.patientPhone}
-            onChange={(e) => onChange("patientPhone", e.target.value)}
-          />
-          <Input
-            placeholder="Email"
-            value={form.patientEmail}
-            onChange={(e) => onChange("patientEmail", e.target.value)}
-          />
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-4 lg:col-span-2">
+            <label className="text-sm font-medium">First Name</label>
+            <Input
+              placeholder="e.g. John"
+              className="mt-1"
+              value={form.firstName}
+              onChange={(e) => onChange("firstName", e.target.value)}
+            />
+          </div>
+          
+          <div className="col-span-12 md:col-span-4 lg:col-span-2">
+            <label className="text-sm font-medium">Last Name</label>
+            <Input
+              placeholder="e.g. Doe"
+              className="mt-1"
+              value={form.lastName}
+              onChange={(e) => onChange("lastName", e.target.value)}
+            />
+          </div>
+          
+          <div className="col-span-12 md:col-span-4 relative">
+            <label className="text-sm font-medium">Phone Number</label>
+            <PhoneInput
+              placeholder="e.g. +1 234 567 8900"
+              className="mt-1"
+              value={form.patientPhone}
+              onChange={(val: string) => onChange("patientPhone", val || "")}
+              onFocus={() => {
+                if (patientSuggestions.length > 0) setShowSuggestions(true);
+              }}
+              onBlur={() => {
+                // Delay hiding so clicks register
+                setTimeout(() => setShowSuggestions(false), 200);
+              }}
+            />
+            {showSuggestions && patientSuggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                {patientSuggestions.map((p) => (
+                  <div
+                    key={p._id}
+                    className="p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
+                    onClick={() => handleSelectSuggestion(p)}
+                  >
+                    <div className="font-semibold text-sm text-slate-800">
+                      {p.firstName} {p.lastName && p.lastName !== "-" ? p.lastName : ""}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">{p.phone}</div>
+                    {p.email && <div className="text-[10px] text-slate-400 mt-0.5">{p.email}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="col-span-12 md:col-span-4">
+            <label className="text-sm font-medium">Email Address</label>
+            <Input
+              placeholder="e.g. john@example.com"
+              className="mt-1"
+              value={form.patientEmail}
+              onChange={(e) => onChange("patientEmail", e.target.value)}
+            />
+          </div>
           {/* Enquiry status */}
           {prefill?.email && (
-            <div>
+            <div className="col-span-12 md:col-span-6">
+              <label className="text-sm font-medium mb-1 block">Enquiry Status</label>
               <Select
                 value={enquiryForm.status}
                 onValueChange={(val) =>
                   setEnquiryForm((p) => ({ ...p, status: val }))
                 }
               >
-                <SelectTrigger className="h-11 w-full">
-                  <SelectValue placeholder="Enquiry Status" />
+                <SelectTrigger className="h-11 w-full mt-1">
+                  <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* <SelectItem value={"NEW"}>New</SelectItem>
-                  <SelectItem value={"CONTACTED"}>Contacted</SelectItem>
-                  <SelectItem value={"FOLLOW_UP"}>Follow Up</SelectItem> */}
                   <SelectItem value={"APPOINTMENT_BOOKED"}>
                     Book Appointment
                   </SelectItem>
@@ -320,9 +418,11 @@ export default function AppointmentForm({
             </div>
           )}
           {enquiryForm.status !== "APPOINTMENT_BOOKED" && prefill?.email && (
-            <div>
+            <div className="col-span-12 md:col-span-6">
+              <label className="text-sm font-medium mb-1 block">Staff Notes</label>
               <Input
-                placeholder="Staff Notes"
+                placeholder="Enter staff notes"
+                className="mt-1"
                 value={enquiryForm.staffNotes}
                 type="text"
                 onChange={(e) =>
@@ -336,14 +436,15 @@ export default function AppointmentForm({
           )}
           {(enquiryForm.status === "APPOINTMENT_BOOKED" || !prefill?.email) && (
             <>
-              {/* Category & Doctor */}
-              <div>
+              {/* Category */}
+              <div className="col-span-12 md:col-span-4">
+                <label className="text-sm font-medium mb-1 block">Treatment Category</label>
                 <Select
                   value={form.treatmentCategory}
                   onValueChange={(val) => onChange("treatmentCategory", val)}
                 >
-                  <SelectTrigger className="h-11 w-full">
-                    <SelectValue placeholder="Treatment Category" />
+                  <SelectTrigger className="h-11 w-full mt-1">
+                    <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
                     {localCategories.map((c) => (
@@ -351,15 +452,7 @@ export default function AppointmentForm({
                         {c}
                       </SelectItem>
                     ))}
-                    <div className="p-2 border-t mt-1">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => setQuickAddOpen(true)}
-                      >
-                        <Plus className="w-4 h-4 mr-2" /> Add New Category
-                      </Button>
-                    </div>
+
                   </SelectContent>
                 </Select>
                 {errors.treatmentCategory && (
@@ -369,40 +462,43 @@ export default function AppointmentForm({
                 )}
               </div>
 
-              {form.treatmentCategory && (
-                <div>
-                  <Select
-                    value={form.doctor}
-                    onValueChange={(val) => onChange("doctor", val)}
-                  >
-                    <SelectTrigger className="h-11  w-full">
-                      <SelectValue placeholder="Select Doctor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.map((doc) => (
-                        <SelectItem key={doc._id} value={doc._id}>
-                          {doc.firstName} {doc.lastName} – {doc.qualification}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.doctor && (
-                    <p className="text-red-500 text-xs mt-1">{errors.doctor}</p>
-                  )}
-                </div>
-              )}
+              {/* Doctor */}
+              <div className="col-span-12 md:col-span-4">
+                <label className="text-sm font-medium mb-1 block">Doctor</label>
+                <Select
+                  value={form.doctor}
+                  onValueChange={(val) => onChange("doctor", val)}
+                  disabled={!form.treatmentCategory}
+                >
+                  <SelectTrigger className="h-11 w-full mt-1">
+                    <SelectValue placeholder="Select Doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctors.map((doc) => (
+                      <SelectItem key={doc._id} value={doc._id}>
+                        {doc.firstName} {doc.lastName} – {doc.qualification}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.doctor && (
+                  <p className="text-red-500 text-xs mt-1">{errors.doctor}</p>
+                )}
+              </div>
 
               {/* Date */}
-              {form.treatmentCategory && (
+              <div className="col-span-12 md:col-span-4">
+                <label className="text-sm font-medium mb-1 block">Date</label>
                 <Input
                   type="date"
                   value={form.date}
                   onChange={(e) => onChange("date", e.target.value)}
-                  className="w-auto"
+                  className="mt-1 w-full h-11"
+                  disabled={!form.doctor}
                 />
-              )}
+              </div>
             </>
-          )}{" "}
+          )}
         </div>
         {/* Time Slots */}
         {form.doctor && form.date && (
@@ -450,11 +546,15 @@ export default function AppointmentForm({
         {form.date && form.doctor && (
           <>
             {/* Notes */}
-            <Textarea
-              placeholder="Notes (optional)"
-              value={form.notes}
-              onChange={(e) => onChange("notes", e.target.value)}
-            />
+            <div>
+              <label className="text-sm font-medium mb-1 block">Additional Notes</label>
+              <Textarea
+                placeholder="Any special requests or details (optional)"
+                className="mt-1"
+                value={form.notes}
+                onChange={(e) => onChange("notes", e.target.value)}
+              />
+            </div>
           </>
         )}
         {/* Action Buttons */}
@@ -462,7 +562,7 @@ export default function AppointmentForm({
           <Button
             onClick={handleAddAppointment}
             disabled={loading}
-            className="w-full h-11 rounded-xl bg-linear-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900"
+            className="w-full h-12 rounded-xl bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold text-base"
           >
             {loading ? "Adding..." : "Create Appointment"}
           </Button>
@@ -471,7 +571,7 @@ export default function AppointmentForm({
           <Button
             onClick={handleEnquiryUpdate}
             disabled={loading}
-            className="w-full h-11 rounded-xl bg-linear-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900"
+            className="w-full h-12 rounded-xl bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold text-base"
           >
             {loading ? "Saving..." : "Save"}
           </Button>

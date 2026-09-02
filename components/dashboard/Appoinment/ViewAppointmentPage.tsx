@@ -92,7 +92,7 @@ export default function ViewAppointmentPage({
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold">{appointment.patientName}</h1>
+            <h1 className="text-3xl font-bold">{appointment.firstName} {appointment.lastName || ""}</h1>
             <p className="text-blue-100 mt-1">
               Booking ID:{" "}
               <span className="font-semibold">{appointment.bookingId}</span>
@@ -114,8 +114,8 @@ export default function ViewAppointmentPage({
         <div className="p-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <InfoItem
             icon={<User className="w-5" />}
-            label="Patient"
-            value={appointment.patientName ?? "-"}
+            label="Patient Name"
+            value={`${appointment.firstName} ${appointment.lastName || ""}`.trim() || "-"}
           />
           <InfoItem
             icon={<Phone className="w-5" />}

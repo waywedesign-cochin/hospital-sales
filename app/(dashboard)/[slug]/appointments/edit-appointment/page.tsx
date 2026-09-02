@@ -23,7 +23,10 @@ const page = async (props: { searchParams: Promise<any> }) => {
     ...doctor,
   }));
 
-  return <EditAppointmentForm appointment={appointment} doctors={doctors} />;
+  const serializedAppointment = JSON.parse(JSON.stringify(appointment));
+  const serializedDoctors = JSON.parse(JSON.stringify(doctors));
+
+  return <EditAppointmentForm appointment={serializedAppointment} doctors={serializedDoctors} />;
 };
 
 export default page;

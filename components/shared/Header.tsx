@@ -21,15 +21,17 @@ export function Header() {
   }, [user, fetchClinic]);
 
   const getPageTitle = (path: string) => {
-    const cleanPath = path.substring(1);
+    const pathParts = path.split("/").filter(Boolean);
+    // Ignore the first part if it's the organization slug (assuming standard dashboard paths have 2+ parts like /slug/dashboard)
+    const activePath = pathParts.length > 1 ? pathParts.slice(1).join("/") : pathParts[0] || "";
 
-    if (!cleanPath) return "Dashboard";
-    if (cleanPath.startsWith("dashboard")) return "Dashboard Overview";
-    if (cleanPath.startsWith("doctors")) return "Medical Staff";
-    if (cleanPath.startsWith("appointments")) return "Appointment Manager";
-    if (cleanPath.startsWith("users")) return "User Settings";
+    if (!activePath) return "Dashboard";
+    if (activePath.startsWith("dashboard")) return "Dashboard Overview";
+    if (activePath.startsWith("doctors")) return "Medical Staff";
+    if (activePath.startsWith("appointments")) return "Appointment Manager";
+    if (activePath.startsWith("users")) return "User Settings";
 
-    return cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1);
+    return activePath.charAt(0).toUpperCase() + activePath.split("/")[0].slice(1);
   };
 
   const title = getPageTitle(pathname);
@@ -38,6 +40,10 @@ export function Header() {
     day: "numeric",
     month: "long",
   });
+
+  // Extract slug for profile routing
+  const slug = pathname.split("/").filter(Boolean)[0] || "";
+  const profileUrl = slug ? `/${slug}/profile` : "/profile";
 
   return (
     <header className="shrink-0 overflow-hidden sticky top-0 z-10 border-b border-white/40 h-16 px-6 flex items-center justify-between shadow-sm">
@@ -76,12 +82,6 @@ export function Header() {
           <span className="text-xs font-semibold text-blue-700">{today}</span>
         </div>
 
-        {/* Notifications */}
-        {/* <button className="relative p-2 hover:bg-slate-800/50 rounded-full transition-all duration-200 text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-700/50 group">
-          <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-linear-to-br from-red-400 to-red-600 border-2 border-slate-950 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
-        </button> */}
-
         {/* Vertical Separator */}
         <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
@@ -96,14 +96,11 @@ export function Header() {
             </p>
           </div>
           <div
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push(profileUrl)}
             className="w-9 h-9 cursor-pointer rounded-full bg-white p-0.5 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 group"
           >
-            <div className="w-full h-full rounded-full bg-blue-50 flex items-center justify-center border border-blue-200">
-              <span className="text-blue-primary font-bold text-sm group-hover:scale-110 transition-transform">
-                {user?.firstName?.charAt(0)}
-                {user?.lastName?.charAt(0)}
-              </span>
+            <div className="w-full h-full rounded-full bg-linear-to-br from-[#00236F] to-[#003fb3] flex items-center justify-center text-white text-xs font-bold shadow-inner">
+              {user?.firstName?.charAt(0) || "U"}
             </div>
           </div>
         </div>

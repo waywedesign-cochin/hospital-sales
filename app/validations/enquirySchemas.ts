@@ -1,11 +1,12 @@
 import z from "zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 export const enquirySchema = z.object({
   organizationId: z.string().min(1, "Clinic ID is required"),
   firstName: z.string().min(2, "First name must be at least 2 characters long"),
   lastName: z.string().optional(),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits long"),
+  phone: z.string().refine((val) => isValidPhoneNumber(val), { message: "Invalid international phone number format" }),
   treatmentCategory: z.string().min(1, "Department / Category is required"),
   message: z.string().min(10, "Message must be at least 10 characters long"),
   source: z.enum(

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Building2, CheckCircle2, Hospital, Mail, MapPin, Phone, User as UserIcon, Lock, Loader2 } from "lucide-react";
+import { PhoneInput } from "@/components/ui/phone-input";
 import toast from "react-hot-toast";
 
 export default function OnboardingWizard() {
@@ -204,10 +205,11 @@ export default function OnboardingWizard() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300">Contact Phone</label>
                   <div className="relative">
-                    <Phone className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input 
-                      type="tel" name="clinicPhone" value={formData.clinicPhone} onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                    <PhoneInput 
+                      name="clinicPhone" 
+                      value={formData.clinicPhone} 
+                      onChange={(val: string) => setFormData(p => ({ ...p, clinicPhone: val || "" }))}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-1 px-4 text-white focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500 transition-all"
                       placeholder="+1 (555) 000-0000"
                     />
                   </div>

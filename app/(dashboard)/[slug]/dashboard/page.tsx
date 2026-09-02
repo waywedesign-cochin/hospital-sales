@@ -49,8 +49,9 @@ const page = async (props: { searchParams: Promise<any> }) => {
     docSummaryRes?.data ?? [];
 
   const todaysDate = new Date().toISOString().split("T")[0];
+  const quickOverviewRange = searchParams.quickOverviewRange || "daily";
   //quick overview summary
-  const quickOverviewRes = await getQuickOverviewSummaryAction(todaysDate);
+  const quickOverviewRes = await getQuickOverviewSummaryAction(todaysDate, quickOverviewRange);
   const quickOverviewSummary = quickOverviewRes.data;
  
   //setup status

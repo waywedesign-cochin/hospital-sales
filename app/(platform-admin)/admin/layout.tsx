@@ -33,7 +33,7 @@ export default async function PlatformAdminLayout({
 
   // Ensure ONLY Platform Admins can access
   if (payload?.role !== "PLATFORM_ADMIN") {
-    redirect("/dashboard"); // Redirect normal users back to their dashboard
+    redirect(payload?.organizationSlug ? `/${payload.organizationSlug}/dashboard` : "/auth"); // Redirect normal users back to their dashboard
   }
 
   return (

@@ -11,6 +11,7 @@ import { ArrowLeft, Loader2, StethoscopeIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 
 /* ---------------- Error Message ---------------- */
@@ -45,7 +46,7 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
     formState: { errors, isSubmitting, isDirty },
     control,
   } = useForm<DoctorFormData>({
-    // resolver: zodResolver(doctorSchema),
+    resolver: zodResolver(doctorSchema),
     defaultValues: {
       prefix: "Dr.",
       firstName: "",
@@ -212,13 +213,17 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
         {/* Contact */}
         <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Contact Number</label>
-          <input
-            {...register("contactNumber")}
-            disabled={isSubmitting}
-            placeholder="e.g. +1 234 567 8900"
-            className={`mt-1 w-full px-4 py-2 bg-gray-50 border rounded-lg ${getErrorClass(
-              "contactNumber",
-            )}`}
+          <Controller
+            name="contactNumber"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                {...field}
+                disabled={isSubmitting}
+                placeholder="e.g. +1 234 567 8900"
+                className={`mt-1 w-full bg-gray-50 border rounded-lg ${getErrorClass("contactNumber")}`}
+              />
+            )}
           />
           <ErrorMessage fieldName="contactNumber" errors={errors} />
         </div>
@@ -334,7 +339,7 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
         </div>
 
         {/* Password */}
-        {/* <div>
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Temporary Password</label>
           <input
             type="password"
@@ -345,10 +350,10 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
             )}`}
           />
           <ErrorMessage fieldName="password" errors={errors} />
-        </div> */}
+        </div>
 
         {/* Confirm Password */}
-        {/* <div>
+        <div className="col-span-12 md:col-span-6">
           <label className="text-sm font-medium">Confirm Password</label>
           <input
             type="password"
@@ -359,7 +364,7 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
             )}`}
           />
           <ErrorMessage fieldName="confirmPassword" errors={errors} />
-        </div> */}
+        </div>
 
         {/* Submit */}
         <div className="col-span-12">
