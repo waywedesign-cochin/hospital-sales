@@ -1,10 +1,32 @@
-import { addTreatmentCategory, deleteTreatmentCategory, updateTreatmentCategory } from "@/app/controllers/treatmentCategoryController";
+import {
+  addTreatmentCategory,
+  deleteTreatmentCategory,
+  getTreatmentCategories,
+  updateTreatmentCategory,
+} from "@/app/controllers/treatmentCategoryController";
 import { dbConnect } from "@/app/lib/dbConnect";
 import { validate } from "@/app/middlewares/validate";
 import { withAuth } from "@/app/middlewares/withAuth";
 import { sendApiResponse } from "@/app/utils/nextResponseHandler";
 import { treatmentCategorySchema } from "@/app/validations/treatmentCategoryValidations";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; // <-- add NextResponse
+
+export const GET = withAuth(["ADMIN", "STAFF"])(async (
+  req: NextRequest,
+  user,
+) => {
+  try {
+    await dbConnect();
+    const result = await getTreatmentCategories(user.organizationId);
+    return NextResponse.json(result);
+  } catch (error) {
+    let message = "Server error";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return sendApiResponse(false, message, null);
+  }
+});
 
 export const POST = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
   try {
@@ -16,7 +38,10 @@ export const POST = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await addTreatmentCategory({ ...data, organizationId: user.organizationId });
+    return await addTreatmentCategory({
+      ...data,
+      organizationId: user.organizationId,
+    });
   } catch (error) {
     let message = "Server error";
 
@@ -41,7 +66,12 @@ export const PUT = withAuth(["ADMIN"])(async (req: NextRequest, user) => {
     if (!data) {
       return sendApiResponse(false, "Invalid request", null);
     }
-    return await updateTreatmentCategory(user.organizationId, id, user._id, data);
+    return await updateTreatmentCategory(
+      user.organizationId,
+      id,
+      user._id,
+      data,
+    );
   } catch (error) {
     let message = "Server error";
     if (error instanceof Error) {
