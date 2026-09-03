@@ -103,6 +103,7 @@ export const createAppointment = async (data: {
   }
 
   /* ---------------- WhatsApp (Meta Graph API) ---------------- */
+  let whatsappWarning = "";
   try {
     const formattedDate = new Date(newAppointment!.date).toLocaleDateString(
       "en-IN",
@@ -122,6 +123,7 @@ export const createAppointment = async (data: {
     );
   } catch (error) {
     console.error("WhatsApp send failed:", error);
+    whatsappWarning = " (Note: WhatsApp notification failed to send - check configuration)";
     // Non-blocking — appointment still created even if WA fails
   }
 
@@ -136,7 +138,7 @@ export const createAppointment = async (data: {
     );
   }
 
-  return sendApiResponse(true, "Appointment created successfully", appointment);
+  return sendApiResponse(true, `Appointment created successfully${whatsappWarning}`, appointment);
 };
 
 export const getAllAppointments = async (

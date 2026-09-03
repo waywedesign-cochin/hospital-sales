@@ -138,13 +138,17 @@ export default function WhatsAppConfigModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="outline" 
+          variant="default" 
           size="sm" 
-          className="border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`transition-all duration-300 shadow-md font-medium px-4 ${
+            plan?.toLowerCase() === "pro" 
+              ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/40 hover:bg-[#25D366] hover:text-white hover:shadow-[0_0_15px_rgba(37,211,102,0.4)]" 
+              : "bg-slate-800/30 text-slate-500 border border-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          }`}
           disabled={plan?.toLowerCase() !== "pro"}
           title={plan?.toLowerCase() !== "pro" ? "Upgrade to Pro to enable WhatsApp" : "Configure WhatsApp"}
         >
-          <MessageSquare className="w-4 h-4 mr-2" />
+          <MessageSquare className={`w-4 h-4 mr-2 ${plan?.toLowerCase() === "pro" ? "opacity-90" : "opacity-50"}`} />
           WhatsApp
         </Button>
       </DialogTrigger>

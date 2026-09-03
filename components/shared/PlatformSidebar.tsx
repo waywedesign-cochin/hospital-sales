@@ -27,6 +27,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 
 export function PlatformSidebar() {
@@ -230,7 +231,11 @@ export function PlatformSidebar() {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
-                    <Button variant="outline" className="border-slate-700 hover:bg-slate-800">Cancel</Button>
+                    <DialogClose asChild>
+                      <Button variant="outline" className="bg-transparent text-slate-300 border-slate-700 hover:text-white hover:bg-slate-800">
+                        Cancel
+                      </Button>
+                    </DialogClose>
                     <Button variant="destructive" onClick={handleLogout}>
                       Log out
                     </Button>
