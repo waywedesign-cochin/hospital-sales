@@ -29,35 +29,55 @@ export default async function GlobalUsersPage({
         </div>
       </div>
 
-      {/* Filters */}
-      <form className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-          <input
-            type="text"
-            name="search"
-            defaultValue={search}
-            placeholder="Search by name or email..."
-            className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-sm"
-          />
+      {/* Filters & Tabs */}
+      <div className="flex flex-col gap-6">
+        <form className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+            <input
+              type="text"
+              name="search"
+              defaultValue={search}
+              placeholder="Search by name or email..."
+              className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-sm"
+            />
+            {/* Preserve role when searching */}
+            <input type="hidden" name="role" value={role} />
+          </div>
+          <button type="submit" className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/20">
+            Search
+          </button>
+        </form>
+
+        {/* Role Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-px">
+          {[
+            { id: "ALL", label: "All Users" },
+            { id: "PLATFORM_ADMIN", label: "Platform Admins" },
+            { id: "ADMIN", label: "Tenant Admins" },
+            { id: "DOCTOR", label: "Doctors" },
+            { id: "STAFF", label: "Staff" },
+          ].map((tab) => {
+            const isActive = role === tab.id;
+            return (
+              <Link
+                key={tab.id}
+                href={`?page=1&search=${search}&role=${tab.id}`}
+                className={`px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all relative ${
+                  isActive 
+                    ? "text-purple-400 bg-slate-900 border-t border-l border-r border-slate-800" 
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-t border-l border-r border-transparent"
+                }`}
+              >
+                {tab.label}
+                {isActive && (
+                  <div className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-purple-500 rounded-t-full shadow-[0_-2px_10px_rgba(168,85,247,0.5)]"></div>
+                )}
+              </Link>
+            );
+          })}
         </div>
-        <div className="flex-1 max-w-xs">
-          <select 
-            name="role" 
-            defaultValue={role}
-            className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-sm"
-          >
-            <option value="ALL">All Roles</option>
-            <option value="PLATFORM_ADMIN">Platform Admin</option>
-            <option value="ADMIN">Tenant Admin</option>
-            <option value="DOCTOR">Doctor</option>
-            <option value="STAFF">Staff</option>
-          </select>
-        </div>
-        <button type="submit" className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/20">
-          Apply Filters
-        </button>
-      </form>
+      </div>
 
       {data ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">

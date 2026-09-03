@@ -35,6 +35,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import Image from "next/image";
 
@@ -404,7 +405,9 @@ export function Sidebar() {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
-                    <Button variant="outline">Cancel</Button>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
                     <Button variant="destructive" onClick={handleLogout}>
                       Log out
                     </Button>

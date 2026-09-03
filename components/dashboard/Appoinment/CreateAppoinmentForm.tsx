@@ -226,7 +226,12 @@ export default function AppointmentForm({
         return;
       }
 
-      toast.success("Appointment added");
+      if (res.data.message.includes("failed to send")) {
+        // Use toast.success but maybe style it or just use toast to indicate partial success
+        toast(res.data.message, { icon: '⚠️', duration: 5000 });
+      } else {
+        toast.success(res.data.message || "Appointment added");
+      }
       router.push(`/${slug}/appointments`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Error");
