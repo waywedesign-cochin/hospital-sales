@@ -74,9 +74,24 @@ export function Header() {
           <h2 className="text-sm sm:text-lg font-bold text-[#00236F] tracking-tight leading-tight truncate max-w-40 sm:max-w-xs md:max-w-md">
             {title}
           </h2>
-          <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
-            {clinic?.name || "Workspace"}
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
+              {clinic?.name || "Workspace"}
+            </p>
+            {clinic?.plan && (
+              <span className={`px-2 py-0.5 inline-flex text-[9px] leading-4 font-bold rounded-full uppercase tracking-wider shadow-sm ${
+                clinic.subscriptionStatus === 'TRIAL' 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                  : clinic.plan.toLowerCase() === 'pro' 
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' 
+                    : clinic.plan.toLowerCase() === 'enterprise'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                      : 'bg-slate-200 text-slate-600 border border-slate-300'
+              }`}>
+                {clinic.subscriptionStatus === 'TRIAL' ? 'TRIAL' : clinic.plan}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

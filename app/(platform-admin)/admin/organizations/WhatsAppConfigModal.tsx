@@ -19,11 +19,13 @@ import axios from "axios";
 interface WhatsAppConfigModalProps {
   organizationId: string;
   organizationName: string;
+  plan: string;
 }
 
 export default function WhatsAppConfigModal({
   organizationId,
   organizationName,
+  plan,
 }: WhatsAppConfigModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,7 @@ export default function WhatsAppConfigModal({
     phoneNumberId: "",
     accessToken: "",
   });
+  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -48,6 +51,7 @@ export default function WhatsAppConfigModal({
       const res = await axios.get(`/api/organization/whatsapp?organizationId=${organizationId}`);
       if (res.data.success && res.data.data) {
         setConfig(res.data.data);
+        setHasToken(res.data.data.hasToken);
         setFormData({
           wabaId: res.data.data.wabaId || "",
           phoneNumberId: res.data.data.phoneNumberId || "",
@@ -55,6 +59,7 @@ export default function WhatsAppConfigModal({
         });
       } else {
         setConfig(null);
+        setHasToken(false);
         setFormData({ wabaId: "", phoneNumberId: "", accessToken: "" });
       }
     } catch (error) {
@@ -132,7 +137,13 @@ export default function WhatsAppConfigModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={plan?.toLowerCase() !== "pro"}
+          title={plan?.toLowerCase() !== "pro" ? "Upgrade to Pro to enable WhatsApp" : "Configure WhatsApp"}
+        >
           <MessageSquare className="w-4 h-4 mr-2" />
           WhatsApp
         </Button>
@@ -196,8 +207,20 @@ export default function WhatsAppConfigModal({
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="token">Permanent Access Token</Label>
+            <div className="space-y-4 pt-4 border-t border-slate-800">
+              <div className="flex justify-between items-center">
+                <Label className="text-slate-300">Permanent Access Token</Label>
+                {hasToken ? (
+                  <span className="flex items-center text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Token securely saved
+                  </span>
+                ) : (
+                  <span className="flex items-center text-xs font-medium text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20">
+                    Token missing
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                 <Input
@@ -210,7 +233,9 @@ export default function WhatsAppConfigModal({
                 />
               </div>
               <p className="text-xs text-slate-500">
-                This token is securely encrypted before being saved to the database.
+                {hasToken 
+                  ? "Leave this blank unless you need to update the existing encrypted token." 
+                  : "This token is securely encrypted before being saved to the database."}
               </p>
             </div>
 

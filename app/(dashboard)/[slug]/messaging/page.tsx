@@ -21,8 +21,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import toast from "react-hot-toast";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
 export default function MessagingPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   // Form State
   const [audienceType, setAudienceType] = useState("broadcast");
   const [patientId, setPatientId] = useState("");
@@ -34,20 +38,29 @@ export default function MessagingPage() {
   const [generatedMessage, setGeneratedMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch Patients for dropdown
+  // Fetch Patients and Plan
   useEffect(() => {
-    const fetchPatients = async () => {
+    const init = async () => {
       try {
-        const res = await axios.get("/api/patients?limit=50");
-        if (res.data.success) {
-          setPatients(res.data.data.patients);
+        const [patientsRes, planRes] = await Promise.all([
+          axios.get("/api/patients?limit=50").catch(() => null),
+          fetch("/api/organization/api-key").then(res => res.json()).catch(() => ({}))
+        ]);
+        
+        if (patientsRes?.data?.success) {
+          setPatients(patientsRes.data.data.patients);
         }
+        setPlan(planRes.plan || "free");
       } catch (error) {
-        console.error("Failed to fetch patients", error);
+        console.error("Failed to initialize messaging page", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchPatients();
+    init();
   }, []);
 
   const handleGenerateAI = async () => {
@@ -113,11 +126,40 @@ export default function MessagingPage() {
     }
   };
 
+  if (loading) {
+    return <div className="p-8 text-center text-slate-500">Loading messaging center...</div>;
+  }
+
+  if (plan?.toLowerCase() !== "pro") {
+    return (
+      <div className="mx-auto p-6 space-y-8 flex items-center justify-center min-h-[70vh]">
+        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-2xl mx-auto shadow-sm">
+          <div className="mx-auto w-16 h-16 bg-blue-50 text-blue-primary rounded-full flex items-center justify-center mb-6">
+            <Sparkles className="w-8 h-8" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-900 mb-3">Upgrade to Pro</h3>
+          <p className="text-slate-600 mb-8 leading-relaxed">
+            The AI Messaging & WhatsApp Campaign center is available exclusively on our Pro plan. Upgrade today to unlock direct patient communications, AI-generated content, and bulk WhatsApp broadcasts.
+          </p>
+          <Link href={`/${slug}/billing`}>
+            <Button size="lg" className="bg-blue-primary hover:bg-blue-600 text-white font-medium px-8 rounded-xl h-12 shadow-md hover:shadow-lg transition-all">
+              View Pricing & Upgrade
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+    <div className="mx-auto p-6 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <Send className="text-blue-primary" /> 
           Messaging & Campaigns
+          <span className="px-2 py-0.5 ml-2 inline-flex text-[10px] leading-4 font-bold rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white uppercase tracking-wider shadow-sm">
+            PRO
+          </span>
         </h1>
         <p className="text-sm text-slate-500 mt-1">
           Draft highly personalized WhatsApp messages and campaigns using Google Gemini AI.

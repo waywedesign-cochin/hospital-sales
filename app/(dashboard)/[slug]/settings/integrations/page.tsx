@@ -14,10 +14,14 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppIntegration from "./WhatsAppIntegration";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
 type Tab = "curl" | "javascript" | "html";
 
 export default function IntegrationsPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const [apiKey, setApiKey] = useState("");
   const [allowedOrigins, setAllowedOrigins] = useState<string[]>([]);
   const [originInput, setOriginInput] = useState("");
@@ -26,6 +30,7 @@ export default function IntegrationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("curl");
+  const [plan, setPlan] = useState<string>("free");
 
   // Dialog state
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
@@ -50,6 +55,7 @@ export default function IntegrationsPage() {
       .then((d) => {
         setApiKey(d.apiKey);
         setAllowedOrigins(d.allowedOrigins || []);
+        setPlan(d.plan || "free");
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -404,7 +410,24 @@ document.getElementById("enquiry-form").addEventListener("submit", async (e) => 
         </TabsContent>
 
         <TabsContent value="whatsapp" className="animate-in fade-in-50 pt-2">
-          <WhatsAppIntegration />
+          {plan?.toLowerCase() === "pro" ? (
+            <WhatsAppIntegration />
+          ) : (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center max-w-2xl mx-auto mt-8 shadow-sm">
+              <div className="mx-auto w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 10 4-4"/></svg>
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">Upgrade to Pro</h3>
+              <p className="text-slate-600 mb-8 leading-relaxed">
+                Automated WhatsApp messaging is available exclusively on our Pro plan. Upgrade today to unlock direct patient communications, custom templates, and advanced Meta Cloud API features.
+              </p>
+              <Link href={`/${slug}/billing`}>
+                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-8 rounded-xl h-12 shadow-md hover:shadow-lg transition-all">
+                  View Pricing & Upgrade
+                </Button>
+              </Link>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
