@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
-import MessageLog from "@/app/models/MessageLog";
 import Patient from "@/app/models/Patient";
+import { withAuth, AuthUser } from "@/app/middlewares/withAuth";
+import { sendWhatsAppText, sendWhatsAppTemplate } from "@/app/utils/whatsappService";
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequest, user: AuthUser) {
   try {
     await dbConnect();
-    const { messageContent, audienceType, patientId, messageType } = await req.json();
+    const { messageContent, audienceType, patientId, templateName, templateParams } = await req.json();
 
-    if (!messageContent) {
-      return NextResponse.json({ success: false, message: "Message content is required" }, { status: 400 });
+    if (!user.organizationId) {
+       return NextResponse.json({ success: false, message: "Organization ID is missing" }, { status: 400 });
     }
+
+    const organizationId = user.organizationId;
 
     let recipients = [];
 
@@ -18,39 +21,63 @@ export async function POST(req: NextRequest) {
       if (!patientId) {
         return NextResponse.json({ success: false, message: "Patient ID is required for specific audience" }, { status: 400 });
       }
-      const patient = await Patient.findById(patientId);
+      const patient = await Patient.findOne({ _id: patientId, organizationId });
       if (!patient) {
         return NextResponse.json({ success: false, message: "Patient not found" }, { status: 404 });
       }
-      recipients.push({ patientId: patient._id, phone: patient.phone });
+      recipients.push({ patientId: patient._id.toString(), phone: patient.phone });
     } else {
       // Broadcast to all
-      const allPatients = await Patient.find({});
-      recipients = allPatients.map(p => ({ patientId: p._id, phone: p.phone }));
+      const allPatients = await Patient.find({ organizationId });
+      recipients = allPatients.map(p => ({ patientId: p._id.toString(), phone: p.phone }));
     }
 
-    // Mock WhatsApp dispatch and log to DB
-    const logs = [];
-    for (const recipient of recipients) {
-      const log = await MessageLog.create({
-        patientId: recipient.patientId,
-        recipientPhone: recipient.phone || "0000000000",
-        messageType: messageType || "CAMPAIGN",
-        content: messageContent,
-        status: "DELIVERED",
-        sentAt: new Date(),
-        metaMessageId: `mock_${Math.random().toString(36).substring(7)}`
-      });
-      logs.push(log);
+    if (recipients.length === 0) {
+      return NextResponse.json({ success: false, message: "No recipients found" }, { status: 400 });
     }
+
+    const results = [];
+    for (const recipient of recipients) {
+      try {
+        if (!recipient.phone) continue;
+
+        let res;
+        if (templateName) {
+           res = await sendWhatsAppTemplate(
+              organizationId,
+              recipient.phone,
+              templateName,
+              templateParams || [],
+              recipient.patientId
+           );
+        } else if (messageContent) {
+           res = await sendWhatsAppText(
+              organizationId,
+              recipient.phone,
+              messageContent,
+              recipient.patientId
+           );
+        } else {
+           throw new Error("Either templateName or messageContent must be provided");
+        }
+        
+        results.push({ patientId: recipient.patientId, success: true, metaMessageId: res?.messages?.[0]?.id });
+      } catch (e: any) {
+         results.push({ patientId: recipient.patientId, success: false, error: e.message });
+      }
+    }
+
+    const failedCount = results.filter(r => !r.success).length;
 
     return NextResponse.json({
-      success: true,
-      message: `Successfully dispatched to ${recipients.length} recipients.`,
-      data: logs
+      success: failedCount === 0,
+      message: `Processed ${recipients.length} recipients. Failed: ${failedCount}`,
+      data: results
     });
   } catch (error: any) {
     console.error("WhatsApp Send Error:", error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export const POST = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST"])(postHandler as any);

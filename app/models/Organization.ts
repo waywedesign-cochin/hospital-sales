@@ -41,6 +41,18 @@ export interface IOrganization extends Document {
   apiKey: string;
   allowedOrigins: string[];
 
+  // WhatsApp Business API config (per-hospital)
+  whatsapp?: {
+    accessToken: string;       // AES-256-GCM encrypted permanent token
+    wabaId: string;            // WhatsApp Business Account ID
+    phoneNumberId: string;     // Phone Number ID from Meta
+    verifyToken?: string;      // Webhook verify token (optional per-org)
+    templateStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    templateName?: string;     // e.g. "appointment_confirmation"
+    isActive: boolean;         // Enable/disable WhatsApp for this org
+    connectedAt?: Date;
+  };
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -101,6 +113,16 @@ const organizationSchema = new Schema<IOrganization>(
     },
     apiKey: { type: String, required: true, unique: true },
     allowedOrigins: { type: [String], default: [] },
+    whatsapp: {
+      accessToken: { type: String },
+      wabaId: { type: String },
+      phoneNumberId: { type: String },
+      verifyToken: { type: String },
+      templateStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'] },
+      templateName: { type: String },
+      isActive: { type: Boolean, default: false },
+      connectedAt: { type: Date },
+    },
   },
   { timestamps: true },
 );

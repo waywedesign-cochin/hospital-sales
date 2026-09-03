@@ -12,6 +12,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import WhatsAppIntegration from "./WhatsAppIntegration";
 
 type Tab = "curl" | "javascript" | "html";
 
@@ -177,13 +179,27 @@ document.getElementById("enquiry-form").addEventListener("submit", async (e) => 
   return (
     <div className="mx-auto p-6 space-y-8">
       <div>
-        <h1 className="text-xl font-semibold">Website Integration</h1>
+        <h1 className="text-2xl font-bold">Integrations</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Connect your website's enquiry form directly to your CRM leads inbox.
+          Manage external connections and API credentials.
         </p>
       </div>
 
-      <section className="space-y-2">
+      <Tabs defaultValue="website" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="website">Website (API Keys)</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp (Meta)</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="website" className="space-y-8 animate-in fade-in-50">
+          <div>
+            <h2 className="text-xl font-semibold">Website Integration</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Connect your website's enquiry form directly to your CRM leads inbox.
+            </p>
+          </div>
+
+          <section className="space-y-2">
         <h2 className="text-sm font-medium text-gray-700">Endpoint</h2>
         <div className="flex items-center gap-2 bg-gray-50 border rounded-lg px-3 py-2">
           <code className="text-sm flex-1 overflow-x-auto">
@@ -385,6 +401,12 @@ document.getElementById("enquiry-form").addEventListener("submit", async (e) => 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        <TabsContent value="whatsapp" className="animate-in fade-in-50 pt-2">
+          <WhatsAppIntegration />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

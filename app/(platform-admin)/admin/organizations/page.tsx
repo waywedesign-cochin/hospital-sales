@@ -1,6 +1,7 @@
 import { Building2, Search } from "lucide-react";
 import { getAllOrganizationsAction } from "@/app/actions/platformActions";
 import Link from "next/link";
+import WhatsAppConfigModal from "./WhatsAppConfigModal";
 
 export default async function OrganizationsPage({
   searchParams,
@@ -53,6 +54,7 @@ export default async function OrganizationsPage({
                   <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Plan</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Joined</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -83,11 +85,17 @@ export default async function OrganizationsPage({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400 text-right">
                       {new Date(org.createdAt).toLocaleDateString()}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <WhatsAppConfigModal 
+                        organizationId={org._id.toString()} 
+                        organizationName={org.name} 
+                      />
+                    </td>
                   </tr>
                 ))}
                 {data.organizations.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-slate-500">
+                    <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
                       No organizations found matching your search.
                     </td>
                   </tr>

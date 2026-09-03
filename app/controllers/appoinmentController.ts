@@ -5,7 +5,7 @@ import { sendResponse } from "../utils/responseHandler";
 import mongoose from "mongoose";
 import DoctorLeave from "../models/DoctorLeave";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
-import { sendWhatsAppMessage } from "../utils/whatsapp";
+import { sendWhatsAppTemplate } from "../utils/whatsappService";
 import Doctor from "@/app/models/Doctor";
 import EnquiryActivity from "../models/EnquiryActivity";
 import Patient from "../models/Patient";
@@ -102,44 +102,27 @@ export const createAppointment = async (data: {
     return sendApiResponse(false, "Doctor not found");
   }
 
-  /* ---------------- WhatsApp (Testing) ---------------- */
+  /* ---------------- WhatsApp (Meta Graph API) ---------------- */
   try {
     const formattedDate = new Date(newAppointment!.date).toLocaleDateString(
       "en-IN",
     );
 
-    const customerMessage = `Hello ${newAppointment?.firstName} 👋,
-
-Your dermatology appointment has been confirmed ✅
-
-📅 Date: ${formattedDate}
-⏰ Time: ${newAppointment?.startTime}
-🧑‍⚕️ Doctor: Dr. ${doctorForAppointment.firstName} ${doctorForAppointment.lastName}
-💼 Treatment: ${data.treatmentCategory}
-
-Please arrive a few minutes early.
-For assistance or rescheduling, feel free to contact our clinic.
-
-Thank you,
-Dermatology Center`;
-
-    // TEST NUMBER (Sandbox joined)
-    await sendWhatsAppMessage("+919946957636", customerMessage);
-
-    //doctor message
-    const doctorMessage =
-      "Hello Dr. James Peter 👋,\n\n" +
-      "A new dermatology appointment has been booked 📢\n\n" +
-      "👤 Patient: Midhun\n" +
-      "📅 Date: 24/12/2025\n" +
-      "⏰ Time: 10:00\n" +
-      "💼 Treatment: Hair\n\n" +
-      "Thank you.";
-
-    // TEST NUMBER (Sandbox joined)
-    await sendWhatsAppMessage("+919946957636", doctorMessage);
+    await sendWhatsAppTemplate(
+      data.organizationId,
+      data.patientPhone,
+      "appointment_confirmation", // Ensure this matches the template name registered in Meta
+      [
+        data.firstName,
+        `${doctorForAppointment.firstName} ${doctorForAppointment.lastName}`,
+        formattedDate,
+        newAppointment!.startTime,
+      ],
+      appointment._id.toString()
+    );
   } catch (error) {
     console.error("WhatsApp send failed:", error);
+    // Non-blocking — appointment still created even if WA fails
   }
 
   if (data.userId) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Building2, CheckCircle2, Hospital, Mail, MapPin, Phone, User as UserIcon, Lock, Loader2, CreditCard, Sparkles, Crown, Zap } from "lucide-react";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -42,7 +42,15 @@ const PLANS = [
   },
 ];
 
-export default function OnboardingWizard() {
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>}>
+      <OnboardingWizard />
+    </Suspense>
+  );
+}
+
+function OnboardingWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedPlan = searchParams.get("plan") || "";
