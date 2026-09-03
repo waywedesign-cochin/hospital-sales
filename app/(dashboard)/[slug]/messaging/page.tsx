@@ -23,6 +23,8 @@ import {
 import toast from "react-hot-toast";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MessageLogs from "@/components/dashboard/Messaging/MessageLogs";
 
 export default function MessagingPage() {
   const params = useParams();
@@ -166,7 +168,22 @@ export default function MessagingPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Tabs defaultValue="composer" className="w-full space-y-6">
+        <div className="flex items-center justify-between">
+          <TabsList className="bg-slate-100 border border-slate-200">
+            <TabsTrigger value="composer" className="data-[state=active]:bg-white data-[state=active]:text-blue-primary data-[state=active]:shadow-sm">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Composer
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="data-[state=active]:bg-white data-[state=active]:text-blue-primary data-[state=active]:shadow-sm">
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Message Logs
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="composer" className="mt-0 outline-none">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* LEFT COLUMN: Composer */}
         <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl">
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 rounded-t-2xl pb-4">
@@ -309,6 +326,12 @@ export default function MessagingPage() {
           </Card>
         </div>
       </div>
+      </TabsContent>
+
+      <TabsContent value="logs" className="mt-0 outline-none">
+        <MessageLogs />
+      </TabsContent>
+    </Tabs>
     </div>
   );
 }
