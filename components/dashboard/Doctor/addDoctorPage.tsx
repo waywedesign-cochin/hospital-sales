@@ -108,7 +108,7 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2 hover:bg-green-600 hover:text-white transition-all"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -138,11 +138,6 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
         </div>
       </div>
 
-      {message && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 text-sm">
-          {message}
-        </div>
-      )}
 
       {/* Form */}
       <form
@@ -366,17 +361,21 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
           <ErrorMessage fieldName="confirmPassword" errors={errors} />
         </div>
 
+        {message && (
+          <div className="col-span-12 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
+            {message}
+          </div>
+        )}
+
         {/* Submit */}
         <div className="col-span-12">
           <button
             type="submit"
-            // disabled={isSaving || !isDirty}
             disabled={isSaving}
             className={`w-full flex justify-center items-center py-3.5 rounded-xl text-sm font-semibold text-white ${
-              // isSaving || !isDirty
               isSaving
                 ? "bg-gray-300"
-                : "bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                : "bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             }`}
           >
             {isSaving ? (

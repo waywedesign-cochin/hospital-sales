@@ -219,7 +219,7 @@ export default function EditAppointmentForm({
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2 hover:bg-green-600 hover:text-white transition-all"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back

@@ -1,7 +1,8 @@
 import Enquiry from "../models/Enquiry";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 import { sendResponse } from "../utils/responseHandler";
-import User, { IUser } from "../models/User";
+import "../models/User";
+import type { IUser } from "../models/User";
 import EnquiryActivity from "../models/EnquiryActivity";
 import Patient from "../models/Patient";
 import { logActivity } from "./activityLogController";

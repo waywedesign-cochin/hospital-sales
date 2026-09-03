@@ -44,19 +44,27 @@ export const addDoctor = async (data: {
   if (doctorExists) {
     return sendApiResponse(false, "Doctor already exists in this clinic");
   }
-  const newDoctor = await Doctor.create({
-    ...data,
-    email: email.toLowerCase(),
-  });
-  if (!newDoctor) {
-    return sendApiResponse(false, "Something went wrong");
-  }
+
+  // Check if User email is already taken before creating the Doctor profile
   if (password && email) {
     const lowercasedEmail = email.toLowerCase();
     const userExists = await User.findOne({ email: lowercasedEmail, organizationId: data.organizationId });
     if (userExists) {
-      return sendApiResponse(false, "User already exists in this clinic");
+      return sendApiResponse(false, "User email is already taken in this clinic");
     }
+  }
+
+  const newDoctor = await Doctor.create({
+    ...data,
+    email: email.toLowerCase(),
+  });
+  
+  if (!newDoctor) {
+    return sendApiResponse(false, "Something went wrong creating the doctor");
+  }
+
+  if (password && email) {
+    const lowercasedEmail = email.toLowerCase();
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({
       organizationId: data.organizationId,
