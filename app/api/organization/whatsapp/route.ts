@@ -10,7 +10,7 @@ async function postHandler(req: NextRequest, user: AuthUser) {
     let { organizationId, accessToken, wabaId, phoneNumberId, verifyToken } = await req.json();
     organizationId = organizationId || user.organizationId;
 
-    if (!organizationId || !accessToken || !wabaId || !phoneNumberId) {
+    if (!organizationId || !wabaId || !phoneNumberId) {
       return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
     }
 
@@ -22,16 +22,25 @@ async function postHandler(req: NextRequest, user: AuthUser) {
     if (!org) {
       return NextResponse.json({ success: false, message: "Organization not found" }, { status: 404 });
     }
+    
+    // If accessToken is missing in the payload, but we don't have one saved, it's an error for new setups
+    if (!accessToken && (!org.whatsapp || !org.whatsapp.accessToken)) {
+       return NextResponse.json({ success: false, message: "Access token is required for initial setup" }, { status: 400 });
+    }
 
-    const encryptedToken = encrypt(accessToken);
+    let encryptedToken = org.whatsapp?.accessToken;
+    if (accessToken) {
+       encryptedToken = encrypt(accessToken);
+    }
 
     org.whatsapp = {
+      ...org.whatsapp, // preserve other existing fields like templateStatus
       accessToken: encryptedToken,
       wabaId,
       phoneNumberId,
-      verifyToken: verifyToken || process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
+      verifyToken: verifyToken || org.whatsapp?.verifyToken || process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
       isActive: true,
-      connectedAt: new Date(),
+      connectedAt: org.whatsapp?.connectedAt || new Date(),
     };
 
     await org.save();
@@ -74,6 +83,7 @@ async function getHandler(req: NextRequest, user: AuthUser) {
         templateStatus: org.whatsapp.templateStatus,
         templateName: org.whatsapp.templateName,
         connectedAt: org.whatsapp.connectedAt,
+        hasToken: !!org.whatsapp.accessToken,
       },
     });
   } catch (error: any) {

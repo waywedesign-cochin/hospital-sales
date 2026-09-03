@@ -69,9 +69,15 @@ export default async function OrganizationsPage({
                       <div className="text-xs text-slate-500 mt-1">{org.phone || "No phone"}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-300">
-                        {org.plan}
-                      </span>
+                      {org.plan?.toLowerCase() === "pro" ? (
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-[0_0_10px_rgba(245,158,11,0.3)] border border-amber-500/50 uppercase tracking-wider">
+                          PRO
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-300 uppercase tracking-wider">
+                          {org.plan}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -88,7 +94,8 @@ export default async function OrganizationsPage({
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <WhatsAppConfigModal 
                         organizationId={org._id.toString()} 
-                        organizationName={org.name} 
+                        organizationName={org.name}
+                        plan={org.plan}
                       />
                     </td>
                   </tr>

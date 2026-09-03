@@ -19,6 +19,7 @@ export async function GET() {
     return NextResponse.json({
       apiKey: org.apiKey,
       allowedOrigins: org.allowedOrigins,
+      plan: org.plan,
     });
   });
 }
