@@ -1,4 +1,6 @@
 import mongoose, { Model, Schema } from "mongoose";
+import "./User";
+import "./Patient";
 import { IUser } from "./User";
 
 export interface IEnquiry {

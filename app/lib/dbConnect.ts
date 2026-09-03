@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "@/app/models";
 
 const MONGODB_URL =
   process.env.NODE_ENV === "production"
