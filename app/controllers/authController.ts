@@ -204,31 +204,64 @@ export const registerClinic = async (data: {
 };
 
 // ================= SIGN IN =================
-export const signIn = async (data: { email: string; password: string }) => {
+export const signIn = async (data: {
+  email: string;
+  password: string;
+  organizationId?: string;
+}) => {
   try {
     const lowercasedEmail = data.email.toLowerCase();
 
-    const user = await User.findOne({ email: lowercasedEmail });
-    if (!user) {
-      return sendResponse(false, "User not found");
+    const query: any = { email: lowercasedEmail };
+    if (data.organizationId) query.organizationId = data.organizationId;
+
+    const matches = await User.find(query);
+    if (!matches.length) {
+      return sendResponse(false, "Invalid email or password");
     }
 
-    const isMatch = await bcrypt.compare(data.password, user.password);
-    if (!isMatch) {
-      return sendResponse(false, "Invalid credentials");
+    const validMatches = [];
+    for (const u of matches) {
+      const ok = await bcrypt.compare(data.password, u.password);
+      if (ok) validMatches.push(u);
     }
+
+    if (!validMatches.length) {
+      return sendResponse(false, "Invalid email or password");
+    }
+
+    if (validMatches.length > 1) {
+      const orgIds = validMatches.map((u) => u.organizationId);
+      const organizations = await Organization.find({
+        _id: { $in: orgIds },
+      })
+        .select("name slug")
+        .lean();
+
+      // .lean() + manual mapping: Mongoose documents (and their
+      // ObjectId fields) aren't plain objects, so they can't cross
+      // the server-action -> client-component boundary as-is.
+      return sendResponse(false, "Select a clinic to continue", {
+        requiresOrgSelection: true,
+        organizations: organizations.map((org) => ({
+          _id: org._id.toString(),
+          name: org.name,
+          slug: org.slug,
+        })),
+      });
+    }
+
+    const user = validMatches[0];
 
     if (user.role === "GUEST") {
       return sendResponse(false, "Access denied. Contact admin.");
     }
 
-    // Fetch the organization to get its slug
     const organization = await Organization.findById(
       user.organizationId,
     ).select("slug");
     const organizationSlug = organization ? organization.slug : null;
 
-    // ✅ Sign JWT with organizationId and organizationSlug
     const token = signJwt(
       {
         _id: user._id,
@@ -240,14 +273,12 @@ export const signIn = async (data: { email: string; password: string }) => {
     );
 
     const cookieStore = await cookies();
-
-    // ✅ Set JWT in HttpOnly cookie
     cookieStore.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return sendResponse(true, "Login successful", {
@@ -304,17 +335,42 @@ export const changePassword = async (
 };
 
 //forgot password
-export const forgotPassword = async (email: string) => {
+export const forgotPassword = async (
+  email: string,
+  organizationId?: string,
+) => {
   const lowercasedEmail = email.toLowerCase();
-  const user = await User.findOne({ email: lowercasedEmail });
-  console.log(user);
+  const query: any = { email: lowercasedEmail };
+  if (organizationId) query.organizationId = organizationId;
 
-  if (!user) {
+  const matches = await User.find(query);
+
+  if (!matches.length) {
     return sendApiResponse(
       true,
       "If an account exists, a password reset link has been sent",
     );
   }
+
+  if (matches.length > 1 && !organizationId) {
+    const orgIds = matches.map((u) => u.organizationId);
+    const organizations = await Organization.find({
+      _id: { $in: orgIds },
+    })
+      .select("name slug")
+      .lean();
+
+    return sendApiResponse(false, "Select a clinic to continue", {
+      requiresOrgSelection: true,
+      organizations: organizations.map((org) => ({
+        _id: org._id.toString(),
+        name: org.name,
+        slug: org.slug,
+      })),
+    });
+  }
+
+  const user = matches[0];
   const resetToken = crypto.randomBytes(20).toString("hex");
   const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
   await User.findOneAndUpdate(

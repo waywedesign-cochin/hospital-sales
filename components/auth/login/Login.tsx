@@ -15,6 +15,7 @@ import {
 } from "@/app/validations/authSchemas";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import axios from "axios";
+import type { OrganizationOption } from "@/stores/authStore";
 
 const AuthForm = () => {
   const router = useRouter();
@@ -32,11 +33,23 @@ const AuthForm = () => {
     password: "",
   });
 
+  // Populated when the backend reports more than one clinic for this email
+  const [organizations, setOrganizations] = useState<
+    OrganizationOption[] | null
+  >(null);
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+
+    // A changed email invalidates any org list we picked up for the old one
+    if (e.target.name === "email") {
+      setOrganizations(null);
+      setSelectedOrgId("");
+    }
   };
 
   const validateForm = () => {
@@ -77,29 +90,67 @@ const AuthForm = () => {
       setLoading(true);
 
       if (showForgotPassword) {
-        const { data } = await axios.post("/api/auth/forgot-password", {
-          email: formData.email,
-        });
+        try {
+          const { data } = await axios.post("/api/auth/forgot-password", {
+            email: formData.email,
+            organizationId: selectedOrgId || undefined,
+          });
 
-        if (data.success) {
-          toast.success(data.message || "Reset link sent to your email");
-          setShowForgotPassword(false);
-          setFormData((prev) => ({
-            ...prev,
-            password: "",
-          }));
+          if (data.data && "requiresOrgSelection" in data.data) {
+            setOrganizations(data.data.organizations);
+            toast(data.message || "Select a clinic to continue");
+          } else if (data.success) {
+            toast.success(data.message || "Reset link sent to your email");
+            setShowForgotPassword(false);
+            setOrganizations(null);
+            setSelectedOrgId("");
+            setFormData((prev) => ({
+              ...prev,
+              password: "",
+            }));
+          } else {
+            toast.error(data.message || "Something went wrong");
+          }
+        } catch (err: any) {
+          const responseData = err.response?.data;
+          if (
+            responseData?.data &&
+            "requiresOrgSelection" in responseData.data
+          ) {
+            setOrganizations(responseData.data.organizations);
+            toast(responseData.message || "Select a clinic to continue");
+          } else {
+            throw err;
+          }
         }
       } else {
-        const user = await signin(formData.email, formData.password);
+        const result = await signin(
+          formData.email,
+          formData.password,
+          selectedOrgId || undefined,
+        );
+
+        if ("requiresOrgSelection" in result) {
+          setOrganizations(result.organizations);
+          toast("Select a clinic to continue");
+          return;
+        }
+
         toast.success("Login successful");
-        if (user.role === "PLATFORM_ADMIN") {
+        setOrganizations(null);
+        setSelectedOrgId("");
+        if (result.role === "PLATFORM_ADMIN") {
           router.push("/admin");
         } else {
           router.push("/dashboard");
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+      );
     } finally {
       setLoading(false);
     }
@@ -120,7 +171,9 @@ const AuthForm = () => {
               <div className="w-9 h-9 rounded-lg bg-indigo-500 flex items-center justify-center">
                 <Activity className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-white">HealthcareCRM</span>
+              <span className="text-xl font-bold tracking-tight text-white">
+                HealthcareCRM
+              </span>
             </div>
 
             <div className="space-y-5">
@@ -143,6 +196,32 @@ const AuthForm = () => {
                 )}
               </div>
 
+              {organizations && (
+                <div>
+                  <Label className="block text-sm font-semibold text-slate-300 mb-2 ml-1">
+                    Select Clinic
+                  </Label>
+                  <select
+                    value={selectedOrgId}
+                    onChange={(e) => setSelectedOrgId(e.target.value)}
+                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-slate-50 focus:border-indigo-400/60 focus:ring-4 focus:ring-indigo-500/20 shadow-sm transition-all duration-200"
+                  >
+                    <option value="" className="bg-slate-900">
+                      Choose a clinic…
+                    </option>
+                    {organizations.map((org: OrganizationOption) => (
+                      <option
+                        key={org._id}
+                        value={org._id}
+                        className="bg-slate-900"
+                      >
+                        {org.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {!showForgotPassword && (
                 <div>
                   <div className="flex items-center justify-between mb-2 ml-1">
@@ -154,6 +233,8 @@ const AuthForm = () => {
                       onClick={() => {
                         setShowForgotPassword(true);
                         setErrors({});
+                        setOrganizations(null);
+                        setSelectedOrgId("");
                       }}
                       className="text-xs text-indigo-300 hover:text-indigo-200 font-semibold transition-colors duration-200"
                     >
@@ -220,9 +301,11 @@ const AuthForm = () => {
                   </span>
                 ) : (
                   <span className="tracking-wide">
-                    {showForgotPassword
-                      ? "Send Reset Link"
-                      : "Sign In"}
+                    {organizations
+                      ? "Continue"
+                      : showForgotPassword
+                        ? "Send Reset Link"
+                        : "Sign In"}
                   </span>
                 )}
               </button>
@@ -237,6 +320,8 @@ const AuthForm = () => {
                       onClick={() => {
                         setShowForgotPassword(false);
                         setErrors({});
+                        setOrganizations(null);
+                        setSelectedOrgId("");
                       }}
                       className="text-indigo-300 font-bold hover:text-indigo-200 transition-colors duration-200 hover:underline underline-offset-2"
                     >

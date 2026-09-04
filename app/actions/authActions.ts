@@ -9,17 +9,20 @@ import { signInSchema, signUpSchema } from "../validations/authSchemas";
 export const signInAction = async (data: {
   email: string;
   password: string;
+  organizationId?: string;
 }) => {
   try {
     await dbConnect();
 
-    const parsed = signInSchema.safeParse(data);
+    const { organizationId, ...credentials } = data;
+
+    const parsed = signInSchema.safeParse(credentials);
 
     if (!parsed.success) {
       return sendResponse(false, parsed.error.issues[0].message);
     }
 
-    return await signIn(parsed.data);
+    return await signIn({ ...parsed.data, organizationId });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return sendResponse(false, error.message);
@@ -45,7 +48,6 @@ export const signUpAction = async (data: {
       return sendResponse(false, parsed.error.issues[0].message);
     }
 
-   
     const formattedData = {
       firstName: parsed.data.firstName,
       lastName: parsed.data.lastName,
@@ -65,9 +67,9 @@ export const signUpAction = async (data: {
 
 //logout action
 export const logoutAction = async () => {
-    try {
-      return await logout();
-    } catch {
-      return sendResponse(false, "Internal server error");
-    }
-  };
+  try {
+    return await logout();
+  } catch {
+    return sendResponse(false, "Internal server error");
+  }
+};
