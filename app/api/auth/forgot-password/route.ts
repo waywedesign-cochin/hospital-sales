@@ -9,6 +9,12 @@ export const POST = async (req: NextRequest) => {
   try {
     await dbConnect();
 
+    const rawBody = await req
+      .clone()
+      .json()
+      .catch(() => ({}));
+    const organizationId = rawBody?.organizationId as string | undefined;
+
     const [data, errorResponse] = await validate(forgotPasswordSchema, req);
 
     if (errorResponse) {
@@ -19,7 +25,7 @@ export const POST = async (req: NextRequest) => {
       return sendApiResponse(false, "Invalid request", null);
     }
 
-    return await forgotPassword(data.email);
+    return await forgotPassword(data.email, organizationId);
   } catch (error) {
     let message = "Server error";
 

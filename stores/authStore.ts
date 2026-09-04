@@ -6,16 +6,30 @@ import {
   signUpAction,
 } from "@/app/actions/authActions";
 
+export interface OrganizationOption {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+export type SignInResult =
+  | User
+  | { requiresOrgSelection: true; organizations: OrganizationOption[] };
+
 export interface AuthState {
   user: User | null;
   clinic: Clinic | null;
   isLoading: boolean;
-  signin: (email: string, password: string) => Promise<User>;
+  signin: (
+    email: string,
+    password: string,
+    organizationId?: string,
+  ) => Promise<SignInResult>;
   signup: (
     firstName: string,
     lastName: string,
     email: string,
-    password: string
+    password: string,
   ) => Promise<void>;
   signout: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -43,11 +57,27 @@ export const createAuthStore = () =>
     },
 
     // ================= SIGN IN =================
-    signin: async (email, password) => {
+    signin: async (email, password, organizationId) => {
       set({ isLoading: true });
 
       try {
-        const response = await signInAction({ email, password });
+        const response = await signInAction({
+          email,
+          password,
+          organizationId,
+        });
+
+        // "in" narrows the union; a plain property-access check
+        // (response.data?.requiresOrgSelection) does not, since
+        // TS won't let you read a field that's missing on one
+        // branch of the union even behind optional chaining.
+        if (response.data && "requiresOrgSelection" in response.data) {
+          set({ isLoading: false });
+          return {
+            requiresOrgSelection: true,
+            organizations: response.data.organizations,
+          };
+        }
 
         if (!response.success) {
           throw new Error(response.message);
