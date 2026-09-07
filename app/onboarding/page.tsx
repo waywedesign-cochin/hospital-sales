@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Building2, CheckCircle2, Hospital, Mail, MapPin, Phone, User as UserIcon, Lock, Loader2, CreditCard, Sparkles, Crown, Zap } from "lucide-react";
 import { PhoneInput } from "@/components/ui/phone-input";
-import toast from "react-hot-toast";
+import toast fro m "react-hot-toast";
 
 const PLANS = [
   {
