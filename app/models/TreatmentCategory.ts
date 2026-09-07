@@ -5,6 +5,7 @@ export interface ITreatmentCategory {
   organizationId?: mongoose.Types.ObjectId;
   name: string;
   description?: string;
+  durationMinutes?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +20,7 @@ const treatmentCategorySchema = new Schema<ITreatmentCategory>(
     },
     name: { type: String, required: true },
     description: { type: String },
+    durationMinutes: { type: Number, default: 20 },
   },
   { timestamps: true }
 );

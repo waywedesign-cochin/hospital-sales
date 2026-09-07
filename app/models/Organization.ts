@@ -6,8 +6,7 @@ export type OrgType =
   | "dermatology_centre"
   | "diagnostic_centre"
   | "other";
-
-export type Plan = "free" | "pro" | "enterprise";
+export type Plan = "free" | "basic" | "pro";
 
 export interface IOrganization extends Document {
   _id: Types.ObjectId;
@@ -34,6 +33,8 @@ export interface IOrganization extends Document {
   // Org-specific config
   departments: string[];
   workingHours?: { day: string; open: string; close: string }[];
+  defaultWorkingHours?: { start: number; end: number }[];
+  defaultBreakTime?: { start: number; end: number }[];
 
   // Ownership
   ownerId: mongoose.Types.ObjectId;
@@ -56,6 +57,11 @@ export interface IOrganization extends Document {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+const intervalSchema = new Schema(
+  { start: { type: Number, required: true }, end: { type: Number, required: true } },
+  { _id: false }
+);
 
 const organizationSchema = new Schema<IOrganization>(
   {
@@ -81,7 +87,7 @@ const organizationSchema = new Schema<IOrganization>(
 
     plan: {
       type: String,
-      enum: ["free", "pro", "enterprise"],
+      enum: ["free", "basic", "pro"],
       default: "free",
     },
     trialEndsAt: { type: Date },
@@ -106,6 +112,8 @@ const organizationSchema = new Schema<IOrganization>(
         close: { type: String },
       },
     ],
+    defaultWorkingHours: { type: [intervalSchema], default: [{ start: 600, end: 1080 }] }, // 10:00 to 18:00
+    defaultBreakTime: { type: [intervalSchema], default: [{ start: 780, end: 840 }] },     // 13:00 to 14:00
 
     ownerId: {
       type: mongoose.Types.ObjectId,

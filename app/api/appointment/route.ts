@@ -19,9 +19,10 @@ export async function GET(req: NextRequest) {
     const doctor = searchParams.get("doctor") ?? "";
     const date = searchParams.get("date") ?? "";
     const organizationId = searchParams.get("organizationId");
+    const categoryId = searchParams.get("categoryId") ?? undefined;
     if (!organizationId) throw new Error("Clinic ID is required");
   
-    const result = await getBookedSlots(organizationId, date, doctor);
+    const result = await getBookedSlots(organizationId, date, doctor, categoryId);
 
     // If controller already returned a NextResponse, just return it.
     if (result instanceof NextResponse) return result;

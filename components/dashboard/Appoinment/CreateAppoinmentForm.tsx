@@ -87,7 +87,7 @@ export default function AppointmentForm({
     staffNotes: prefill?.staffNotes || "",
   });
 
-  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<{time: string, reason: string}[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -99,7 +99,7 @@ export default function AppointmentForm({
     if (key === "treatmentCategory" && value !== form.treatmentCategory) {
       next.doctor = "";
       next.startTime = "";
-      setBlockedSlots([]);
+      setAvailableSlots([]);
     }
 
     setForm(next);
@@ -119,20 +119,17 @@ export default function AppointmentForm({
     return new Date(`${d}T${slot}:00`) < now;
   };
 
-  const getSlotReason = (time: string) =>
-    blockedSlots.find((s) => s.time === time)?.reason;
-
   const fetchSlots = async () => {
     if (!form.doctor || !form.date || !(user as any)?.organizationId) return;
 
     try {
       setLoadingSlots(true);
       const res = await axios.get(
-        `/api/appointment?doctor=${form.doctor}&date=${form.date}&organizationId=${(user as any)?.organizationId}`,
+        `/api/appointment?doctor=${form.doctor}&date=${form.date}&organizationId=${(user as any)?.organizationId}&categoryId=${encodeURIComponent(form.treatmentCategory)}`
       );
 
       if (res.data.success) {
-        setBlockedSlots(res.data.data || []);
+        setAvailableSlots(res.data.data || []);
       }
     } catch {
       toast.error("Failed to load slots");
@@ -523,32 +520,32 @@ export default function AppointmentForm({
             </p>
 
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-              {DEFAULT_TIME_SLOTS.map((time) => {
-                const reason = getSlotReason(time);
+              {availableSlots.length === 0 && !loadingSlots && (
+                 <p className="text-sm text-gray-500 col-span-full">No available slots found for this date.</p>
+              )}
+              {availableSlots.map((slotObj) => {
+                const time = slotObj.time;
                 const isPast = isPastSlot(time);
-                const disabled = isPast || !!reason;
+                const isSelected = form.startTime === time;
+                
+                const disabled = isPast;
 
                 let cls =
                   "h-11 rounded-xl text-sm border transition flex items-center justify-center";
 
-                if (isPast)
+                if (isSelected)
+                  cls += " bg-blue-600 text-white border-blue-700";
+                else if (isPast)
                   cls +=
                     " bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed";
-                else if (reason === "BOOKED")
-                  cls +=
-                    " bg-red-100 text-red-500 border-red-200 cursor-not-allowed";
-                else if (reason === "LEAVE")
-                  cls +=
-                    " bg-orange-100 text-orange-600 border-orange-200 cursor-not-allowed";
-                else if (form.startTime === time)
-                  cls += " bg-blue-600 text-white border-blue-700";
                 else cls += " bg-blue-50 border-blue-300 hover:bg-blue-100";
 
                 return (
                   <button
                     key={time}
+                    type="button"
                     disabled={disabled}
-                    onClick={() => onChange("startTime", time)}
+                    onClick={(e) => { e.preventDefault(); onChange("startTime", time); }}
                     className={cls}
                   >
                     {time}

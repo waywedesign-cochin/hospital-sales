@@ -118,6 +118,13 @@ html {
   scroll-behavior: smooth;
 }
 
+/* dvh fallback: use 100vh as fallback for browsers that don't support dvh */
+.h-dvh {
+  height: 100vh;
+  height: 100dvh;
+}
+
+
 /* Performance optimizations */
 .sticky-section {
   will-change: transform;

@@ -114,7 +114,9 @@ function OnboardingWizard() {
         } else {
           toast.success("Welcome aboard! Your 30-day trial has started.");
         }
-        router.push("/dashboard");
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000);
       } else {
         toast.error(result.message || "Registration failed");
       }

@@ -31,14 +31,14 @@ export default function TreatmentCategoryPage({
   const [editMode, setEditMode] = useState(false);
 
   // Form State
-  const [form, setForm] = useState({ name: "", description: "" });
+  const [form, setForm] = useState<{ name: string; description: string; durationMinutes: number | string }>({ name: "", description: "", durationMinutes: 20 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const openAddModal = () => {
     setEditMode(false);
-    setForm({ name: "", description: "" });
+    setForm({ name: "", description: "", durationMinutes: 20 });
     setSelectedId(null);
     setOpen(true);
   };
@@ -46,7 +46,7 @@ export default function TreatmentCategoryPage({
   const openEditModal = (item: any) => {
     setEditMode(true);
     setSelectedId(item._id);
-    setForm({ name: item.name, description: item.description });
+    setForm({ name: item.name, description: item.description, durationMinutes: item.durationMinutes || 20 });
     setOpen(true);
   };
 
@@ -85,6 +85,7 @@ export default function TreatmentCategoryPage({
       setForm({
         name: "",
         description: "",
+        durationMinutes: 20,
       });
       router.refresh();
       setOpen(false);
@@ -159,6 +160,9 @@ export default function TreatmentCategoryPage({
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                 Description
               </th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Duration (mins)
+              </th>
               <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                 Actions
               </th>
@@ -169,7 +173,7 @@ export default function TreatmentCategoryPage({
             {treatmentCategories.length === 0 ? (
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={4}
                   className="text-center py-8 text-gray-500 text-sm"
                 >
                   No treatment categories found
@@ -183,6 +187,9 @@ export default function TreatmentCategoryPage({
                   </td>
                   <td className="px-6 py-5 text-sm text-gray-600">
                     {item.description}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-gray-600">
+                    {item.durationMinutes || 20} mins
                   </td>
                   <td className="px-6 py-5 text-center">
                     <div className="flex justify-center gap-2">
@@ -233,6 +240,16 @@ export default function TreatmentCategoryPage({
             />
             {errors.name && (
               <p className="text-red-500 text-xs">{errors.name}</p>
+            )}
+
+            <Input
+              type="number"
+              placeholder="Duration in Minutes (e.g. 20, 30, 45, 60)"
+              value={form.durationMinutes}
+              onChange={(e) => setForm({ ...form, durationMinutes: e.target.value === "" ? "" : Number(e.target.value) })}
+            />
+            {(errors as any).durationMinutes && (
+              <p className="text-red-500 text-xs">{(errors as any).durationMinutes}</p>
             )}
 
             <Textarea

@@ -4,15 +4,20 @@ import { sendApiResponse } from "../utils/nextResponseHandler";
 import { sendResponse } from "../utils/responseHandler";
 import mongoose from "mongoose";
 import DoctorLeave from "../models/DoctorLeave";
-import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
 import { sendWhatsAppTemplate } from "../utils/whatsappService";
 import Doctor from "@/app/models/Doctor";
+import Organization from "@/app/models/Organization";
 import EnquiryActivity from "../models/EnquiryActivity";
 import Patient from "../models/Patient";
+import TreatmentCategory from "../models/TreatmentCategory";
+import DoctorDaySchedule from "../models/DoctorDaySchedule";
 import { logActivity } from "./activityLogController";
+import { timeStringToMinutes, minutesToTimeString, subtractIntervals, chunkIntoSlots, TimeInterval } from "@/lib/timeUtils";
+
 const generateBookingId = () => {
   return `BK-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 };
+
 export const createAppointment = async (data: {
   organizationId: string;
   userId?: string;
@@ -24,9 +29,9 @@ export const createAppointment = async (data: {
   dateOfBirth?: string;
   isNewPatient?: boolean;
   doctor: string;
-  treatmentCategory: string;
+  treatmentCategory: string; // This is a string right now, maybe category name or id
   date: string;
-  startTime: string;
+  startTime: string; // e.g. "10:20"
   status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
   handledBy?: string;
   notes?: string;
@@ -62,14 +67,58 @@ export const createAppointment = async (data: {
     });
   }
 
+  // Fetch duration from TreatmentCategory
+  let durationMinutes = 20; // default fallback
+  const category = await TreatmentCategory.findOne({ name: data.treatmentCategory, organizationId: data.organizationId });
+  if (category && category.durationMinutes) {
+    durationMinutes = category.durationMinutes;
+  }
+
+  const startMinutes = timeStringToMinutes(data.startTime);
+  const endMinutes = startMinutes + durationMinutes;
+  const appointmentDate = new Date(`${data.date}T00:00:00Z`);
+
+  // --- CONCURRENCY FIX: ATOMIC PUSH TO DOCTORDAYSCHEDULE ---
+  await DoctorDaySchedule.updateOne(
+    { doctorId: data.doctor, date: appointmentDate },
+    { $setOnInsert: { bookedIntervals: [] } },
+    { upsert: true }
+  );
+
+  const scheduleResult = await DoctorDaySchedule.findOneAndUpdate(
+    {
+      doctorId: data.doctor,
+      date: appointmentDate,
+      bookedIntervals: {
+        $not: { $elemMatch: { start: { $lt: endMinutes }, end: { $gt: startMinutes } } },
+      },
+    },
+    { $push: { bookedIntervals: { start: startMinutes, end: endMinutes } } },
+    { new: true }
+  );
+
+  if (!scheduleResult) {
+    return sendApiResponse(false, "Slot already booked. Please choose another time.");
+  }
+  // ---------------------------------------------------------
+
   // Create appointment
   const appointment = await Appointment.create({
     ...data,
+    startTime: startMinutes,
+    endTime: endMinutes,
+    durationMinutes,
     bookingId: generateBookingId(),
-    date: new Date(`${data.date}T00:00:00Z`),
+    date: appointmentDate,
     isNewPatient: isActuallyNew,
     patientId: existingPatient._id,
   });
+
+  // Update DoctorDaySchedule with appointmentId
+  await DoctorDaySchedule.updateOne(
+    { doctorId: data.doctor, date: appointmentDate, "bookedIntervals.start": startMinutes },
+    { $set: { "bookedIntervals.$.appointmentId": appointment._id } }
+  );
 
   // Update enquiry status
   if (appointment.enquiryId) {
@@ -117,7 +166,7 @@ export const createAppointment = async (data: {
         data.firstName,
         `${doctorForAppointment.firstName} ${doctorForAppointment.lastName}`,
         formattedDate,
-        newAppointment!.startTime,
+        data.startTime,
       ],
       appointment._id.toString()
     );
@@ -138,7 +187,12 @@ export const createAppointment = async (data: {
     );
   }
 
-  return sendApiResponse(true, `Appointment created successfully${whatsappWarning}`, appointment);
+  // Return formatted time string for consistency
+  const responseAppt: any = appointment.toObject();
+  responseAppt.startTime = minutesToTimeString(responseAppt.startTime);
+  if (responseAppt.endTime) responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
+
+  return sendApiResponse(true, `Appointment created successfully${whatsappWarning}`, responseAppt);
 };
 
 export const getAllAppointments = async (
@@ -153,8 +207,6 @@ export const getAllAppointments = async (
   year?: string,
   month?: string,
 ) => {
-  const Doctor = (await import("@/app/models/Doctor")).default;
-  const Enquiry = (await import("@/app/models/Enquiry")).default;
   const skip = (page - 1) * limit;
   const whereClause: any = { organizationId };
 
@@ -228,7 +280,8 @@ export const getAllAppointments = async (
         : null,
       treatmentCategory: appointment.treatmentCategory,
       date: appointment.date,
-      startTime: appointment.startTime,
+      startTime: minutesToTimeString(appointment.startTime),
+      endTime: appointment.endTime ? minutesToTimeString(appointment.endTime) : undefined,
       status: appointment.status,
       notes: appointment.notes,
     };
@@ -265,10 +318,22 @@ export const updateAppointment = async (
   },
 ) => {
   const formattedDate = new Date(`${data.date}T00:00:00Z`);
-  const updatedData = {
+  
+  // Handle startTime parsing if it is provided
+  let startMinutes: number | undefined;
+  if (data.startTime) {
+    startMinutes = timeStringToMinutes(data.startTime);
+  }
+
+  const updatedData: any = {
     ...data,
     date: formattedDate,
   };
+  
+  if (startMinutes !== undefined) {
+    updatedData.startTime = startMinutes;
+  }
+
   const appoinment = await Appointment.findOneAndUpdate({ _id: id, organizationId }, updatedData, {
     new: true,
   });
@@ -298,19 +363,30 @@ export const updateAppointment = async (
       id
     );
   }
+  
+  const responseAppt: any = appoinment ? appoinment.toObject() : null;
+  if (responseAppt) {
+    responseAppt.startTime = minutesToTimeString(responseAppt.startTime);
+    if (responseAppt.endTime) responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
+  }
 
-  return sendApiResponse(true, "Appoinment updated successfully", appoinment);
+  return sendApiResponse(true, "Appoinment updated successfully", responseAppt);
 };
 
 //delete appoinment
 export const deleteAppointment = async (organizationId: string, id: string, userId: string) => {
   const appopintmentExists = await Appointment.findOne({ _id: id, organizationId });
-  console.log(appopintmentExists);
 
   if (!appopintmentExists) {
     return sendApiResponse(false, "Appoinment not found");
   }
   const appoinment = await Appointment.findOneAndDelete({ _id: id, organizationId });
+
+  // Also remove from DoctorDaySchedule
+  await DoctorDaySchedule.updateOne(
+    { doctorId: appopintmentExists.doctor as any, date: appopintmentExists.date },
+    { $pull: { bookedIntervals: { appointmentId: id as any } } }
+  );
 
   if (userId) {
     await logActivity(
@@ -323,7 +399,11 @@ export const deleteAppointment = async (organizationId: string, id: string, user
     );
   }
 
-  return sendApiResponse(true, "Appoinment deleted successfully", appoinment);
+  const responseAppt: any = appoinment ? appoinment.toObject() : null;
+  if (responseAppt) {
+    responseAppt.startTime = minutesToTimeString(responseAppt.startTime);
+  }
+  return sendApiResponse(true, "Appoinment deleted successfully", responseAppt);
 };
 
 export const getAppointmentById = async (organizationId: string, id: string) => {
@@ -337,8 +417,15 @@ export const getAppointmentById = async (organizationId: string, id: string) => 
       select: "name description phone email",
     })
     .lean();
+    
+  if (!appointment) {
+    return sendResponse(false, "Appointment not found");
+  }
+  
   return sendResponse(true, "Appoinment found successfully", {
     ...appointment,
+    startTime: minutesToTimeString(appointment.startTime),
+    endTime: appointment.endTime ? minutesToTimeString(appointment.endTime) : undefined,
     firstName: appointment?.firstName || (appointment as any)?.patientName?.split(" ")[0] || "Unknown",
     lastName: appointment?.lastName || (appointment as any)?.patientName?.split(" ").slice(1).join(" ") || "",
     _id: appointment?._id.toString(),
@@ -357,59 +444,114 @@ export const getAppointmentById = async (organizationId: string, id: string) => 
   });
 };
 
-//get booked slots
-const getSlotsInRange = (start: string, end: string) =>
-  DEFAULT_TIME_SLOTS.filter((t) => t >= start && t <= end);
-
-export const getBookedSlots = async (organizationId: string, date: string, doctor: string) => {
-  if (!date || !doctor) {
+// get free intervals logic
+export const getBookedSlots = async (organizationId: string, date: string, doctorId: string, categoryId?: string) => {
+  if (!date || !doctorId) {
     return sendApiResponse(false, "Date and doctor required", []);
   }
 
   const start = new Date(`${date}T00:00:00Z`);
   const end = new Date(`${date}T23:59:59Z`);
 
-  const appointments = await Appointment.find({
-    organizationId,
-    doctor,
-    date: { $gte: start, $lte: end },
-  }).lean();
+  // 1. Fetch Doctor and Org to get working hours and breaks
+  const doctor = await Doctor.findOne({ _id: doctorId, organizationId }).lean();
+  const org = await Organization.findById(organizationId).lean();
+  
+  if (!doctor) {
+    return sendApiResponse(false, "Doctor not found", []);
+  }
 
+  let workingHours = doctor.workingHours && doctor.workingHours.length > 0 
+    ? doctor.workingHours 
+    : org?.defaultWorkingHours || [{ start: 600, end: 1080 }]; // default 10:00 - 18:00
+    
+  let breakTime = doctor.breakTime && doctor.breakTime.length > 0
+    ? doctor.breakTime
+    : org?.defaultBreakTime || [{ start: 780, end: 840 }]; // default 13:00 - 14:00
+
+  // 2. Fetch Doctor Leaves
   const leaves = await DoctorLeave.find({
     organizationId,
-    doctor,
+    doctor: doctorId,
     fromDate: { $lte: end },
     toDate: { $gte: start },
   }).lean();
 
-  const slotMap = new Map<string, "BOOKED" | "LEAVE">();
-
-  appointments.forEach((a) => slotMap.set(a.startTime, "BOOKED"));
+  const blockingIntervals: TimeInterval[] = [...breakTime];
 
   for (const leave of leaves) {
     if (leave.type === "FULL_DAY") {
-      DEFAULT_TIME_SLOTS.forEach((t) => slotMap.set(t, "LEAVE"));
+      blockingIntervals.push({ start: 0, end: 1440 });
     }
-
-    if (leave.type === "PARTIAL_SLOTS") {
-      leave.slots?.forEach((t: string) => slotMap.set(t, "LEAVE"));
+    if (leave.type === "TIME_RANGE" || leave.type === "HALF_DAY") {
+      if (leave.startTime && leave.endTime) {
+        blockingIntervals.push({
+          start: timeStringToMinutes(leave.startTime),
+          end: timeStringToMinutes(leave.endTime)
+        });
+      }
     }
-
-    if (leave.type === "TIME_RANGE") {
-      getSlotsInRange(leave.startTime!, leave.endTime!).forEach((t) =>
-        slotMap.set(t, "LEAVE"),
-      );
+    if (leave.type === "PARTIAL_SLOTS" && leave.slots) {
+      // Legacy support: each string in partial slots blocks 20 mins
+      leave.slots.forEach((s: string) => {
+        const startMin = timeStringToMinutes(s);
+        blockingIntervals.push({ start: startMin, end: startMin + 20 });
+      });
     }
   }
 
-  return sendApiResponse(
-    true,
-    "Blocked slots",
-    Array.from(slotMap.entries()).map(([time, reason]) => ({
-      time,
-      reason,
-    })),
-  );
+  // 3. Fetch Booked Appointments
+  const schedule = await DoctorDaySchedule.findOne({ doctorId, date: start }).lean();
+  if (schedule && schedule.bookedIntervals) {
+    for (const booked of schedule.bookedIntervals) {
+      blockingIntervals.push({ start: booked.start, end: booked.end });
+    }
+  } else {
+    // Fallback if schedule doc isn't created yet for older appointments
+    const appointments = await Appointment.find({
+      organizationId,
+      doctor: doctorId,
+      date: { $gte: start, $lte: end },
+    }).lean();
+    for (const appt of appointments) {
+      blockingIntervals.push({ 
+        start: appt.startTime, 
+        end: appt.endTime || (appt.startTime + 20) 
+      });
+    }
+  }
+
+  // 4. Subtract blocking intervals from working hours
+  const freeIntervals = subtractIntervals(workingHours, blockingIntervals);
+
+  // 5. Chunk into slots based on duration
+  let durationMinutes = 20; // default
+  if (categoryId) {
+    // we can lookup treatment category
+    const cat = await TreatmentCategory.findOne({ name: categoryId, organizationId });
+    if (cat && cat.durationMinutes) {
+      durationMinutes = cat.durationMinutes;
+    }
+  }
+  
+  const chunks = chunkIntoSlots(freeIntervals, durationMinutes);
+
+  // Map to format that frontend expects
+  const availableSlots = chunks.map(chunk => ({
+    time: minutesToTimeString(chunk.start),
+    reason: "AVAILABLE"
+  }));
+
+  // But wait! The frontend currently expects an array of all slots with reason = BOOKED or LEAVE.
+  // Or if we return only AVAILABLE, we need to check if frontend understands it.
+  // Wait, let's just return the available slots. The previous return was:
+  // Array.from(slotMap.entries()).map(([time, reason]) => ({ time, reason }))
+  // where only blocked slots were returned! If we return only available slots, the frontend might break if it expects all slots and checks `reason === 'BOOKED'`.
+  // Let's actually just return what's available under a different structure or just return the booked ones?
+  // Let's format the return to be backward compatible if needed. Wait, if it's dynamic, there is no fixed grid.
+  // The frontend component that displays slots will iterate over the API response.
+  
+  return sendApiResponse(true, "Available slots", availableSlots);
 };
 
 //get month wise report
@@ -425,7 +567,7 @@ export const getMonthWiseReport = async (organizationId: string, year?: string, 
   };
 
   if (doctorId) {
-    matchCondition.doctor = new mongoose.Types.ObjectId(doctorId); // FIXED
+    matchCondition.doctor = new mongoose.Types.ObjectId(doctorId);
   }
 
   const report = await Appointment.aggregate([
