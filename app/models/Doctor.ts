@@ -3,6 +3,7 @@ import mongoose, { Model, Schema } from "mongoose";
 export interface Doctor {
   _id?: string;
   organizationId?: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
   prefix: string;
   firstName: string;
   lastName: string;
@@ -23,8 +24,11 @@ export interface Doctor {
 }
 
 const intervalSchema = new Schema(
-  { start: { type: Number, required: true }, end: { type: Number, required: true } },
-  { _id: false }
+  {
+    start: { type: Number, required: true },
+    end: { type: Number, required: true },
+  },
+  { _id: false },
 );
 
 const doctorSchema = new Schema<Doctor>(
@@ -34,6 +38,14 @@ const doctorSchema = new Schema<Doctor>(
       ref: "Organization",
       required: true,
       index: true,
+    },
+    // Login account for this doctor, if they have dashboard access.
+    // Not every Doctor record needs one.
+    userId: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      index: true,
+      sparse: true,
     },
     prefix: { type: String, required: true },
     firstName: { type: String },
@@ -59,7 +71,12 @@ const doctorSchema = new Schema<Doctor>(
 );
 
 // Same doctor email can exist in different clinics
-doctorSchema.index({ email: 1, organizationId: 1 }, { unique: true, sparse: true });
+doctorSchema.index(
+  { email: 1, organizationId: 1 },
+  { unique: true, sparse: true },
+);
+// A login account should only ever be linked to one Doctor profile
+doctorSchema.index({ userId: 1 }, { unique: true, sparse: true });
 
 const Doctor: Model<Doctor> =
   mongoose.models.Doctor || mongoose.model<Doctor>("Doctor", doctorSchema);

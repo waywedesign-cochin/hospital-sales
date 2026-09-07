@@ -6,7 +6,7 @@ import {
   userRoles,
 } from "@/app/validations/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Loader2, User, UserCheck } from "lucide-react";
+import { ArrowLeft, Loader2, Lock, Mail, User, UserCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 
 // SHADCN UI
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import {
   Select,
@@ -25,12 +26,13 @@ import {
 
 import { Button } from "@/components/ui/button";
 import Breadcrumb from "@/components/shared/Breadcrumb";
+import { getDoctorsForAssignmentAction } from "@/app/actions/userActions";
 
 export const EditUserForm = ({
   user,
   id,
 }: {
-  user: EditUserFormData;
+  user: EditUserFormData & { assignedDoctors?: string[] };
   id: string;
 }) => {
   const router = useRouter();
@@ -57,12 +59,64 @@ export const EditUserForm = ({
   // watch role (for shadcn Select)
   const roleValue = watch("role");
 
+  // Doctor assignment (kept outside react-hook-form since it isn't part of editUserSchema yet)
+  const [linkStaffToDoctor, setLinkStaffToDoctor] = useState(
+    (user.assignedDoctors?.length ?? 0) > 0,
+  );
+  const [assignedDoctors, setAssignedDoctors] = useState<string[]>(
+    user.assignedDoctors ?? [],
+  );
+  const [doctorOptions, setDoctorOptions] = useState<
+    { _id: string; name: string; specialization: string[]; hasLogin: boolean }[]
+  >([]);
+  const [doctorsLoading, setDoctorsLoading] = useState(false);
+  const [assignmentDirty, setAssignmentDirty] = useState(false);
+
+  // Load doctors once for the assignment picker
+  useEffect(() => {
+    const loadDoctors = async () => {
+      setDoctorsLoading(true);
+      try {
+        const doctors = await getDoctorsForAssignmentAction();
+        setDoctorOptions(doctors);
+      } catch {
+        // Non-fatal — the picker just shows "no doctors found" if this fails
+      } finally {
+        setDoctorsLoading(false);
+      }
+    };
+    loadDoctors();
+  }, []);
+
+  // If role changes away from STAFF, the assignment stops applying — reflect that
+  useEffect(() => {
+    if (roleValue !== "STAFF" && linkStaffToDoctor) {
+      setLinkStaffToDoctor(false);
+      setAssignedDoctors([]);
+      setAssignmentDirty(true);
+    }
+  }, [roleValue]);
+
+  const toggleAssignedDoctor = (doctorId: string) => {
+    setAssignedDoctors((prev) =>
+      prev.includes(doctorId)
+        ? prev.filter((d) => d !== doctorId)
+        : [...prev, doctorId],
+    );
+    setAssignmentDirty(true);
+  };
+
   const onSubmit = async (data: EditUserFormData) => {
     try {
       setIsSaving(true);
       setMessage("");
 
-      const res = await axios.put(`/api/user?id=${id}`, data);
+      const payload = {
+        ...data,
+        assignedDoctors: linkStaffToDoctor ? assignedDoctors : [],
+      };
+
+      const res = await axios.put(`/api/user?id=${id}`, payload);
 
       if (!res.data.success) {
         setMessage(res.data.message || "Update failed ❌");
@@ -72,6 +126,7 @@ export const EditUserForm = ({
       setMessage("User updated successfully ✔️");
 
       reset(data); // reset dirty state
+      setAssignmentDirty(false);
       router.refresh();
     } catch (err: any) {
       console.error(err);
@@ -80,6 +135,8 @@ export const EditUserForm = ({
       setIsSaving(false);
     }
   };
+
+  const canSubmit = isDirty || assignmentDirty;
 
   return (
     <div>
@@ -105,10 +162,10 @@ export const EditUserForm = ({
       </div>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="flex flex-col md:flex-row justify-between items-center   gap-4  backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-green-100/50">
+      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-linear-to-br from-blue-50 to-indigo-50">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-green-100/50">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
+            <div className="bg-indigo-600 p-4 rounded-xl shadow-lg shadow-blue-500/30">
               <User className="w-8 h-8 max-md:size-5 text-white" />
             </div>
             <div>
@@ -124,83 +181,97 @@ export const EditUserForm = ({
       </div>
 
       {message && (
-        <p className="text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-6">
+        <p className="text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-6 mt-4">
           {message}
         </p>
       )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="space-y-6 mt-4 border-2 shadow-lg p-4 rounded-2xl"
+        className="space-y-5 mt-4 border border-gray-100 shadow-lg shadow-slate-200/40 p-6 rounded-2xl bg-white"
       >
-        {/* First Name */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            First Name *
-          </label>
-          <Input
-            {...register("firstName")}
-            disabled={isSaving}
-            className={errors.firstName ? "border-red-500" : ""}
-          />
-          {errors.firstName && (
-            <p className="text-sm text-red-500 mt-2 font-medium">
-              {errors.firstName.message}
-            </p>
-          )}
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* First Name */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-gray-600">
+              First Name *
+            </Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                {...register("firstName")}
+                disabled={isSaving}
+                className={`pl-9 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 ${
+                  errors.firstName ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+            {errors.firstName && (
+              <p className="text-sm text-red-500 font-medium">
+                {errors.firstName.message}
+              </p>
+            )}
+          </div>
 
-        {/* Last Name */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Last Name
-          </label>
-          <Input
-            {...register("lastName")}
-            disabled={isSaving}
-            className={errors.lastName ? "border-red-500" : ""}
-          />
-          {errors.lastName && (
-            <p className="text-sm text-red-500 mt-2 font-medium">
-              {errors.lastName.message}
-            </p>
-          )}
+          {/* Last Name */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-gray-600">
+              Last Name
+            </Label>
+            <Input
+              {...register("lastName")}
+              disabled={isSaving}
+              className={`h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 ${
+                errors.lastName ? "border-red-500" : ""
+              }`}
+            />
+            {errors.lastName && (
+              <p className="text-sm text-red-500 font-medium">
+                {errors.lastName.message}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Email */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Email *
-          </label>
-          <Input
-            type="email"
-            {...register("email")}
-            disabled={isSaving}
-            className={errors.email ? "border-red-500" : ""}
-          />
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-gray-600">Email *</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              type="email"
+              {...register("email")}
+              disabled={isSaving}
+              className={`pl-9 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 ${
+                errors.email ? "border-red-500" : ""
+              }`}
+            />
+          </div>
           {errors.email && (
-            <p className="text-sm text-red-500 mt-2 font-medium">
+            <p className="text-sm text-red-500 font-medium">
               {errors.email.message}
             </p>
           )}
         </div>
 
         {/* Role Select */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Role *
-          </label>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-gray-600">Role *</Label>
 
           <Select
             value={roleValue}
             onValueChange={(value) =>
-              setValue("role", value as "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "GUEST", {
-                shouldDirty: true,
-              })
+              setValue(
+                "role",
+                value as "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "GUEST",
+                { shouldDirty: true },
+              )
             }
           >
             <SelectTrigger
-              className={`${errors.role ? "border-red-500" : ""} w-full`}
+              className={`h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 w-full ${
+                errors.role ? "border-red-500" : ""
+              }`}
             >
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
@@ -217,18 +288,88 @@ export const EditUserForm = ({
           </Select>
 
           {errors.role && (
-            <p className="text-sm text-red-500 mt-2 font-medium">
+            <p className="text-sm text-red-500 font-medium">
               {errors.role.message}
             </p>
           )}
         </div>
 
+        {/* Optionally link this staff member to specific doctors */}
+        {roleValue === "STAFF" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-xs font-semibold text-gray-600">
+                  Link to a Specific Doctor
+                </Label>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  Off by default — this staff member manages the whole clinic.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={linkStaffToDoctor}
+                onClick={() => {
+                  const next = !linkStaffToDoctor;
+                  setLinkStaffToDoctor(next);
+                  if (!next) setAssignedDoctors([]);
+                  setAssignmentDirty(true);
+                }}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  linkStaffToDoctor ? "bg-blue-primary" : "bg-gray-200"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    linkStaffToDoctor ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {linkStaffToDoctor && (
+              <div className="border border-gray-200 rounded-xl max-h-40 overflow-y-auto divide-y divide-gray-100">
+                {doctorsLoading ? (
+                  <p className="text-xs text-gray-400 px-3 py-3">
+                    Loading doctors...
+                  </p>
+                ) : doctorOptions.length === 0 ? (
+                  <p className="text-xs text-gray-400 px-3 py-3">
+                    No doctors found yet.
+                  </p>
+                ) : (
+                  doctorOptions.map((doc) => (
+                    <label
+                      key={doc._id}
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50/50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={assignedDoctors.includes(doc._id)}
+                        onChange={() => toggleAssignedDoctor(doc._id)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-primary focus:ring-blue-400/30"
+                      />
+                      <span className="flex-1">{doc.name}</span>
+                      {doc.specialization.length > 0 && (
+                        <span className="text-[11px] text-gray-400">
+                          {doc.specialization[0]}
+                        </span>
+                      )}
+                    </label>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isSaving || !isDirty}
-          className={`w-full flex justify-center items-center py-3.5 px-4 rounded-xl text-sm font-semibold text-white transition-all duration-200 shadow-lg ${
-            isSaving || !isDirty
+          disabled={isSaving || !canSubmit}
+          className={`w-full h-11 rounded-xl text-sm font-semibold text-white transition-all duration-200 shadow-lg ${
+            isSaving || !canSubmit
               ? "bg-gray-300 cursor-not-allowed shadow-none"
               : "bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 transform hover:-translate-y-0.5"
           }`}
@@ -242,7 +383,7 @@ export const EditUserForm = ({
           )}
         </Button>
 
-        {!isDirty && !isSaving && (
+        {!canSubmit && !isSaving && (
           <p className="text-center text-sm text-gray-500 bg-gray-50 rounded-lg py-2 border border-gray-200">
             No changes detected.
           </p>

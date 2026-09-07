@@ -8,6 +8,7 @@ export interface IUser {
   email: string;
   password: string;
   role: "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
+  assignedDoctors?: mongoose.Types.ObjectId[];
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   inviteToken?: string;
@@ -35,6 +36,14 @@ const userSchema = new Schema<IUser>(
       enum: ["PLATFORM_ADMIN", "ADMIN", "STAFF", "DOCTOR", "GUEST"],
       default: "GUEST",
     },
+    // Doctors this staff member is scoped to. Only meaningful when role === "STAFF";
+    // empty/omitted means they see the whole clinic.
+    assignedDoctors: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Doctor",
+      },
+    ],
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     inviteToken: { type: String },
