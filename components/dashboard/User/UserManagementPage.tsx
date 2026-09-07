@@ -4,11 +4,19 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import { User } from "@/lib/types";
 import {
   ArrowLeft,
+  Check,
+  Copy,
   DeleteIcon,
   Edit,
   Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  RefreshCw,
   Search as SearchIcon,
   Trash2,
+  User as UserIcon,
+  UserPlus,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -17,6 +25,7 @@ import { useEffect, useState } from "react";
 
 // SHADCN
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectTrigger,
@@ -28,7 +37,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -47,6 +55,10 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import DeleteDialog from "@/components/shared/DeleteDialog";
+import {
+  createUserAction,
+  getDoctorsForAssignmentAction,
+} from "@/app/actions/userActions";
 
 const UserManagementPage = ({
   users,
@@ -65,15 +77,42 @@ const UserManagementPage = ({
   const currentUser = useAuthStore((state) => state.user);
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
 
-  // Invite state
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [inviteForm, setInviteForm] = useState({
+  // Add User state
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [addUserForm, setAddUserForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
     role: "STAFF",
+    assignedDoctors: [] as string[],
+    doctorProfileId: "",
   });
-  const [isInviting, setIsInviting] = useState(false);
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordCopied, setPasswordCopied] = useState(false);
+  const [linkStaffToDoctor, setLinkStaffToDoctor] = useState(false);
+  const [doctorOptions, setDoctorOptions] = useState<
+    { _id: string; name: string; specialization: string[]; hasLogin: boolean }[]
+  >([]);
+  const [doctorsLoading, setDoctorsLoading] = useState(false);
+
+  // Load doctors for the assignment picker the first time the dialog opens
+  useEffect(() => {
+    if (!isAddUserOpen || doctorOptions.length > 0) return;
+    const loadDoctors = async () => {
+      setDoctorsLoading(true);
+      try {
+        const doctors = await getDoctorsForAssignmentAction();
+        setDoctorOptions(doctors);
+      } catch {
+        toast.error("Couldn't load doctors");
+      } finally {
+        setDoctorsLoading(false);
+      }
+    };
+    loadDoctors();
+  }, [isAddUserOpen, doctorOptions.length]);
 
   // Redirect non-admin users
   useEffect(() => {
@@ -133,28 +172,85 @@ const UserManagementPage = ({
     }
   };
 
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsInviting(true);
+  // GENERATE RANDOM PASSWORD
+  const generateRandomPassword = () => {
+    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const lower = "abcdefghijkmnpqrstuvwxyz";
+    const digits = "23456789";
+    const symbols = "!@#$%&*";
+    const all = upper + lower + digits + symbols;
+
+    let password =
+      upper[Math.floor(Math.random() * upper.length)] +
+      lower[Math.floor(Math.random() * lower.length)] +
+      digits[Math.floor(Math.random() * digits.length)] +
+      symbols[Math.floor(Math.random() * symbols.length)];
+
+    for (let i = password.length; i < 12; i++) {
+      password += all[Math.floor(Math.random() * all.length)];
+    }
+
+    password = password
+      .split("")
+      .sort(() => Math.random() - 0.5)
+      .join("");
+
+    setAddUserForm({ ...addUserForm, password });
+    setShowPassword(true);
+    setPasswordCopied(false);
+  };
+
+  // COPY PASSWORD
+  const handleCopyPassword = async () => {
+    if (!addUserForm.password) return;
     try {
-      const res = await axios.post("/api/auth/invite", inviteForm);
-      if (res.data.success) {
-        toast.success("Invitation sent successfully!");
-        const link = res.data.data.inviteLink;
-        if (link) {
-          // For testing without emails
-          alert(`Test mode: Invite link generated!\n\n${link}`);
-        }
-        setIsInviteOpen(false);
-        setInviteForm({ firstName: "", lastName: "", email: "", role: "STAFF" });
+      await navigator.clipboard.writeText(addUserForm.password);
+      setPasswordCopied(true);
+      setTimeout(() => setPasswordCopied(false), 1500);
+    } catch {
+      toast.error("Couldn't copy password");
+    }
+  };
+
+  // TOGGLE DOCTOR ASSIGNMENT
+  const toggleAssignedDoctor = (doctorId: string) => {
+    setAddUserForm((prev) => ({
+      ...prev,
+      assignedDoctors: prev.assignedDoctors.includes(doctorId)
+        ? prev.assignedDoctors.filter((id) => id !== doctorId)
+        : [...prev.assignedDoctors, doctorId],
+    }));
+  };
+
+  // ADD USER HANDLER
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAddingUser(true);
+    try {
+      const res = await createUserAction(addUserForm);
+      if (res.success) {
+        toast.success("User added successfully!");
+        setIsAddUserOpen(false);
+        setAddUserForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          role: "STAFF",
+          assignedDoctors: [],
+          doctorProfileId: "",
+        });
+        setShowPassword(false);
+        setPasswordCopied(false);
+        setLinkStaffToDoctor(false);
         router.refresh();
       } else {
-        toast.error(res.data.message);
+        toast.error(res.message);
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to invite user");
+      toast.error(err?.message || "Failed to add user");
     } finally {
-      setIsInviting(false);
+      setIsAddingUser(false);
     }
   };
 
@@ -195,65 +291,336 @@ const UserManagementPage = ({
               </p>
             </div>
           </div>
-          {/* Invite User Dialog */}
-          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+          {/* Add User Dialog */}
+          <Dialog
+            open={isAddUserOpen}
+            onOpenChange={(open) => {
+              setIsAddUserOpen(open);
+              if (!open) {
+                setShowPassword(false);
+                setPasswordCopied(false);
+                setLinkStaffToDoctor(false);
+              }
+            }}
+          >
             <DialogTrigger asChild>
-              <Button className="h-11 px-6 rounded-xl bg-green-700 text-white shadow-md hover:bg-green-800">
-                Invite Staff
+              <Button className="h-11 px-6 gap-2 rounded-xl bg-green-700 text-white shadow-md hover:bg-green-800">
+                <UserPlus className="w-4 h-4" />
+                Add User
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite a new staff member</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleInvite} className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    placeholder="First Name"
-                    value={inviteForm.firstName}
-                    onChange={(e) =>
-                      setInviteForm({ ...inviteForm, firstName: e.target.value })
-                    }
-                    required
-                  />
-                  <Input
-                    placeholder="Last Name"
-                    value={inviteForm.lastName}
-                    onChange={(e) =>
-                      setInviteForm({ ...inviteForm, lastName: e.target.value })
-                    }
-                  />
+            <DialogContent className="sm:max-w-md rounded-2xl border-0 p-0 overflow-hidden gap-0">
+              <div className="bg-indigo-600 px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/15 p-2.5 rounded-xl backdrop-blur-sm">
+                    <UserPlus className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-white text-lg font-semibold">
+                      Add a new user
+                    </DialogTitle>
+                    <p className="text-blue-100 text-xs mt-0.5">
+                      Create an account and set a password for them
+                    </p>
+                  </div>
                 </div>
-                <Input
-                  type="email"
-                  placeholder="Email Address"
-                  value={inviteForm.email}
-                  onChange={(e) =>
-                    setInviteForm({ ...inviteForm, email: e.target.value })
-                  }
-                  required
-                />
-                <Select
-                  value={inviteForm.role}
-                  onValueChange={(val) =>
-                    setInviteForm({ ...inviteForm, role: val })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="STAFF">Staff</SelectItem>
-                    <SelectItem value="DOCTOR">Doctor</SelectItem>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
+              </div>
+
+              <form onSubmit={handleAddUser} className="space-y-4 p-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="add-user-first-name"
+                      className="text-xs font-semibold text-gray-600"
+                    >
+                      First Name
+                    </Label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        id="add-user-first-name"
+                        placeholder="Jane"
+                        value={addUserForm.firstName}
+                        onChange={(e) =>
+                          setAddUserForm({
+                            ...addUserForm,
+                            firstName: e.target.value,
+                          })
+                        }
+                        className="pl-9 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="add-user-last-name"
+                      className="text-xs font-semibold text-gray-600"
+                    >
+                      Last Name
+                    </Label>
+                    <Input
+                      id="add-user-last-name"
+                      placeholder="Doe"
+                      value={addUserForm.lastName}
+                      onChange={(e) =>
+                        setAddUserForm({
+                          ...addUserForm,
+                          lastName: e.target.value,
+                        })
+                      }
+                      className="h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="add-user-email"
+                    className="text-xs font-semibold text-gray-600"
+                  >
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="add-user-email"
+                      type="email"
+                      placeholder="jane.doe@example.com"
+                      value={addUserForm.email}
+                      onChange={(e) =>
+                        setAddUserForm({
+                          ...addUserForm,
+                          email: e.target.value,
+                        })
+                      }
+                      className="pl-9 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="add-user-password"
+                      className="text-xs font-semibold text-gray-600"
+                    >
+                      Password
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={generateRandomPassword}
+                      className="flex items-center gap-1 text-xs font-semibold text-blue-primary hover:text-indigo-700"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Generate
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="add-user-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Set a password"
+                      value={addUserForm.password}
+                      onChange={(e) =>
+                        setAddUserForm({
+                          ...addUserForm,
+                          password: e.target.value,
+                        })
+                      }
+                      className="pl-9 pr-20 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                      required
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {addUserForm.password && (
+                        <button
+                          type="button"
+                          onClick={handleCopyPassword}
+                          className="p-1.5 text-gray-400 hover:text-blue-primary rounded-lg hover:bg-blue-50"
+                          title="Copy password"
+                        >
+                          {passwordCopied ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="p-1.5 text-gray-400 hover:text-blue-primary rounded-lg hover:bg-blue-50"
+                        title={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Share this password with the user securely, or have them
+                    reset it after first login.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600">
+                    Role
+                  </Label>
+                  <Select
+                    value={addUserForm.role}
+                    onValueChange={(val) => {
+                      setAddUserForm({
+                        ...addUserForm,
+                        role: val,
+                        assignedDoctors: [],
+                        doctorProfileId: "",
+                      });
+                      setLinkStaffToDoctor(false);
+                    }}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20">
+                      <SelectValue placeholder="Select Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STAFF">Staff</SelectItem>
+                      <SelectItem value="DOCTOR">Doctor</SelectItem>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Optionally link this staff member to specific doctors */}
+                {addUserForm.role === "STAFF" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-xs font-semibold text-gray-600">
+                          Link to a Specific Doctor
+                        </Label>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          Off by default — this staff member manages the whole
+                          clinic.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={linkStaffToDoctor}
+                        onClick={() => {
+                          const next = !linkStaffToDoctor;
+                          setLinkStaffToDoctor(next);
+                          if (!next) {
+                            setAddUserForm((prev) => ({
+                              ...prev,
+                              assignedDoctors: [],
+                            }));
+                          }
+                        }}
+                        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                          linkStaffToDoctor ? "bg-blue-primary" : "bg-gray-200"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                            linkStaffToDoctor
+                              ? "translate-x-5"
+                              : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {linkStaffToDoctor && (
+                      <div className="border border-gray-200 rounded-xl max-h-40 overflow-y-auto divide-y divide-gray-100">
+                        {doctorsLoading ? (
+                          <p className="text-xs text-gray-400 px-3 py-3">
+                            Loading doctors...
+                          </p>
+                        ) : doctorOptions.length === 0 ? (
+                          <p className="text-xs text-gray-400 px-3 py-3">
+                            No doctors found yet.
+                          </p>
+                        ) : (
+                          doctorOptions.map((doc) => (
+                            <label
+                              key={doc._id}
+                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50/50 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={addUserForm.assignedDoctors.includes(
+                                  doc._id,
+                                )}
+                                onChange={() => toggleAssignedDoctor(doc._id)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-primary focus:ring-blue-400/30"
+                              />
+                              <span className="flex-1">{doc.name}</span>
+                              {doc.specialization.length > 0 && (
+                                <span className="text-[11px] text-gray-400">
+                                  {doc.specialization[0]}
+                                </span>
+                              )}
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Link a DOCTOR-role account to their existing Doctor profile */}
+                {addUserForm.role === "DOCTOR" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-600">
+                      Link to Doctor Profile{" "}
+                      <span className="text-gray-400 font-normal">
+                        (optional)
+                      </span>
+                    </Label>
+                    <Select
+                      value={addUserForm.doctorProfileId}
+                      onValueChange={(val) =>
+                        setAddUserForm({ ...addUserForm, doctorProfileId: val })
+                      }
+                    >
+                      <SelectTrigger className="h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20">
+                        <SelectValue
+                          placeholder={
+                            doctorsLoading
+                              ? "Loading doctors..."
+                              : "Select doctor profile"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {doctorOptions
+                          .filter((doc) => !doc.hasLogin)
+                          .map((doc) => (
+                            <SelectItem key={doc._id} value={doc._id}>
+                              {doc.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-gray-400">
+                      Connects this login to their existing profile so they only
+                      see their own appointments and patients.
+                    </p>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
-                  disabled={isInviting}
-                  className="w-full bg-blue-primary text-white"
+                  disabled={isAddingUser}
+                  className="w-full h-11 rounded-xl bg-linear-to-r from-blue-primary to-indigo-600 text-white font-semibold shadow-md shadow-blue-500/20 hover:opacity-90 transition-opacity"
                 >
-                  {isInviting ? "Sending Invite..." : "Send Invite"}
+                  {isAddingUser ? "Adding User..." : "Add User"}
                 </Button>
               </form>
             </DialogContent>
@@ -426,7 +793,7 @@ const UserManagementPage = ({
                     }`}
                   >
                     1
-                  </button>
+                  </button>,
                 );
 
                 if (cp > 4) {
@@ -436,7 +803,7 @@ const UserManagementPage = ({
                       className="px-1.5 text-indigo-400 text-xs font-bold"
                     >
                       · · ·
-                    </span>
+                    </span>,
                   );
                 }
 
@@ -456,7 +823,7 @@ const UserManagementPage = ({
                       }`}
                     >
                       {i}
-                    </button>
+                    </button>,
                   );
                 }
 
@@ -467,7 +834,7 @@ const UserManagementPage = ({
                       className="px-1.5 text-green-400 text-xs font-bold"
                     >
                       · · ·
-                    </span>
+                    </span>,
                   );
                 }
 
@@ -483,7 +850,7 @@ const UserManagementPage = ({
                       }`}
                     >
                       {total}
-                    </button>
+                    </button>,
                   );
                 }
 
