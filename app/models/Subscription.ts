@@ -3,7 +3,7 @@ import mongoose, { Model, Schema } from "mongoose";
 export interface ISubscription {
   _id?: string;
   organizationId: mongoose.Types.ObjectId;
-  plan: "BASIC" | "PRO" | "ENTERPRISE";
+  plan: "BASIC" | "PRO";
   billingCycle: "MONTHLY" | "YEARLY";
   amount: number;
   currency: string;
@@ -33,7 +33,7 @@ const subscriptionSchema = new Schema<ISubscription>(
     },
     plan: {
       type: String,
-      enum: ["BASIC", "PRO", "ENTERPRISE"],
+      enum: ["BASIC", "PRO"],
       required: true,
     },
     billingCycle: {

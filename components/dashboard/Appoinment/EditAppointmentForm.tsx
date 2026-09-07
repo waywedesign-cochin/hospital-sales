@@ -74,7 +74,7 @@ export default function EditAppointmentForm({
     notes: appointment.notes || "",
   });
 
-  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<{time: string, reason: string}[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -90,7 +90,7 @@ export default function EditAppointmentForm({
       if (key === "treatmentCategory" && value !== prev.treatmentCategory) {
         next.doctor = value === initialTreatmentCategory ? initialDoctorId : "";
         next.startTime = "";
-        setBlockedSlots([]);
+        setAvailableSlots([]);
       }
 
       return next;
@@ -109,9 +109,6 @@ export default function EditAppointmentForm({
     return new Date(`${d}T${slot}:00`) < now;
   };
 
-  const getSlotReason = (time: string) =>
-    blockedSlots.find((s) => s.time === time)?.reason;
-
   const fetchSlots = async () => {
     if (!form.doctor || !form.date || !user?.organizationId) return;
 
@@ -121,18 +118,24 @@ export default function EditAppointmentForm({
       const formattedDate = new Date(form.date).toISOString().split("T")[0];
 
       const res = await axios.get(
-        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}&organizationId=${(user as any)?.organizationId}`
+        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}&organizationId=${(user as any)?.organizationId}&categoryId=${encodeURIComponent(form.treatmentCategory)}`
       );
 
       if (res.data.success) {
-        const slots: BlockedSlot[] = res.data.data;
+        let slots: {time: string, reason: string}[] = res.data.data || [];
 
-        const filtered =
-          form.doctor === initialDoctorId
-            ? slots.filter((s) => s.time !== originalSlot)
-            : slots;
+        // If editing the same doctor on the same date, the backend will have blocked the 
+        // slot that this appointment already holds. We must inject it back as an available option.
+        const isOriginalDate = appointment.date && formattedDate === new Date(appointment.date).toISOString().split("T")[0];
+        
+        if (form.doctor === initialDoctorId && isOriginalDate && originalSlot) {
+          if (!slots.find((s) => s.time === originalSlot)) {
+            slots.push({ time: originalSlot, reason: "AVAILABLE" });
+            slots.sort((a, b) => a.time.localeCompare(b.time));
+          }
+        }
 
-        setBlockedSlots(filtered);
+        setAvailableSlots(slots);
       }
     } catch {
       toast.error("Failed to load time slots");
@@ -150,7 +153,7 @@ export default function EditAppointmentForm({
     if (form.doctor !== initialDoctorId) {
       setForm((prev) => ({ ...prev, startTime: "" }));
     }
-    setBlockedSlots([]);
+    setAvailableSlots([]);
   }, [form.doctor]);
 
   useEffect(() => {
@@ -361,14 +364,17 @@ export default function EditAppointmentForm({
             </p>
 
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-              {DEFAULT_TIME_SLOTS.map((time) => {
-                const reason = getSlotReason(time);
+              {availableSlots.length === 0 && !loadingSlots && (
+                 <p className="text-sm text-gray-500 col-span-full">No available slots found for this date.</p>
+              )}
+              {availableSlots.map((slotObj) => {
+                const time = slotObj.time;
                 const isPast = isPastSlot(time);
                 const isSelected = form.startTime === time;
                 const isOriginalSlot = time === originalSlot;
                 
                 // Allow the originally booked slot to remain selected and active even if it's in the past
-                const disabled = (isPast && !isOriginalSlot) || !!reason;
+                const disabled = (isPast && !isOriginalSlot);
 
                 let cls =
                   "h-11 rounded-xl text-sm border transition flex items-center justify-center";
@@ -378,19 +384,14 @@ export default function EditAppointmentForm({
                 else if (isPast && !isOriginalSlot)
                   cls +=
                     " bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed";
-                else if (reason === "LEAVE")
-                  cls +=
-                    " bg-orange-100 text-orange-600 border-orange-200 cursor-not-allowed";
-                else if (reason === "BOOKED")
-                  cls +=
-                    " bg-red-100 text-red-500 border-red-200 cursor-not-allowed";
                 else cls += " bg-blue-50 border-blue-300 hover:bg-blue-100";
 
                 return (
                   <button
                     key={time}
+                    type="button"
                     disabled={disabled}
-                    onClick={() => onChange("startTime", time)}
+                    onClick={(e) => { e.preventDefault(); onChange("startTime", time); }}
                     className={cls}
                   >
                     {time}

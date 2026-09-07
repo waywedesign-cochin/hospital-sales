@@ -7,7 +7,6 @@ import { success, error } from "../utils/responseHandler";
 const PLAN_PRICING: Record<string, { monthly: number; yearly: number; maxDoctors: number; maxStaff: number }> = {
   BASIC: { monthly: 999, yearly: 9990, maxDoctors: 2, maxStaff: 5 },
   PRO: { monthly: 2999, yearly: 29990, maxDoctors: 999, maxStaff: 999 },
-  ENTERPRISE: { monthly: 9999, yearly: 99990, maxDoctors: 999, maxStaff: 999 },
 };
 
 // ============ MOCK PAYMENT ============
@@ -27,7 +26,7 @@ function generateMockOrderId() {
  */
 export const createSubscription = async (
   organizationId: string,
-  plan: "BASIC" | "PRO" | "ENTERPRISE",
+  plan: "BASIC" | "PRO",
   billingCycle: "MONTHLY" | "YEARLY"
 ) => {
   try {
@@ -291,7 +290,7 @@ export const extendTrial = async (orgId: string, days: number) => {
  */
 export const adminChangePlan = async (
   orgId: string,
-  plan: "BASIC" | "PRO" | "ENTERPRISE",
+  plan: "BASIC" | "PRO",
   billingCycle: "MONTHLY" | "YEARLY"
 ) => {
   try {

@@ -26,6 +26,7 @@ export default function QuickAddCategoryDialog({
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState<number | string>(20);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -39,6 +40,7 @@ export default function QuickAddCategoryDialog({
       const response = await axios.post("/api/treatment-category", {
         name,
         description: "",
+        durationMinutes,
       });
 
       if (!response.data.success) {
@@ -48,6 +50,7 @@ export default function QuickAddCategoryDialog({
 
       toast.success("Category added successfully");
       setName("");
+      setDurationMinutes(20);
       setOpen(false);
       onAdded(name);
       router.refresh();
@@ -70,6 +73,12 @@ export default function QuickAddCategoryDialog({
             placeholder="e.g. Skin Care"
             value={name}
             onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            type="number"
+            placeholder="Duration in Minutes (e.g. 20)"
+            value={durationMinutes}
+            onChange={(e) => setDurationMinutes(e.target.value === "" ? "" : Number(e.target.value))}
           />
         </div>
 

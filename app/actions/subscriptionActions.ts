@@ -16,7 +16,7 @@ import {
 // ============ ORG ADMIN ACTIONS ============
 
 export const createSubscriptionAction = async (
-  plan: "BASIC" | "PRO" | "ENTERPRISE",
+  plan: "BASIC" | "PRO",
   billingCycle: "MONTHLY" | "YEARLY"
 ) => {
   await dbConnect();
@@ -64,7 +64,7 @@ export const extendTrialAction = async (orgId: string, days: number) => {
 
 export const adminChangePlanAction = async (
   orgId: string,
-  plan: "BASIC" | "PRO" | "ENTERPRISE",
+  plan: "BASIC" | "PRO",
   billingCycle: "MONTHLY" | "YEARLY"
 ) => {
   await dbConnect();

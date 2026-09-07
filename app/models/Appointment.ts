@@ -16,7 +16,9 @@ export interface IAppointment {
   doctor: mongoose.Types.ObjectId | Doctor;
   treatmentCategory: string;
   date: Date;
-  startTime: string;
+  startTime: number; // minutes since midnight
+  endTime?: number;  // minutes since midnight
+  durationMinutes?: number;
   status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
   notes?: string;
 }
@@ -46,7 +48,9 @@ const appointmentSchema = new Schema<IAppointment>(
     doctor: { type: mongoose.Types.ObjectId, ref: "Doctor", required: true },
     treatmentCategory: { type: String, required: true },
     date: { type: Date, required: true },
-    startTime: { type: String, required: true },
+    startTime: { type: Number, required: true },
+    endTime: { type: Number },
+    durationMinutes: { type: Number },
     status: {
       type: String,
       required: true,

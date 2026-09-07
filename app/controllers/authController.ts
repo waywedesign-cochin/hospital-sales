@@ -148,7 +148,7 @@ export const registerClinic = async (data: {
 
       await Subscription.create({
         organizationId: newOrganization._id,
-        plan: data.plan!.toUpperCase() as "BASIC" | "PRO" | "ENTERPRISE",
+        plan: data.plan!.toUpperCase() as "BASIC" | "PRO",
         billingCycle,
         amount,
         currency: "INR",

@@ -232,7 +232,7 @@ export function Sidebar() {
       {/* OUTER SIDEBAR */}
       <aside
         className={`
-          fixed sm:relative h-screen w-64
+          fixed sm:relative h-dvh w-64
           border-r border-white/40 shadow-[4px_0_24px_rgba(0,35,111,0.03)]
           flex flex-col z-40
           transition-[width,transform] duration-300

@@ -16,9 +16,16 @@ export interface Doctor {
   registrationNumber: string;
   avatar?: string;
   status: "ACTIVE" | "INACTIVE" | "ON_LEAVE";
+  workingHours?: { start: number; end: number }[];
+  breakTime?: { start: number; end: number }[];
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+const intervalSchema = new Schema(
+  { start: { type: Number, required: true }, end: { type: Number, required: true } },
+  { _id: false }
+);
 
 const doctorSchema = new Schema<Doctor>(
   {
@@ -45,6 +52,8 @@ const doctorSchema = new Schema<Doctor>(
       enum: ["ACTIVE", "INACTIVE", "ON_LEAVE"],
       default: "ACTIVE",
     },
+    workingHours: { type: [intervalSchema] },
+    breakTime: { type: [intervalSchema] },
   },
   { timestamps: true },
 );
