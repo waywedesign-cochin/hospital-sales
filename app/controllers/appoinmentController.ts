@@ -158,17 +158,20 @@ export const createAppointment = async (data: {
       "en-IN",
     );
 
+    const org = await Organization.findById(data.organizationId);
+    const templateName = org?.whatsapp?.templateName || "appointment_confirmation";
+
     await sendWhatsAppTemplate(
       data.organizationId,
       data.patientPhone,
-      "appointment_confirmation", // Ensure this matches the template name registered in Meta
+      templateName,
       [
         data.firstName,
         `${doctorForAppointment.firstName} ${doctorForAppointment.lastName}`,
         formattedDate,
         data.startTime,
       ],
-      appointment._id.toString()
+      existingPatient._id.toString()
     );
   } catch (error) {
     console.error("WhatsApp send failed:", error);
