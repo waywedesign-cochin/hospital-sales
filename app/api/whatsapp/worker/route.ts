@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
               msg.templateName,
               msg.templateParams || [],
               msg.patientId?.toString(),
-              msg.messageType as any
+              msg.messageType as any,
+              msg.batchId
             );
           } else if (msg.messageContent) {
             await sendWhatsAppText(
@@ -48,7 +49,8 @@ export async function POST(req: NextRequest) {
               msg.recipientPhone,
               msg.messageContent,
               msg.patientId?.toString(),
-              msg.messageType as any
+              msg.messageType as any,
+              msg.batchId
             );
           } else {
             throw new Error("Missing templateName and messageContent");

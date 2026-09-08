@@ -21,6 +21,10 @@ import {
   ClipboardList,
   Trash2,
   Edit,
+  Check,
+  CheckCheck,
+  X,
+  Send,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -140,6 +144,7 @@ export default function PatientProfilePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"appointments" | "enquiries" | "notes">("appointments");
 
+
   // Medical Notes state
   const [medicalNotes, setMedicalNotes] = useState<MedicalNoteRecord[]>([]);
   const [notesLoading, setNotesLoading] = useState(false);
@@ -197,6 +202,7 @@ export default function PatientProfilePage() {
   useEffect(() => {
     if (id) fetchNotes();
   }, [id]);
+
 
   const handleAddNote = async () => {
     if (!noteForm.title.trim() || !noteForm.content.trim()) {
@@ -704,6 +710,7 @@ export default function PatientProfilePage() {
               </CardContent>
             </Card>
           )}
+
         </div>
       </div>
 

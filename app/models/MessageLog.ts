@@ -5,6 +5,7 @@ export interface IMessageLog {
   organizationId: mongoose.Types.ObjectId;
   recipientPhone: string;
   patientId?: mongoose.Types.ObjectId;
+  batchId?: string;
   messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL";
   content: string;
   status: "PENDING" | "SENT" | "FAILED" | "DELIVERED" | "READ";
@@ -25,6 +26,7 @@ const messageLogSchema = new Schema<IMessageLog>(
     },
     recipientPhone: { type: String, required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
+    batchId: { type: String },
     messageType: {
       type: String,
       enum: ["REMINDER", "BOOKING_CONFIRMATION", "CAMPAIGN", "MANUAL"],

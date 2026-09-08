@@ -4,6 +4,7 @@ export interface IMessageQueue extends Document {
   organizationId: mongoose.Types.ObjectId;
   patientId?: mongoose.Types.ObjectId;
   recipientPhone: string;
+  batchId?: string;
   templateName?: string;
   templateParams?: string[];
   messageContent?: string;
@@ -19,6 +20,7 @@ const MessageQueueSchema = new Schema<IMessageQueue>(
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
     recipientPhone: { type: String, required: true },
+    batchId: { type: String },
     templateName: { type: String },
     templateParams: { type: [String] },
     messageContent: { type: String },
