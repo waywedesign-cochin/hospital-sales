@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import crypto from 'crypto';
 import Organization from '../models/Organization';
@@ -34,7 +35,8 @@ export const sendWhatsAppTemplate = async (
   templateName: string,
   params: string[],
   patientId?: string,
-  messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "BOOKING_CONFIRMATION"
+  messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "BOOKING_CONFIRMATION",
+  batchId?: string
 ) => {
   const config = await getWhatsAppConfig(organizationId);
 
@@ -48,7 +50,7 @@ export const sendWhatsAppTemplate = async (
     template: {
       name: templateName,
       language: {
-        code: 'en_US', 
+        code: 'en_US',
       },
       components: [
         {
@@ -81,11 +83,12 @@ export const sendWhatsAppTemplate = async (
       organizationId,
       recipientPhone: patientPhone,
       patientId,
-      messageType, 
+      messageType,
       content: `Template: ${templateName}`,
       status: 'SENT',
       sentAt: new Date(),
       metaMessageId,
+      batchId,
     });
 
     return response.data;
@@ -102,6 +105,7 @@ export const sendWhatsAppTemplate = async (
       content: `Template: ${templateName}`,
       status: 'FAILED',
       errorDetails,
+      batchId,
     });
 
     throw new Error(`Failed to send WhatsApp template: ${errorDetails}`);
@@ -113,7 +117,8 @@ export const sendWhatsAppText = async (
   patientPhone: string,
   text: string,
   patientId?: string,
-  messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "MANUAL"
+  messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "MANUAL",
+  batchId?: string
 ) => {
   const config = await getWhatsAppConfig(organizationId);
   const formattedPhone = patientPhone.replace(/\D/g, '');
@@ -152,6 +157,7 @@ export const sendWhatsAppText = async (
       status: 'SENT',
       sentAt: new Date(),
       metaMessageId,
+      batchId,
     });
 
     return response.data;
@@ -216,11 +222,11 @@ export const verifyWebhookSignature = (payload: string, signature: string): bool
     .digest('hex');
 
   const expectedSignatureHeader = `sha256=${expectedSignature}`;
-  
+
   // Safe comparison
   const a = Buffer.from(signature);
   const b = Buffer.from(expectedSignatureHeader);
   if (a.length !== b.length) return false;
-  
+
   return crypto.timingSafeEqual(a, b);
 };

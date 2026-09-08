@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { dbConnect } from "@/app/lib/dbConnect";
 import Patient from "@/app/models/Patient";
 import Organization from "@/app/models/Organization";
@@ -39,6 +40,8 @@ async function postHandler(req: NextRequest, user: AuthUser) {
       return NextResponse.json({ success: false, message: "No recipients found" }, { status: 400 });
     }
 
+    const batchId = crypto.randomUUID();
+
     // Build the queue documents
     const queueDocs = recipients.map(recipient => {
       const firstName = recipient.firstName || "Patient";
@@ -56,7 +59,8 @@ async function postHandler(req: NextRequest, user: AuthUser) {
         templateParams: templateName ? (templateParams || dynamicParams) : undefined,
         messageContent: !templateName ? messageContent : undefined,
         messageType: messageType || "CAMPAIGN",
-        status: "PENDING"
+        status: "PENDING",
+        batchId
       };
     });
 
