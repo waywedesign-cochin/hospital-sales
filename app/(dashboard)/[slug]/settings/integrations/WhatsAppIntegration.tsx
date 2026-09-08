@@ -139,6 +139,8 @@ export default function WhatsAppIntegration() {
             value={formData.wabaId}
             onChange={(e) => setFormData({ ...formData, wabaId: e.target.value })}
             placeholder="e.g. 100239281723"
+            autoComplete="off"
+            data-1p-ignore
           />
         </div>
 
@@ -149,6 +151,8 @@ export default function WhatsAppIntegration() {
             value={formData.phoneNumberId}
             onChange={(e) => setFormData({ ...formData, phoneNumberId: e.target.value })}
             placeholder="e.g. 100983271234"
+            autoComplete="off"
+            data-1p-ignore
           />
         </div>
 
@@ -160,6 +164,8 @@ export default function WhatsAppIntegration() {
             value={formData.accessToken}
             onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
             placeholder={config ? "Leave blank to keep existing encrypted token" : "EAA..."}
+            autoComplete="new-password"
+            data-1p-ignore
           />
           <p className="text-xs text-gray-500">
             We encrypt this token using AES-256-GCM before saving it. We never store it in plain text.

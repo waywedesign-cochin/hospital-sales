@@ -60,8 +60,8 @@ export default function MessagingPage() {
           setIsPollingQueue(false);
         }
       }
-    } catch (e) {
-      console.error("Failed to fetch queue status");
+    } catch (e: any) {
+      console.error("Failed to fetch queue status", e.response?.data || e.message);
     }
   };
 

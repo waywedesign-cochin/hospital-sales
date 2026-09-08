@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
+import Organization from "@/app/models/Organization";
+import Patient from "@/app/models/Patient";
 import MessageQueue from "@/app/models/MessageQueue";
 import { withAuth, AuthUser } from "@/app/middlewares/withAuth";
+
+export const dynamic = 'force-dynamic';
 
 async function getHandler(req: NextRequest, user: AuthUser) {
   try {

@@ -193,6 +193,7 @@ export default function WhatsAppConfigModal({
                   onChange={(e) => setFormData({ ...formData, wabaId: e.target.value })}
                   className="pl-9 bg-slate-900 border-slate-800"
                   placeholder="e.g. 100239281723"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -207,6 +208,7 @@ export default function WhatsAppConfigModal({
                   onChange={(e) => setFormData({ ...formData, phoneNumberId: e.target.value })}
                   className="pl-9 bg-slate-900 border-slate-800"
                   placeholder="e.g. 100983271234"
+                  autoComplete="off"
                 />
               </div>
             </div>
