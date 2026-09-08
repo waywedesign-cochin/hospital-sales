@@ -34,6 +34,7 @@ export default function MessagingPage() {
   const [patientId, setPatientId] = useState("");
   const [tone, setTone] = useState("Professional");
   const [prompt, setPrompt] = useState("");
+  const [templateName, setTemplateName] = useState("general_update");
   
   // App State
   const [patients, setPatients] = useState<any[]>([]);
@@ -42,6 +43,39 @@ export default function MessagingPage() {
   const [isSending, setIsSending] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Queue State
+  const [queueStatus, setQueueStatus] = useState({ pendingCount: 0, completedCount: 0, failedCount: 0 });
+  const [isPollingQueue, setIsPollingQueue] = useState(false);
+
+  // Fetch Queue Status
+  const fetchQueueStatus = async () => {
+    try {
+      const res = await axios.get("/api/whatsapp/queue-status");
+      if (res.data.success) {
+        setQueueStatus(res.data.data);
+        if (res.data.data.pendingCount > 0) {
+          setIsPollingQueue(true);
+        } else {
+          setIsPollingQueue(false);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch queue status");
+    }
+  };
+
+  useEffect(() => {
+    fetchQueueStatus();
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPollingQueue) {
+      interval = setInterval(fetchQueueStatus, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [isPollingQueue]);
 
   // Fetch Patients and Plan
   useEffect(() => {
@@ -81,7 +115,8 @@ export default function MessagingPage() {
         prompt,
         tone,
         audienceType,
-        patientId
+        patientId,
+        templateName
       });
       
       if (res.data.success) {
@@ -110,15 +145,17 @@ export default function MessagingPage() {
         messageContent: generatedMessage,
         audienceType,
         patientId,
-        messageType: "CAMPAIGN"
+        messageType: "CAMPAIGN",
+        templateName
       });
 
       if (res.data.success) {
-        toast.success(`Message sent! Logged ${res.data.data.length} records.`);
+        toast.success(res.data.message || "Messages queued for dispatch!");
         setGeneratedMessage("");
         setPrompt("");
+        fetchQueueStatus();
       } else {
-        toast.error("Failed to send message");
+        toast.error(res.data.message || "Failed to queue messages");
       }
     } catch (error) {
       console.error(error);
@@ -167,6 +204,42 @@ export default function MessagingPage() {
           Draft highly personalized WhatsApp messages and campaigns using Google Gemini AI.
         </p>
       </div>
+
+      {(queueStatus.pendingCount > 0 || queueStatus.completedCount > 0) && (
+        <div className="bg-white border border-blue-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
+              {queueStatus.pendingCount > 0 ? (
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-blue-600" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800">
+                {queueStatus.pendingCount > 0 ? "Dispatching Campaign..." : "Campaign Completed"}
+              </h3>
+              <p className="text-xs text-slate-500">
+                Messages sent in the background to avoid timeouts.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-6 text-sm">
+            <div className="text-center">
+              <div className="font-bold text-slate-700">{queueStatus.pendingCount}</div>
+              <div className="text-xs text-slate-400">Pending</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-emerald-600">{queueStatus.completedCount}</div>
+              <div className="text-xs text-slate-400">Sent</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-red-500">{queueStatus.failedCount}</div>
+              <div className="text-xs text-slate-400">Failed</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue="composer" className="w-full space-y-6">
         <div className="flex items-center justify-between">
@@ -236,6 +309,21 @@ export default function MessagingPage() {
                   </Select>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">WhatsApp Template</label>
+                <Select value={templateName} onValueChange={setTemplateName}>
+                  <SelectTrigger className="w-full rounded-xl bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Select template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general_update">General Update (Recommended)</SelectItem>
+                    <SelectItem value="festive_greeting">Festive Greeting</SelectItem>
+                    <SelectItem value="birthday_wish">Birthday Wish</SelectItem>
+                    <SelectItem value="appointment_reminder">Appointment Reminder</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">Message Tone</label>

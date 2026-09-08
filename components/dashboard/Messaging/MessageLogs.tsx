@@ -123,7 +123,7 @@ export default function MessageLogs() {
               logs.map((log) => (
                 <TableRow key={log._id}>
                   <TableCell className="text-sm text-slate-600 whitespace-nowrap">
-                    {new Date(log.sentAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                    {new Date(log.sentAt || log.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">

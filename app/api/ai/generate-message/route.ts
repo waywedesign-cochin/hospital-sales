@@ -2,20 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { dbConnect } from "@/app/lib/dbConnect";
 import Patient from "@/app/models/Patient";
+import Organization from "@/app/models/Organization";
+import { withAuth, AuthUser } from "@/app/middlewares/withAuth";
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequest, user: AuthUser) {
   try {
     const { prompt, tone, audienceType, patientId } = await req.json();
     let context = "";
 
+    await dbConnect();
+    
+    // Get organization name for sign-off
+    let hospitalName = "The Clinic/Hospital";
+    if (user.organizationId) {
+      const org = await Organization.findById(user.organizationId).lean();
+      if (org) {
+        hospitalName = org.name;
+      }
+    }
+
     if (audienceType === "specific" && patientId) {
-      await dbConnect();
       const patient = await Patient.findById(patientId).lean();
       if (patient) {
-        context = `The recipient is a patient named ${patient.firstName} ${patient.lastName}. Gender: ${patient.gender || "Unknown"}. Context: This is a hospital/clinic communication.`;
+        context = `The recipient is a patient named ${patient.firstName} ${patient.lastName}. Gender: ${patient.gender || "Unknown"}. Context: This is a communication from ${hospitalName}.`;
       }
     } else {
-      context = "This message will be broadcasted to all patients of the clinic.";
+      context = `This message will be broadcasted to all patients of ${hospitalName}.`;
     }
 
     const fullPrompt = `
@@ -25,6 +37,7 @@ export async function POST(req: NextRequest) {
       Context: ${context}.
       Goal/Topic: ${prompt}.
       Constraints: Keep it concise, use appropriate emojis, and do not include any placeholder brackets like [Name] unless absolutely necessary (for broadcasts, use 'Dear Patient', for specific patients use their name). Do not include any quotation marks around the final message.
+      IMPORTANT: For the sign-off at the end of the message, ALWAYS use the name "${hospitalName}". Do NOT use generic terms like "Your Healthcare Team" or "The Medical Staff".
     `;
 
     // Initialize Gemini
@@ -38,7 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
     
     const result = await model.generateContent(fullPrompt);
     const text = result.response.text();
@@ -52,3 +65,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export const POST = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST"])(postHandler as any);

@@ -33,12 +33,13 @@ export const sendWhatsAppTemplate = async (
   patientPhone: string,
   templateName: string,
   params: string[],
-  patientId?: string
+  patientId?: string,
+  messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "BOOKING_CONFIRMATION"
 ) => {
   const config = await getWhatsAppConfig(organizationId);
 
-  // WhatsApp API expects phone numbers without the '+' sign
-  const formattedPhone = patientPhone.replace('+', '');
+  // WhatsApp API expects phone numbers without the '+' sign or spaces
+  const formattedPhone = patientPhone.replace(/\D/g, '');
 
   const payload = {
     messaging_product: 'whatsapp',
@@ -80,7 +81,7 @@ export const sendWhatsAppTemplate = async (
       organizationId,
       recipientPhone: patientPhone,
       patientId,
-      messageType: 'BOOKING_CONFIRMATION', 
+      messageType, 
       content: `Template: ${templateName}`,
       status: 'SENT',
       sentAt: new Date(),
@@ -97,7 +98,7 @@ export const sendWhatsAppTemplate = async (
       organizationId,
       recipientPhone: patientPhone,
       patientId,
-      messageType: 'BOOKING_CONFIRMATION',
+      messageType,
       content: `Template: ${templateName}`,
       status: 'FAILED',
       errorDetails,
@@ -111,10 +112,11 @@ export const sendWhatsAppText = async (
   organizationId: string,
   patientPhone: string,
   text: string,
-  patientId?: string
+  patientId?: string,
+  messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "MANUAL"
 ) => {
   const config = await getWhatsAppConfig(organizationId);
-  const formattedPhone = patientPhone.replace('+', '');
+  const formattedPhone = patientPhone.replace(/\D/g, '');
 
   const payload = {
     messaging_product: 'whatsapp',
@@ -145,7 +147,7 @@ export const sendWhatsAppText = async (
       organizationId,
       recipientPhone: patientPhone,
       patientId,
-      messageType: 'MANUAL',
+      messageType,
       content: text,
       status: 'SENT',
       sentAt: new Date(),

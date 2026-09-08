@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false }, { status: 404 });
     }
 
+    const bulkOperations = [];
+
     for (const entry of payload.entry) {
       for (const change of entry.changes) {
         if (change.value && change.value.statuses) {
@@ -53,24 +55,30 @@ export async function POST(req: NextRequest) {
             const metaMessageId = status.id;
             const deliveryStatus = status.status; // 'sent', 'delivered', 'read', 'failed'
             
-            let mappedStatus = 'PENDING';
+            let mappedStatus: "PENDING" | "FAILED" | "SENT" | "DELIVERED" | "READ" = 'PENDING';
             if (deliveryStatus === 'sent') mappedStatus = 'SENT';
             else if (deliveryStatus === 'delivered') mappedStatus = 'DELIVERED';
             else if (deliveryStatus === 'read') mappedStatus = 'READ';
             else if (deliveryStatus === 'failed') mappedStatus = 'FAILED';
 
-            await MessageLog.findOneAndUpdate(
-              { metaMessageId, organizationId: org._id },
-              { 
-                $set: { 
-                  status: mappedStatus,
-                  errorDetails: status.errors ? JSON.stringify(status.errors) : undefined
-                } 
+            bulkOperations.push({
+              updateOne: {
+                filter: { metaMessageId, organizationId: org._id },
+                update: { 
+                  $set: { 
+                    status: mappedStatus,
+                    errorDetails: status.errors ? JSON.stringify(status.errors) : undefined
+                  } 
+                }
               }
-            );
+            });
           }
         }
       }
+    }
+
+    if (bulkOperations.length > 0) {
+      await MessageLog.bulkWrite(bulkOperations);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

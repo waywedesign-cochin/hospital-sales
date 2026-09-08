@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
 import Patient from "@/app/models/Patient";
+import Organization from "@/app/models/Organization";
+import MessageQueue from "@/app/models/MessageQueue";
 import { withAuth, AuthUser } from "@/app/middlewares/withAuth";
-import { sendWhatsAppText, sendWhatsAppTemplate } from "@/app/utils/whatsappService";
 
 async function postHandler(req: NextRequest, user: AuthUser) {
   try {
     await dbConnect();
-    const { messageContent, audienceType, patientId, templateName, templateParams } = await req.json();
+    const { messageContent, audienceType, patientId, templateName, templateParams, messageType } = await req.json();
 
     if (!user.organizationId) {
        return NextResponse.json({ success: false, message: "Organization ID is missing" }, { status: 400 });
     }
 
     const organizationId = user.organizationId;
+    const org = await Organization.findById(organizationId).lean();
+    const hospitalName = org?.name || "The Clinic";
 
     let recipients = [];
 
@@ -25,54 +28,55 @@ async function postHandler(req: NextRequest, user: AuthUser) {
       if (!patient) {
         return NextResponse.json({ success: false, message: "Patient not found" }, { status: 404 });
       }
-      recipients.push({ patientId: patient._id.toString(), phone: patient.phone });
+      recipients.push({ patientId: patient._id.toString(), phone: patient.phone, firstName: patient.firstName });
     } else {
       // Broadcast to all
       const allPatients = await Patient.find({ organizationId });
-      recipients = allPatients.map(p => ({ patientId: p._id.toString(), phone: p.phone }));
+      recipients = allPatients.map(p => ({ patientId: p._id.toString(), phone: p.phone, firstName: p.firstName }));
     }
 
     if (recipients.length === 0) {
       return NextResponse.json({ success: false, message: "No recipients found" }, { status: 400 });
     }
 
-    const results = [];
-    for (const recipient of recipients) {
-      try {
-        if (!recipient.phone) continue;
+    // Build the queue documents
+    const queueDocs = recipients.map(recipient => {
+      const firstName = recipient.firstName || "Patient";
+      const dynamicParams = [
+        firstName,
+        messageContent || "",
+        hospitalName
+      ];
 
-        let res;
-        if (templateName) {
-           res = await sendWhatsAppTemplate(
-              organizationId,
-              recipient.phone,
-              templateName,
-              templateParams || [],
-              recipient.patientId
-           );
-        } else if (messageContent) {
-           res = await sendWhatsAppText(
-              organizationId,
-              recipient.phone,
-              messageContent,
-              recipient.patientId
-           );
-        } else {
-           throw new Error("Either templateName or messageContent must be provided");
-        }
-        
-        results.push({ patientId: recipient.patientId, success: true, metaMessageId: res?.messages?.[0]?.id });
-      } catch (e: any) {
-         results.push({ patientId: recipient.patientId, success: false, error: e.message });
-      }
-    }
+      return {
+        organizationId,
+        patientId: recipient.patientId,
+        recipientPhone: recipient.phone,
+        templateName: templateName || undefined,
+        templateParams: templateName ? (templateParams || dynamicParams) : undefined,
+        messageContent: !templateName ? messageContent : undefined,
+        messageType: messageType || "CAMPAIGN",
+        status: "PENDING"
+      };
+    });
 
-    const failedCount = results.filter(r => !r.success).length;
+    // Insert all into the queue instantly
+    await MessageQueue.insertMany(queueDocs);
+
+    // Fire-and-forget: Trigger the worker in the background
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const host = req.headers.get("host");
+    const baseUrl = `${protocol}://${host}`;
+    
+    fetch(`${baseUrl}/api/whatsapp/worker`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }).catch(err => console.error("Failed to trigger background worker:", err));
 
     return NextResponse.json({
-      success: failedCount === 0,
-      message: `Processed ${recipients.length} recipients. Failed: ${failedCount}`,
-      data: results
+      success: true,
+      message: `Successfully queued ${recipients.length} messages for background dispatch.`,
+      data: { queuedCount: recipients.length }
     });
   } catch (error: any) {
     console.error("WhatsApp Send Error:", error);
