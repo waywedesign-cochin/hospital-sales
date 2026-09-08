@@ -72,7 +72,7 @@ export default function AppointmentForm({
     enquiryId: prefill?.enquiryId ?? undefined,
     firstName: prefillNameSplit[0] || "",
     lastName: prefillNameSplit.slice(1).join(" ") || "",
-    patientPhone: prefill?.phone || "",
+    patientPhone: prefill?.phone ? (prefill.phone.startsWith("+") ? prefill.phone : `+${prefill.phone}`) : "",
     patientEmail: prefill?.email || "",
     dateOfBirth: "",
     doctor: "",

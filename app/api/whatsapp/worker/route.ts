@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
+import Organization from "@/app/models/Organization";
+import Patient from "@/app/models/Patient";
 import MessageQueue from "@/app/models/MessageQueue";
 import { sendWhatsAppText, sendWhatsAppTemplate } from "@/app/utils/whatsappService";
 
