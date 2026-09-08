@@ -91,7 +91,8 @@ export function Sidebar() {
       href: `${baseUrl}/dashboard`,
       subItems: [],
     },
-    ...(user?.role === "ADMIN" || user?.role === "STAFF"
+    ...(user?.role === "ADMIN" ||
+    (user?.role === "STAFF" && !user?.assignedDoctors?.length)
       ? [
           {
             id: "enquiries",

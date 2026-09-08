@@ -24,7 +24,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
     month
   );
   const appointments = appointmentsRes?.data?.appointments ?? [];
-  console.log(appointments);
   
   const pagination = {
     page: appointmentsRes?.data?.pagination?.page ?? 1,

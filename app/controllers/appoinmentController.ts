@@ -12,31 +12,57 @@ import Patient from "../models/Patient";
 import TreatmentCategory from "../models/TreatmentCategory";
 import DoctorDaySchedule from "../models/DoctorDaySchedule";
 import { logActivity } from "./activityLogController";
-import { timeStringToMinutes, minutesToTimeString, subtractIntervals, chunkIntoSlots, TimeInterval } from "@/lib/timeUtils";
+import {
+  timeStringToMinutes,
+  minutesToTimeString,
+  subtractIntervals,
+  chunkIntoSlots,
+  TimeInterval,
+} from "@/lib/timeUtils";
+import { resolveDoctorScope, RequestingUser } from "../utils/DoctorScope";
 
 const generateBookingId = () => {
   return `BK-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 };
 
-export const createAppointment = async (data: {
-  organizationId: string;
-  userId?: string;
-  enquiryId?: string;
-  firstName: string;
-  lastName?: string;
-  patientPhone: string;
-  patientEmail?: string;
-  dateOfBirth?: string;
-  isNewPatient?: boolean;
-  doctor: string;
-  treatmentCategory: string; // This is a string right now, maybe category name or id
-  date: string;
-  startTime: string; // e.g. "10:20"
-  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
-  handledBy?: string;
-  notes?: string;
-}) => {
-  // If booking from an enquiry, try to reuse the enquiry's linked patient first
+export const createAppointment = async (
+  data: {
+    organizationId: string;
+    userId?: string;
+    enquiryId?: string;
+    firstName: string;
+    lastName?: string;
+    patientPhone: string;
+    patientEmail?: string;
+    dateOfBirth?: string;
+    isNewPatient?: boolean;
+    doctor: string;
+    treatmentCategory: string;
+    date: string;
+    startTime: string;
+    status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+    handledBy?: string;
+    notes?: string;
+  },
+  requestingUser?: RequestingUser,
+) => {
+  // If a scoped STAFF/DOCTOR user is booking, make sure they're allowed to book for this doctor.
+  if (requestingUser) {
+    const doctorScope = await resolveDoctorScope(
+      data.organizationId,
+      requestingUser,
+    );
+    if (
+      doctorScope &&
+      !doctorScope.some((id) => id.toString() === data.doctor)
+    ) {
+      return sendApiResponse(
+        false,
+        "You are not permitted to book appointments for this doctor.",
+      );
+    }
+  }
+
   let existingPatient = null;
 
   if (data.enquiryId) {
@@ -46,7 +72,6 @@ export const createAppointment = async (data: {
     }
   }
 
-  // Fallback: look up by phone within the same clinic
   if (!existingPatient) {
     existingPatient = await Patient.findOne({
       organizationId: data.organizationId,
@@ -67,9 +92,11 @@ export const createAppointment = async (data: {
     });
   }
 
-  // Fetch duration from TreatmentCategory
-  let durationMinutes = 20; // default fallback
-  const category = await TreatmentCategory.findOne({ name: data.treatmentCategory, organizationId: data.organizationId });
+  let durationMinutes = 20;
+  const category = await TreatmentCategory.findOne({
+    name: data.treatmentCategory,
+    organizationId: data.organizationId,
+  });
   if (category && category.durationMinutes) {
     durationMinutes = category.durationMinutes;
   }
@@ -78,11 +105,10 @@ export const createAppointment = async (data: {
   const endMinutes = startMinutes + durationMinutes;
   const appointmentDate = new Date(`${data.date}T00:00:00Z`);
 
-  // --- CONCURRENCY FIX: ATOMIC PUSH TO DOCTORDAYSCHEDULE ---
   await DoctorDaySchedule.updateOne(
     { doctorId: data.doctor, date: appointmentDate },
     { $setOnInsert: { bookedIntervals: [] } },
-    { upsert: true }
+    { upsert: true },
   );
 
   const scheduleResult = await DoctorDaySchedule.findOneAndUpdate(
@@ -90,19 +116,25 @@ export const createAppointment = async (data: {
       doctorId: data.doctor,
       date: appointmentDate,
       bookedIntervals: {
-        $not: { $elemMatch: { start: { $lt: endMinutes }, end: { $gt: startMinutes } } },
+        $not: {
+          $elemMatch: {
+            start: { $lt: endMinutes },
+            end: { $gt: startMinutes },
+          },
+        },
       },
     },
     { $push: { bookedIntervals: { start: startMinutes, end: endMinutes } } },
-    { new: true }
+    { new: true },
   );
 
   if (!scheduleResult) {
-    return sendApiResponse(false, "Slot already booked. Please choose another time.");
+    return sendApiResponse(
+      false,
+      "Slot already booked. Please choose another time.",
+    );
   }
-  // ---------------------------------------------------------
 
-  // Create appointment
   const appointment = await Appointment.create({
     ...data,
     startTime: startMinutes,
@@ -114,13 +146,15 @@ export const createAppointment = async (data: {
     patientId: existingPatient._id,
   });
 
-  // Update DoctorDaySchedule with appointmentId
   await DoctorDaySchedule.updateOne(
-    { doctorId: data.doctor, date: appointmentDate, "bookedIntervals.start": startMinutes },
-    { $set: { "bookedIntervals.$.appointmentId": appointment._id } }
+    {
+      doctorId: data.doctor,
+      date: appointmentDate,
+      "bookedIntervals.start": startMinutes,
+    },
+    { $set: { "bookedIntervals.$.appointmentId": appointment._id } },
   );
 
-  // Update enquiry status
   if (appointment.enquiryId) {
     const enquiryId = appointment.enquiryId as mongoose.Types.ObjectId;
     await EnquiryActivity.create({
@@ -131,27 +165,26 @@ export const createAppointment = async (data: {
       note: data.notes || "Appointment booked",
       date: new Date(),
     });
-    // Actually update the Enquiry's main status field and link patient
-    await Enquiry.findOneAndUpdate({ _id: enquiryId.toString(), organizationId: data.organizationId }, {
-      status: "APPOINTMENT_BOOKED",
-      handledBy: data.handledBy || undefined,
-      patientId: existingPatient._id,
-    });
+    await Enquiry.findOneAndUpdate(
+      { _id: enquiryId.toString(), organizationId: data.organizationId },
+      {
+        status: "APPOINTMENT_BOOKED",
+        handledBy: data.handledBy || undefined,
+        patientId: existingPatient._id,
+      },
+    );
   }
 
-  // Fetch populated appointment
   const newAppointment = await Appointment.findById(appointment._id).populate(
     "doctor",
   );
 
-  // Fetch doctor
   const doctorForAppointment = await Doctor.findById(data.doctor);
 
   if (!doctorForAppointment) {
     return sendApiResponse(false, "Doctor not found");
   }
 
-  /* ---------------- WhatsApp (Meta Graph API) ---------------- */
   let whatsappWarning = "";
   try {
     const formattedDate = new Date(newAppointment!.date).toLocaleDateString(
@@ -159,7 +192,8 @@ export const createAppointment = async (data: {
     );
 
     const org = await Organization.findById(data.organizationId);
-    const templateName = org?.whatsapp?.templateName || "appointment_confirmation";
+    const templateName =
+      org?.whatsapp?.templateName || "appointment_confirmation";
 
     await sendWhatsAppTemplate(
       data.organizationId,
@@ -171,12 +205,12 @@ export const createAppointment = async (data: {
         formattedDate,
         data.startTime,
       ],
-      existingPatient._id.toString()
+      existingPatient._id.toString(),
     );
   } catch (error) {
     console.error("WhatsApp send failed:", error);
-    whatsappWarning = " (Note: WhatsApp notification failed to send - check configuration)";
-    // Non-blocking — appointment still created even if WA fails
+    whatsappWarning =
+      " (Note: WhatsApp notification failed to send - check configuration)";
   }
 
   if (data.userId) {
@@ -186,20 +220,25 @@ export const createAppointment = async (data: {
       "CREATED_APPOINTMENT",
       "Appointment",
       `Booked appointment for ${data.firstName} ${data.lastName || ""} on ${data.date} at ${data.startTime}`.trim(),
-      appointment._id
+      appointment._id,
     );
   }
 
-  // Return formatted time string for consistency
   const responseAppt: any = appointment.toObject();
   responseAppt.startTime = minutesToTimeString(responseAppt.startTime);
-  if (responseAppt.endTime) responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
+  if (responseAppt.endTime)
+    responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
 
-  return sendApiResponse(true, `Appointment created successfully${whatsappWarning}`, responseAppt);
+  return sendApiResponse(
+    true,
+    `Appointment created successfully${whatsappWarning}`,
+    responseAppt,
+  );
 };
 
 export const getAllAppointments = async (
   organizationId: string,
+  requestingUser: RequestingUser,
   page: number,
   limit: number,
   doctor?: string,
@@ -214,7 +253,24 @@ export const getAllAppointments = async (
   const whereClause: any = { organizationId };
 
   if (status) whereClause.status = status;
-  if (doctor) whereClause.doctor = doctor;
+
+  const doctorScope = await resolveDoctorScope(organizationId, requestingUser);
+  if (doctorScope) {
+    if (doctor) {
+      if (!doctorScope.some((id) => id.toString() === doctor)) {
+        return sendResponse(true, "Appoinments found successfully", {
+          appointments: [],
+          pagination: { page, limit, totalCount: 0, totalPages: 0 },
+        });
+      }
+      whereClause.doctor = doctor;
+    } else {
+      whereClause.doctor = { $in: doctorScope };
+    }
+  } else if (doctor) {
+    whereClause.doctor = doctor;
+  }
+
   if (search) {
     whereClause.$or = [
       { firstName: { $regex: search, $options: "i" } },
@@ -226,7 +282,6 @@ export const getAllAppointments = async (
     ];
   }
 
-  //  Add date range filtering
   if (startDate && endDate) {
     whereClause.date = {
       $gte: startDate,
@@ -270,8 +325,14 @@ export const getAllAppointments = async (
             _id: appointment.enquiryId._id.toString(),
           }
         : null,
-      firstName: appointment.firstName || (appointment as any).patientName?.split(" ")[0] || "Unknown",
-      lastName: appointment.lastName || (appointment as any).patientName?.split(" ").slice(1).join(" ") || "",
+      firstName:
+        appointment.firstName ||
+        (appointment as any).patientName?.split(" ")[0] ||
+        "Unknown",
+      lastName:
+        appointment.lastName ||
+        (appointment as any).patientName?.split(" ").slice(1).join(" ") ||
+        "",
       patientPhone: appointment.patientPhone,
       patientEmail: appointment.patientEmail,
       isNewPatient: appointment.isNewPatient,
@@ -284,7 +345,9 @@ export const getAllAppointments = async (
       treatmentCategory: appointment.treatmentCategory,
       date: appointment.date,
       startTime: minutesToTimeString(appointment.startTime),
-      endTime: appointment.endTime ? minutesToTimeString(appointment.endTime) : undefined,
+      endTime: appointment.endTime
+        ? minutesToTimeString(appointment.endTime)
+        : undefined,
       status: appointment.status,
       notes: appointment.notes,
     };
@@ -319,10 +382,37 @@ export const updateAppointment = async (
     status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
     notes?: string;
   },
+  requestingUser?: RequestingUser,
 ) => {
+  // Access check: the existing appointment's doctor AND the (possibly changed)
+  // target doctor must both be within the requesting user's scope.
+  if (requestingUser) {
+    const existing = await Appointment.findOne({
+      _id: id,
+      organizationId,
+    }).select("doctor");
+    if (!existing) {
+      return sendApiResponse(false, "Appoinment not found");
+    }
+    const doctorScope = await resolveDoctorScope(
+      organizationId,
+      requestingUser,
+    );
+    if (doctorScope) {
+      const currentDoctorAllowed = doctorScope.some(
+        (sid) => sid.toString() === existing.doctor.toString(),
+      );
+      const targetDoctorAllowed = doctorScope.some(
+        (sid) => sid.toString() === data.doctor,
+      );
+      if (!currentDoctorAllowed || !targetDoctorAllowed) {
+        return sendApiResponse(false, "Appoinment not found");
+      }
+    }
+  }
+
   const formattedDate = new Date(`${data.date}T00:00:00Z`);
-  
-  // Handle startTime parsing if it is provided
+
   let startMinutes: number | undefined;
   if (data.startTime) {
     startMinutes = timeStringToMinutes(data.startTime);
@@ -332,14 +422,18 @@ export const updateAppointment = async (
     ...data,
     date: formattedDate,
   };
-  
+
   if (startMinutes !== undefined) {
     updatedData.startTime = startMinutes;
   }
 
-  const appoinment = await Appointment.findOneAndUpdate({ _id: id, organizationId }, updatedData, {
-    new: true,
-  });
+  const appoinment = await Appointment.findOneAndUpdate(
+    { _id: id, organizationId },
+    updatedData,
+    {
+      new: true,
+    },
+  );
 
   if (appoinment && appoinment.patientId) {
     const patientUpdate: any = {
@@ -351,9 +445,13 @@ export const updateAppointment = async (
       patientUpdate.email = data.patientEmail;
     }
     if (data.dateOfBirth !== undefined) {
-      patientUpdate.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
+      patientUpdate.dateOfBirth = data.dateOfBirth
+        ? new Date(data.dateOfBirth)
+        : null;
     }
-    await Patient.findByIdAndUpdate(appoinment.patientId, { $set: patientUpdate });
+    await Patient.findByIdAndUpdate(appoinment.patientId, {
+      $set: patientUpdate,
+    });
   }
 
   if (userId) {
@@ -363,32 +461,62 @@ export const updateAppointment = async (
       "UPDATED_APPOINTMENT",
       "Appointment",
       `Updated appointment for ${data.firstName} ${data.lastName || ""}`.trim(),
-      id
+      id,
     );
   }
-  
+
   const responseAppt: any = appoinment ? appoinment.toObject() : null;
   if (responseAppt) {
     responseAppt.startTime = minutesToTimeString(responseAppt.startTime);
-    if (responseAppt.endTime) responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
+    if (responseAppt.endTime)
+      responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
   }
 
   return sendApiResponse(true, "Appoinment updated successfully", responseAppt);
 };
 
 //delete appoinment
-export const deleteAppointment = async (organizationId: string, id: string, userId: string) => {
-  const appopintmentExists = await Appointment.findOne({ _id: id, organizationId });
+export const deleteAppointment = async (
+  organizationId: string,
+  id: string,
+  userId: string,
+  requestingUser?: RequestingUser,
+) => {
+  const appopintmentExists = await Appointment.findOne({
+    _id: id,
+    organizationId,
+  });
 
   if (!appopintmentExists) {
     return sendApiResponse(false, "Appoinment not found");
   }
-  const appoinment = await Appointment.findOneAndDelete({ _id: id, organizationId });
 
-  // Also remove from DoctorDaySchedule
+  if (requestingUser) {
+    const doctorScope = await resolveDoctorScope(
+      organizationId,
+      requestingUser,
+    );
+    if (doctorScope) {
+      const allowed = doctorScope.some(
+        (sid) => sid.toString() === appopintmentExists.doctor.toString(),
+      );
+      if (!allowed) {
+        return sendApiResponse(false, "Appoinment not found");
+      }
+    }
+  }
+
+  const appoinment = await Appointment.findOneAndDelete({
+    _id: id,
+    organizationId,
+  });
+
   await DoctorDaySchedule.updateOne(
-    { doctorId: appopintmentExists.doctor as any, date: appopintmentExists.date },
-    { $pull: { bookedIntervals: { appointmentId: id as any } } }
+    {
+      doctorId: appopintmentExists.doctor as any,
+      date: appopintmentExists.date,
+    },
+    { $pull: { bookedIntervals: { appointmentId: id as any } } },
   );
 
   if (userId) {
@@ -398,7 +526,7 @@ export const deleteAppointment = async (organizationId: string, id: string, user
       "DELETED_APPOINTMENT",
       "Appointment",
       `Deleted appointment for ${appopintmentExists.firstName} ${appopintmentExists.lastName || ""}`.trim(),
-      id
+      id,
     );
   }
 
@@ -409,7 +537,11 @@ export const deleteAppointment = async (organizationId: string, id: string, user
   return sendApiResponse(true, "Appoinment deleted successfully", responseAppt);
 };
 
-export const getAppointmentById = async (organizationId: string, id: string) => {
+export const getAppointmentById = async (
+  organizationId: string,
+  id: string,
+  requestingUser?: RequestingUser,
+) => {
   const appointment = await Appointment.findOne({ _id: id, organizationId })
     .populate(
       "doctor",
@@ -420,17 +552,41 @@ export const getAppointmentById = async (organizationId: string, id: string) => 
       select: "name description phone email",
     })
     .lean();
-    
+
   if (!appointment) {
     return sendResponse(false, "Appointment not found");
   }
-  
+
+  if (requestingUser) {
+    const doctorScope = await resolveDoctorScope(
+      organizationId,
+      requestingUser,
+    );
+    if (doctorScope) {
+      const appointmentDoctorId = (appointment.doctor as any)?._id?.toString();
+      const allowed = doctorScope.some(
+        (id) => id.toString() === appointmentDoctorId,
+      );
+      if (!allowed) {
+        return sendResponse(false, "Appointment not found");
+      }
+    }
+  }
+
   return sendResponse(true, "Appoinment found successfully", {
     ...appointment,
     startTime: minutesToTimeString(appointment.startTime),
-    endTime: appointment.endTime ? minutesToTimeString(appointment.endTime) : undefined,
-    firstName: appointment?.firstName || (appointment as any)?.patientName?.split(" ")[0] || "Unknown",
-    lastName: appointment?.lastName || (appointment as any)?.patientName?.split(" ").slice(1).join(" ") || "",
+    endTime: appointment.endTime
+      ? minutesToTimeString(appointment.endTime)
+      : undefined,
+    firstName:
+      appointment?.firstName ||
+      (appointment as any)?.patientName?.split(" ")[0] ||
+      "Unknown",
+    lastName:
+      appointment?.lastName ||
+      (appointment as any)?.patientName?.split(" ").slice(1).join(" ") ||
+      "",
     _id: appointment?._id.toString(),
     doctor: appointment?.doctor
       ? {
@@ -448,31 +604,51 @@ export const getAppointmentById = async (organizationId: string, id: string) => 
 };
 
 // get free intervals logic
-export const getBookedSlots = async (organizationId: string, date: string, doctorId: string, categoryId?: string) => {
+export const getBookedSlots = async (
+  organizationId: string,
+  date: string,
+  doctorId: string,
+  categoryId?: string,
+  requestingUser?: RequestingUser,
+) => {
   if (!date || !doctorId) {
     return sendApiResponse(false, "Date and doctor required", []);
+  }
+
+  if (requestingUser) {
+    const doctorScope = await resolveDoctorScope(
+      organizationId,
+      requestingUser,
+    );
+    if (doctorScope && !doctorScope.some((id) => id.toString() === doctorId)) {
+      return sendApiResponse(
+        false,
+        "You are not permitted to view this doctor's schedule.",
+        [],
+      );
+    }
   }
 
   const start = new Date(`${date}T00:00:00Z`);
   const end = new Date(`${date}T23:59:59Z`);
 
-  // 1. Fetch Doctor and Org to get working hours and breaks
   const doctor = await Doctor.findOne({ _id: doctorId, organizationId }).lean();
   const org = await Organization.findById(organizationId).lean();
-  
+
   if (!doctor) {
     return sendApiResponse(false, "Doctor not found", []);
   }
 
-  let workingHours = doctor.workingHours && doctor.workingHours.length > 0 
-    ? doctor.workingHours 
-    : org?.defaultWorkingHours || [{ start: 600, end: 1080 }]; // default 10:00 - 18:00
-    
-  let breakTime = doctor.breakTime && doctor.breakTime.length > 0
-    ? doctor.breakTime
-    : org?.defaultBreakTime || [{ start: 780, end: 840 }]; // default 13:00 - 14:00
+  let workingHours =
+    doctor.workingHours && doctor.workingHours.length > 0
+      ? doctor.workingHours
+      : org?.defaultWorkingHours || [{ start: 600, end: 1080 }];
 
-  // 2. Fetch Doctor Leaves
+  let breakTime =
+    doctor.breakTime && doctor.breakTime.length > 0
+      ? doctor.breakTime
+      : org?.defaultBreakTime || [{ start: 780, end: 840 }];
+
   const leaves = await DoctorLeave.find({
     organizationId,
     doctor: doctorId,
@@ -490,12 +666,11 @@ export const getBookedSlots = async (organizationId: string, date: string, docto
       if (leave.startTime && leave.endTime) {
         blockingIntervals.push({
           start: timeStringToMinutes(leave.startTime),
-          end: timeStringToMinutes(leave.endTime)
+          end: timeStringToMinutes(leave.endTime),
         });
       }
     }
     if (leave.type === "PARTIAL_SLOTS" && leave.slots) {
-      // Legacy support: each string in partial slots blocks 20 mins
       leave.slots.forEach((s: string) => {
         const startMin = timeStringToMinutes(s);
         blockingIntervals.push({ start: startMin, end: startMin + 20 });
@@ -503,62 +678,58 @@ export const getBookedSlots = async (organizationId: string, date: string, docto
     }
   }
 
-  // 3. Fetch Booked Appointments
-  const schedule = await DoctorDaySchedule.findOne({ doctorId, date: start }).lean();
+  const schedule = await DoctorDaySchedule.findOne({
+    doctorId,
+    date: start,
+  }).lean();
   if (schedule && schedule.bookedIntervals) {
     for (const booked of schedule.bookedIntervals) {
       blockingIntervals.push({ start: booked.start, end: booked.end });
     }
   } else {
-    // Fallback if schedule doc isn't created yet for older appointments
     const appointments = await Appointment.find({
       organizationId,
       doctor: doctorId,
       date: { $gte: start, $lte: end },
     }).lean();
     for (const appt of appointments) {
-      blockingIntervals.push({ 
-        start: appt.startTime, 
-        end: appt.endTime || (appt.startTime + 20) 
+      blockingIntervals.push({
+        start: appt.startTime,
+        end: appt.endTime || appt.startTime + 20,
       });
     }
   }
 
-  // 4. Subtract blocking intervals from working hours
   const freeIntervals = subtractIntervals(workingHours, blockingIntervals);
 
-  // 5. Chunk into slots based on duration
-  let durationMinutes = 20; // default
+  let durationMinutes = 20;
   if (categoryId) {
-    // we can lookup treatment category
-    const cat = await TreatmentCategory.findOne({ name: categoryId, organizationId });
+    const cat = await TreatmentCategory.findOne({
+      name: categoryId,
+      organizationId,
+    });
     if (cat && cat.durationMinutes) {
       durationMinutes = cat.durationMinutes;
     }
   }
-  
+
   const chunks = chunkIntoSlots(freeIntervals, durationMinutes);
 
-  // Map to format that frontend expects
-  const availableSlots = chunks.map(chunk => ({
+  const availableSlots = chunks.map((chunk) => ({
     time: minutesToTimeString(chunk.start),
-    reason: "AVAILABLE"
+    reason: "AVAILABLE",
   }));
 
-  // But wait! The frontend currently expects an array of all slots with reason = BOOKED or LEAVE.
-  // Or if we return only AVAILABLE, we need to check if frontend understands it.
-  // Wait, let's just return the available slots. The previous return was:
-  // Array.from(slotMap.entries()).map(([time, reason]) => ({ time, reason }))
-  // where only blocked slots were returned! If we return only available slots, the frontend might break if it expects all slots and checks `reason === 'BOOKED'`.
-  // Let's actually just return what's available under a different structure or just return the booked ones?
-  // Let's format the return to be backward compatible if needed. Wait, if it's dynamic, there is no fixed grid.
-  // The frontend component that displays slots will iterate over the API response.
-  
   return sendApiResponse(true, "Available slots", availableSlots);
 };
 
 //get month wise report
-export const getMonthWiseReport = async (organizationId: string, year?: string, doctorId?: string) => {
+export const getMonthWiseReport = async (
+  organizationId: string,
+  year?: string,
+  doctorId?: string,
+  requestingUser?: RequestingUser,
+) => {
   const currentYear = year ? Number(year) : new Date().getFullYear();
 
   const startDate = new Date(currentYear, 0, 1);
@@ -569,7 +740,24 @@ export const getMonthWiseReport = async (organizationId: string, year?: string, 
     date: { $gte: startDate, $lte: endDate },
   };
 
-  if (doctorId) {
+  if (requestingUser) {
+    const doctorScope = await resolveDoctorScope(
+      organizationId,
+      requestingUser,
+    );
+    if (doctorScope) {
+      if (doctorId) {
+        if (!doctorScope.some((id) => id.toString() === doctorId)) {
+          return sendResponse(true, "Report fetched successfully", []);
+        }
+        matchCondition.doctor = new mongoose.Types.ObjectId(doctorId);
+      } else {
+        matchCondition.doctor = { $in: doctorScope };
+      }
+    } else if (doctorId) {
+      matchCondition.doctor = new mongoose.Types.ObjectId(doctorId);
+    }
+  } else if (doctorId) {
     matchCondition.doctor = new mongoose.Types.ObjectId(doctorId);
   }
 

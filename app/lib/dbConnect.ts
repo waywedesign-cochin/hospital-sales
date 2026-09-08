@@ -10,6 +10,7 @@ if (!MONGODB_URL) throw new Error("MongoDB URL not set");
 
 declare global {
   var mongoose: {
+    Types: any;
     conn: mongoose.Connection | null;
     promise: Promise<mongoose.Connection> | null;
   };
