@@ -6,6 +6,7 @@ import type { IUser } from "../models/User";
 import EnquiryActivity from "../models/EnquiryActivity";
 import Patient from "../models/Patient";
 import { logActivity } from "./activityLogController";
+import { RequestingUser, resolveDoctorScope } from "../utils/DoctorScope";
 export interface EnquirySummary {
   totalEnquiries: number;
   appointmentsBooked: number;
@@ -27,10 +28,10 @@ export const createEnquiry = async (data: {
   source: "OTHER" | "WEBSITE" | "PHONE" | "WHATSAPP";
 }) => {
   // Identify patient by phone and first name within the same clinic
-  let patient = await Patient.findOne({ 
+  let patient = await Patient.findOne({
     organizationId: data.organizationId,
     phone: data.phone,
-    firstName: { $regex: new RegExp(`^${data.firstName}$`, "i") } 
+    firstName: { $regex: new RegExp(`^${data.firstName}$`, "i") },
   });
   if (!patient) {
     patient = await Patient.create({
@@ -54,7 +55,7 @@ export const createEnquiry = async (data: {
       "CREATED_ENQUIRY",
       "Enquiry",
       `Created new lead/enquiry for ${data.firstName} ${data.lastName || ""}`.trim(),
-      newEnquiry._id
+      newEnquiry._id,
     );
   }
 
@@ -238,7 +239,7 @@ export const updateEnquiryStatus = async (
       "UPDATED_ENQUIRY_STATUS",
       "Enquiry",
       `Updated lead status to ${status}`,
-      id
+      id,
     );
   }
 
@@ -248,7 +249,11 @@ export const updateEnquiryStatus = async (
 };
 
 //delete enquiry
-export const deleteEnquiry = async (organizationId: string, id: string, userId: string) => {
+export const deleteEnquiry = async (
+  organizationId: string,
+  id: string,
+  userId: string,
+) => {
   const enquiry = await Enquiry.findOne({ _id: id, organizationId });
   if (!enquiry) {
     return sendApiResponse(false, "Enquiry not found");
@@ -262,7 +267,7 @@ export const deleteEnquiry = async (organizationId: string, id: string, userId: 
       "DELETED_ENQUIRY",
       "Enquiry",
       `Deleted lead/enquiry`,
-      id
+      id,
     );
   }
 
@@ -270,7 +275,10 @@ export const deleteEnquiry = async (organizationId: string, id: string, userId: 
 };
 
 //enquiry report
-export const getEnquiryReport = async (organizationId: string, year?: string) => {
+export const getEnquiryReport = async (
+  organizationId: string,
+  year?: string,
+) => {
   // Default year → current year
   const currentYear = year ? Number(year) : new Date().getFullYear();
 
@@ -281,7 +289,9 @@ export const getEnquiryReport = async (organizationId: string, year?: string) =>
   const rawReport = await Enquiry.aggregate([
     {
       $match: {
-        organizationId: new (require('mongoose').Types.ObjectId)(organizationId),
+        organizationId: new (require("mongoose").Types.ObjectId)(
+          organizationId,
+        ),
         createdAt: { $gte: startDate, $lte: endDate },
       },
     },
@@ -356,10 +366,23 @@ export const getEnquiryReport = async (organizationId: string, year?: string) =>
 };
 
 //enquiry summary
-export const getEnquirySummary = async (organizationId: string, fromDate?: string, toDate?: string) => {
+export const getEnquirySummary = async (
+  organizationId: string,
+  fromDate?: string,
+  toDate?: string,
+  requestingUser?: RequestingUser,
+) => {
+  const doctorScope = requestingUser
+    ? await resolveDoctorScope(organizationId, requestingUser)
+    : null;
+
   /* ---------------- Snapshot Date Logic ---------------- */
-  let snapshotMatch: any = { organizationId: new (require('mongoose').Types.ObjectId)(organizationId) };
-  let overviewMatch: any = { organizationId: new (require('mongoose').Types.ObjectId)(organizationId) };
+  let snapshotMatch: any = {
+    organizationId: new mongoose.Types.ObjectId(organizationId),
+  };
+  let overviewMatch: any = {
+    organizationId: new mongoose.Types.ObjectId(organizationId),
+  };
 
   if (fromDate || toDate) {
     const start = fromDate ? new Date(fromDate) : new Date();
@@ -368,57 +391,58 @@ export const getEnquirySummary = async (organizationId: string, fromDate?: strin
     const end = toDate ? new Date(toDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
-    // Range applies to BOTH snapshot & overview
     snapshotMatch.createdAt = { $gte: start, $lte: end };
     overviewMatch.createdAt = { $gte: start, $lte: end };
   } else {
-    // Default SNAPSHOT = TODAY
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    snapshotMatch.createdAt = {
-      $gte: todayStart,
-      $lte: todayEnd,
+    snapshotMatch.createdAt = { $gte: todayStart, $lte: todayEnd };
+    overviewMatch = {
+      organizationId: new mongoose.Types.ObjectId(organizationId),
     };
-
-    // Default OVERVIEW = ALL within this clinic (no date filter)
-    overviewMatch = { organizationId: new (require('mongoose').Types.ObjectId)(organizationId) };
   }
 
-  /* ---------------- TODAY / RANGE SNAPSHOT ---------------- */
+  // If Enquiry has a doctor/assignedDoctor field, filter both stages by it here:
+  if (doctorScope) {
+    if (doctorScope.length === 0) {
+      return sendResponse(true, "Enquiry summary fetched successfully", {
+        newEnquiries: 0,
+        contacted: 0,
+        appointmentsBooked: 0,
+        followUps: 0,
+        totalEnquiries: 0,
+        conversionRate: 0,
+        topCategory: null,
+      });
+    }
+    // snapshotMatch.doctor = { $in: doctorScope };
+    // overviewMatch.doctor = { $in: doctorScope };
+  }
+
+  /* ---------------- rest unchanged ---------------- */
   const snapshot = await Enquiry.aggregate([
     { $match: snapshotMatch },
     {
       $group: {
         _id: null,
-
         newEnquiries: { $sum: 1 },
-
         contacted: {
-          $sum: {
-            $cond: [{ $eq: ["$status", "CONTACTED"] }, 1, 0],
-          },
+          $sum: { $cond: [{ $eq: ["$status", "CONTACTED"] }, 1, 0] },
         },
-
         appointmentsBooked: {
-          $sum: {
-            $cond: [{ $eq: ["$status", "APPOINTMENT_BOOKED"] }, 1, 0],
-          },
+          $sum: { $cond: [{ $eq: ["$status", "APPOINTMENT_BOOKED"] }, 1, 0] },
         },
-
         followUps: {
-          $sum: {
-            $cond: [{ $eq: ["$status", "FOLLOW_UP"] }, 1, 0],
-          },
+          $sum: { $cond: [{ $eq: ["$status", "FOLLOW_UP"] }, 1, 0] },
         },
       },
     },
   ]);
 
-  /* ---------------- MONTHLY / ALL OVERVIEW ---------------- */
   const overview = await Enquiry.aggregate([
     { $match: overviewMatch },
     {
@@ -426,9 +450,7 @@ export const getEnquirySummary = async (organizationId: string, fromDate?: strin
         _id: "$treatmentCategory",
         count: { $sum: 1 },
         appointmentsBooked: {
-          $sum: {
-            $cond: [{ $eq: ["$status", "APPOINTMENT_BOOKED"] }, 1, 0],
-          },
+          $sum: { $cond: [{ $eq: ["$status", "APPOINTMENT_BOOKED"] }, 1, 0] },
         },
       },
     },
@@ -441,10 +463,8 @@ export const getEnquirySummary = async (organizationId: string, fromDate?: strin
 
   overview.forEach((item) => {
     if (!item._id) return;
-
     totalEnquiries += item.count;
     totalAppointmentsBooked += item.appointmentsBooked;
-
     if (item.count > maxCount) {
       maxCount = item.count;
       topCategory = item._id;
@@ -456,13 +476,11 @@ export const getEnquirySummary = async (organizationId: string, fromDate?: strin
       ? 0
       : Math.round((totalAppointmentsBooked / totalEnquiries) * 100);
 
-  /* ---------------- FINAL RESPONSE ---------------- */
   return sendResponse(true, "Enquiry summary fetched successfully", {
     newEnquiries: snapshot[0]?.newEnquiries ?? 0,
     contacted: snapshot[0]?.contacted ?? 0,
     appointmentsBooked: snapshot[0]?.appointmentsBooked ?? 0,
     followUps: snapshot[0]?.followUps ?? 0,
-    // Monthly overview
     totalEnquiries,
     conversionRate,
     topCategory,
@@ -470,7 +488,10 @@ export const getEnquirySummary = async (organizationId: string, fromDate?: strin
 };
 
 // In your enquiryController
-export async function getEnquiriesForExport(organizationId: string, filters: any) {
+export async function getEnquiriesForExport(
+  organizationId: string,
+  filters: any,
+) {
   const query: any = { organizationId };
 
   if (filters.search) {

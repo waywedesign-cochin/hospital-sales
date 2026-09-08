@@ -7,6 +7,7 @@ import {
 } from "../controllers/enquiryController";
 import { dbConnect } from "../lib/dbConnect";
 import { requireAuth } from "../lib/auth";
+import { buildRequestingUser } from "../utils/buildRequestingUser";
 
 export const getEnquiriesAction = async (
   page: number,
@@ -16,7 +17,7 @@ export const getEnquiriesAction = async (
   status?: string,
   source?: string,
   fromDate?: string,
-  toDate?: string
+  toDate?: string,
 ) => {
   await dbConnect();
   const user = await requireAuth();
@@ -29,7 +30,7 @@ export const getEnquiriesAction = async (
     status,
     source,
     fromDate,
-    toDate
+    toDate,
   );
 };
 
@@ -41,9 +42,15 @@ export const getEnquiryReportAction = async (year?: string) => {
 
 export const getEnquirySummaryAction = async (
   fromDate?: string,
-  toDate?: string
+  toDate?: string,
 ) => {
   await dbConnect();
   const user = await requireAuth();
-  return await getEnquirySummary(user.organizationId, fromDate, toDate);
+  const requestingUser = await buildRequestingUser(user);
+  return await getEnquirySummary(
+    user.organizationId,
+    fromDate,
+    toDate,
+    requestingUser,
+  );
 };

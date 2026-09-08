@@ -78,6 +78,18 @@ export default function AppointmentsPage({
       ? doctors.find((d) => d.email === user.email)
       : null;
 
+  // If this STAFF user is scoped to specific doctors, only offer those in the
+  // filter — the backend already enforces this, this just avoids showing
+  // options that would silently return nothing.
+  const staffAssignedDoctorIds: string[] | null =
+    user?.role === "STAFF" && (user as any)?.assignedDoctors?.length
+      ? (user as any).assignedDoctors
+      : null;
+
+  const visibleDoctors = staffAssignedDoctorIds
+    ? doctors.filter((d) => staffAssignedDoctorIds.includes(d._id))
+    : doctors;
+
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
@@ -280,9 +292,11 @@ export default function AppointmentsPage({
                 </SelectTrigger>
                 <SelectContent>
                   {!logginedDoctor && (
-                    <SelectItem value="ALL">All Doctors</SelectItem>
+                    <SelectItem value="ALL">
+                      {staffAssignedDoctorIds ? "All My Doctors" : "All Doctors"}
+                    </SelectItem>
                   )}
-                  {doctors.map((d) => (
+                  {visibleDoctors.map((d) => (
                     <SelectItem key={d._id} value={d._id}>
                       {d.firstName} {d.lastName}
                     </SelectItem>

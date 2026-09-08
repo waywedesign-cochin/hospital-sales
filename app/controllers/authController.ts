@@ -288,6 +288,7 @@ export const signIn = async (data: {
       email: user.email,
       role: user.role,
       organizationId: user.organizationId?.toString() || null,
+      assignedDoctors: user.assignedDoctors?.map((id) => id.toString()) || [],
     });
   } catch (error) {
     console.error("Signin Error:", error);

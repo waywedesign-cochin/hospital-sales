@@ -11,6 +11,7 @@ export type BookingStatus =
   | "NO_SHOW";
 
 export interface User {
+  assignedDoctors: any;
   _id: string;
   clinicId?: string;
   firstName: string;

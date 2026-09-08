@@ -83,7 +83,7 @@ export const createAuthStore = () =>
           throw new Error(response.message);
         }
 
-        const user = response.data as User;
+        const user = response.data as unknown as User;
         set({
           user: user,
           isLoading: false,
