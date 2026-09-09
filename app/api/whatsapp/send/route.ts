@@ -57,7 +57,10 @@ async function postHandler(req: NextRequest, user: AuthUser) {
         recipientPhone: recipient.phone,
         templateName: templateName || undefined,
         templateParams: templateName ? (templateParams || dynamicParams) : undefined,
-        messageContent: !templateName ? messageContent : undefined,
+        // Kept even for template sends so the worker can log the actual composed
+        // text instead of just the template's name (see sendWhatsAppTemplate's
+        // displayContent param).
+        messageContent: messageContent || undefined,
         messageType: messageType || "CAMPAIGN",
         status: "PENDING",
         batchId
@@ -88,4 +91,4 @@ async function postHandler(req: NextRequest, user: AuthUser) {
   }
 }
 
-export const POST = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST"])(postHandler as any);
+export const POST = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST", "STAFF", "NURSE"])(postHandler as any);

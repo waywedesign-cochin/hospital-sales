@@ -14,16 +14,11 @@ const page = async (props: { searchParams: Promise<any> }) => {
   const month = searchParams.month || "";
   const year = searchParams.year || "";
 
-  //leaves
-  const response = await getDoctorsLeavesAction(
-    search,
-    page,
-    limit,
-    type,
-    doctor,
-    month,
-    year
-  );
+  //leaves + doctors
+  const [response, doctorResponse] = await Promise.all([
+    getDoctorsLeavesAction(search, page, limit, type, doctor, month, year),
+    getDoctorsAction(1, 0),
+  ]);
   const leaves = response.data?.leaves ?? [];
   const pagination = {
     page: response?.data?.pagination?.page ?? 1,
@@ -31,9 +26,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
     totalCount: response?.data?.pagination?.totalCount ?? 0,
     totalPages: response?.data?.pagination?.totalPages ?? 0,
   };
-
-  //doctors
-  const doctorResponse = await getDoctorsAction(1, 0);
   const doctors = (doctorResponse?.data?.doctors ?? []).map((doctor: any) => ({
     name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
     phone: doctor.contactNumber,

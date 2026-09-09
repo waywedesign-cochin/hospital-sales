@@ -15,22 +15,31 @@ import {
   Clock,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
-import gsap from "gsap";
 
 export default function LandingPage() {
   const heroRef = useRef(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(".animate-up", {
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power3.out",
-      });
-    }, heroRef);
-    return () => ctx.revert();
+    let ctx: { revert: () => void } | undefined;
+    let cancelled = false;
+
+    import("gsap").then(({ default: gsap }) => {
+      if (cancelled) return;
+      ctx = gsap.context(() => {
+        gsap.from(".animate-up", {
+          y: 40,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.2,
+          ease: "power3.out",
+        });
+      }, heroRef);
+    });
+
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
   }, []);
 
   return (

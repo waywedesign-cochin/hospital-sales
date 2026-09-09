@@ -11,7 +11,10 @@ const page = async (props: { searchParams: Promise<any> }) => {
   if (!id) {
     return <p className="text-red-500">Invalid or missing doctor ID.</p>;
   }
-  const response = await getDoctorsAction(1, 0);
+  const [response, leaveResponse] = await Promise.all([
+    getDoctorsAction(1, 0),
+    getDoctorsLeavesAction(id),
+  ]);
   const doctors = (response?.data?.doctors ?? []).map((doctor: any) => ({
     name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
     phone: doctor.contactNumber,
@@ -19,7 +22,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
     consultationFee: doctor.consultationFee || 0,
     ...doctor,
   }));
-  const leaveResponse = await getDoctorsLeavesAction(id);
   const leave = leaveResponse?.data?.leaves[0] ?? {};
   return <EditLeaveForm doctors={doctors} leaveId={id} initialData={leave} />;
 };

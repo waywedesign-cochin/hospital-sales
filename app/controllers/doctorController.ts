@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Doctor from "../models/Doctor";
 import User from "../models/User";
 import { sendApiResponse } from "../utils/nextResponseHandler";
@@ -25,6 +26,7 @@ export const addDoctor = async (data: {
   password: string;
 }) => {
   const {
+    userId: adminUserId, // Extract the admin's ID for logging
     prefix,
     firstName,
     lastName,
@@ -38,9 +40,10 @@ export const addDoctor = async (data: {
     registrationNumber,
     avatar,
     password,
+    organizationId,
   } = data;
 
-  const doctorExists = await Doctor.findOne({ email, organizationId: data.organizationId });
+  const doctorExists = await Doctor.findOne({ email, organizationId });
   if (doctorExists) {
     return sendApiResponse(false, "Doctor already exists in this clinic");
   }
@@ -48,14 +51,16 @@ export const addDoctor = async (data: {
   // Check if User email is already taken before creating the Doctor profile
   if (password && email) {
     const lowercasedEmail = email.toLowerCase();
-    const userExists = await User.findOne({ email: lowercasedEmail, organizationId: data.organizationId });
+    const userExists = await User.findOne({ email: lowercasedEmail, organizationId });
     if (userExists) {
       return sendApiResponse(false, "User email is already taken in this clinic");
     }
   }
 
+  // Exclude adminUserId when saving the doctor profile data
+  const { userId, ...doctorData } = data;
   const newDoctor = await Doctor.create({
-    ...data,
+    ...doctorData,
     email: email.toLowerCase(),
   });
   
@@ -66,20 +71,24 @@ export const addDoctor = async (data: {
   if (password && email) {
     const lowercasedEmail = email.toLowerCase();
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({
-      organizationId: data.organizationId,
+    const newUser = await User.create({
+      organizationId,
       firstName,
       lastName,
       email: lowercasedEmail,
       password: hashedPassword,
       role: "DOCTOR",
     });
+    
+    // Link the new user's ID to the doctor profile
+    newDoctor.userId = newUser._id as unknown as mongoose.Types.ObjectId;
+    await newDoctor.save();
   }
 
-  if (data.userId) {
+  if (adminUserId) {
     await logActivity(
-      data.organizationId,
-      data.userId,
+      organizationId,
+      adminUserId,
       "ADDED_DOCTOR",
       "Doctor",
       `Added a new doctor: ${firstName} ${lastName || ""}`.trim(),

@@ -39,6 +39,7 @@ interface PatientChatPanelProps {
   batchId?: string | null;
   groupKey?: string | null;
   totalCount?: number;
+  readOnly?: boolean;
 }
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
@@ -93,7 +94,7 @@ function RecipientStatusPill({ status }: { status: string }) {
 
 /* ─── component ───────────────────────────────────────────────────────────── */
 export default function PatientChatPanel({
-  isOpen, onClose, patientId, patientName, phone, batchId, groupKey, totalCount,
+  isOpen, onClose, patientId, patientName, phone, batchId, groupKey, totalCount, readOnly = false,
 }: PatientChatPanelProps) {
   const [messages, setMessages]   = useState<ChatMessage[]>([]);
   const [mode,     setMode]       = useState<"individual" | "group">("individual");
@@ -342,8 +343,8 @@ export default function PatientChatPanel({
           <div ref={bottomRef} />
         </div>
 
-        {/* ── input (individual only) ── */}
-        {!isGroup && (
+        {/* ── input (individual only, hidden in read-only mode) ── */}
+        {!isGroup && !readOnly && (
           <>
             <div className="shrink-0 px-3 py-3 bg-[#f0f2f5] border-t border-slate-200 flex items-end gap-2">
               <Textarea

@@ -1,5 +1,9 @@
+import dynamic from "next/dynamic";
 import { getPlatformBillingSummaryAction } from "@/app/actions/subscriptionActions";
-import PlatformBillingDashboard from "@/components/dashboard/PlatformAdmin/PlatformBillingDashboard";
+
+const PlatformBillingDashboard = dynamic(
+  () => import("@/components/dashboard/PlatformAdmin/PlatformBillingDashboard")
+);
 
 export default async function PlatformBillingPage() {
   const res = await getPlatformBillingSummaryAction();

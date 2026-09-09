@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Enquiry from "../models/Enquiry";
 import { sendApiResponse } from "../utils/nextResponseHandler";
 import { sendResponse } from "../utils/responseHandler";

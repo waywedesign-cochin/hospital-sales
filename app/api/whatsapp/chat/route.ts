@@ -77,4 +77,4 @@ async function getHandler(req: NextRequest, user: AuthUser) {
   }
 }
 
-export const GET = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST"])(getHandler as any);
+export const GET = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST", "STAFF", "NURSE"])(getHandler as any);

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/app/lib/dbConnect";
 import MessageLog from "@/app/models/MessageLog";
+import User from "@/app/models/User";
+import Appointment from "@/app/models/Appointment";
 import { withAuth, AuthUser } from "@/app/middlewares/withAuth";
+import { resolveDoctorScope, RequestingUser } from "@/app/utils/DoctorScope";
 import mongoose from "mongoose";
 
 async function getHandler(req: NextRequest, user: AuthUser) {
@@ -17,58 +20,71 @@ async function getHandler(req: NextRequest, user: AuthUser) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const page  = parseInt(searchParams.get("page")  || "1");
 
+    let requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
+    if (user.role === "STAFF") {
+      const userDoc = await User.findById(user._id).select("assignedDoctors");
+      requestingUser.assignedDoctors = userDoc?.assignedDoctors?.map((id: any) => id.toString()) || [];
+    }
+
+    const doctorScope = await resolveDoctorScope(user.organizationId, requestingUser);
+    
+    if (doctorScope && doctorScope.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          logs: [],
+          pagination: { totalCount: 0, page, limit, totalPages: 0 },
+        },
+      });
+    }
+
+    const matchStage: any = { organizationId: orgId };
+
+    if (doctorScope) {
+      const patientIds = await Appointment.distinct("patientId", {
+        organizationId: user.organizationId,
+        doctor: { $in: doctorScope },
+      });
+      matchStage.patientId = { $in: patientIds };
+    }
+
     /**
-     * Grouping strategy:
-     *  1. If a message has a batchId  → group by batchId  (exact campaign)
-     *  2. If no batchId               → fuzzy-group by (minute-bucket + messageType + content)
-     *     Messages sent within the same minute with the same template/content are
-     *     assumed to be from the same manual or automated broadcast.
+     * Grouping strategy: one row per patient (or per phone, for legacy logs
+     * with no patientId), like a conversations inbox — not one row per send
+     * event. Sorting newest-first before $group lets $first pull each
+     * patient's most recent message for the row; totalMessages/failedCount
+     * are summed across their entire history, not just this one send.
      */
     const pipeline: any[] = [
-      { $match: { organizationId: orgId } },
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },
       {
         $addFields: {
-          // minute-level bucket: "2026-09-08T17:10"
-          minuteBucket: {
-            $dateToString: {
-              format: "%Y-%m-%dT%H:%M",
-              date: { $ifNull: ["$sentAt", "$createdAt"] },
-            },
-          },
-        },
-      },
-      {
-        $addFields: {
-          // groupKey = batchId if present, else minuteBucket + messageType + content
-          groupKey: {
+          conversationKey: {
             $cond: {
-              if: { $and: [{ $ne: ["$batchId", null] }, { $ne: ["$batchId", ""] }, { $gt: ["$batchId", null] }] },
-              then: "$batchId",
-              else: { $concat: ["$minuteBucket", "|", "$messageType", "|", "$content"] },
+              if: { $ne: ["$patientId", null] },
+              then: { $concat: ["patient:", { $toString: "$patientId" }] },
+              else: { $concat: ["phone:", "$recipientPhone"] },
             },
           },
         },
       },
       {
         $group: {
-          _id:         "$groupKey",
-          batchId:     { $first: "$batchId" },
-          groupKey:    { $first: "$groupKey" },
-          createdAt:   { $max: "$createdAt" },
-          sentAt:      { $max: "$sentAt" },
-          messageType: { $first: "$messageType" },
-          content:     { $first: "$content" },
-          totalCount:  { $sum: 1 },
-          failedCount: { $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] } },
-          sentCount:   { $sum: { $cond: [{ $in: ["$status", ["SENT", "DELIVERED", "READ"]] }, 1, 0] } },
-          allPatientIds:   { $push: "$patientId" },
-          firstPatientId:      { $first: "$patientId" },
-          firstRecipientPhone: { $first: "$recipientPhone" },
-          firstErrorDetails:   { $first: "$errorDetails" },
-          firstStatus:         { $first: "$status" },
+          _id:              "$conversationKey",
+          patientId:        { $first: "$patientId" },
+          recipientPhone:   { $first: "$recipientPhone" },
+          lastMessageType:  { $first: "$messageType" },
+          lastContent:      { $first: "$content" },
+          lastStatus:       { $first: "$status" },
+          lastErrorDetails: { $first: "$errorDetails" },
+          lastSentAt:       { $first: { $ifNull: ["$sentAt", "$createdAt"] } },
+          lastCreatedAt:    { $first: "$createdAt" },
+          totalMessages:    { $sum: 1 },
+          failedCount:      { $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] } },
         },
       },
-      { $sort: { sentAt: -1, createdAt: -1 } },
+      { $sort: { lastSentAt: -1, lastCreatedAt: -1 } },
       {
         $facet: {
           metadata: [{ $count: "total" }],
@@ -78,7 +94,7 @@ async function getHandler(req: NextRequest, user: AuthUser) {
             {
               $lookup: {
                 from: "patients",
-                localField: "firstPatientId",
+                localField: "patientId",
                 foreignField: "_id",
                 as: "patientDetails",
               },
@@ -108,4 +124,4 @@ async function getHandler(req: NextRequest, user: AuthUser) {
   }
 }
 
-export const GET = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST"])(getHandler as any);
+export const GET = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST", "STAFF", "NURSE"])(getHandler as any);

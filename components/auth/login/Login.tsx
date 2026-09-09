@@ -176,7 +176,7 @@ const AuthForm = () => {
               </span>
             </div>
 
-            <div className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <Label className="block text-sm font-semibold text-slate-300 mb-2 ml-1">
                   Email Address
@@ -271,7 +271,7 @@ const AuthForm = () => {
               )}
 
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={loading}
                 className="w-full mt-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-full shadow-[0_0_30px_rgba(79,70,229,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
@@ -309,7 +309,7 @@ const AuthForm = () => {
                   </span>
                 )}
               </button>
-            </div>
+            </form>
 
             <div className="mt-8 pt-6 border-t border-white/10">
               <p className="text-center text-sm text-slate-400 font-medium">

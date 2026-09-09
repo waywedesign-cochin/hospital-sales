@@ -18,7 +18,10 @@ const page = async (props: { searchParams: Promise<any> }) => {
   };
   const specialization = searchParams.specialization || "";
 
-  const response = await getDoctorsAction(1, 0, specialization);
+  const [response, catRes] = await Promise.all([
+    getDoctorsAction(1, 0, specialization),
+    getTreatmentCategoriesAction(),
+  ]);
   const doctors = (response?.data?.doctors ?? []).map((doctor: any) => ({
     name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
     phone: doctor.contactNumber,
@@ -27,7 +30,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
     ...doctor,
   }));
 
-  const catRes = await getTreatmentCategoriesAction();
   const categories = (catRes?.data || []).map((c: any) => c.name);
 
   return <AppointmentForm doctors={doctors} date={date} prefill={prefillData} initialCategories={categories} />;

@@ -12,10 +12,11 @@ export default async function Page(props: { searchParams: Promise<any> }) {
     return <p className="text-red-500">Invalid or missing doctor ID.</p>;
   }
 
-  const response = await getDoctorByIdAction(id);
+  const [response, catRes] = await Promise.all([
+    getDoctorByIdAction(id),
+    getTreatmentCategoriesAction(),
+  ]);
   const doctor = response.data ?? {};
-
-  const catRes = await getTreatmentCategoriesAction();
   const categories = (catRes?.data || []).map((c: any) => c.name);
 
   return (

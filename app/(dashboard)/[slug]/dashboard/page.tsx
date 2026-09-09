@@ -18,16 +18,33 @@ const page = async (props: { searchParams: Promise<any> }) => {
   const currentYear = new Date().getFullYear().toString();
   const year = searchParams.year || "";
   const doctorId = searchParams.doctor || "";
+  const todaysDate = new Date().toISOString().split("T")[0];
+  const quickOverviewRange = searchParams.quickOverviewRange || "daily";
+
+  const [
+    response,
+    enqResponse,
+    res,
+    summaryRes,
+    docSummaryRes,
+    quickOverviewRes,
+    setupStatusRes,
+  ] = await Promise.all([
+    getMonthWiseReportAction(year, doctorId),
+    getEnquiryReportAction(year),
+    getDoctorsAction(1, 0),
+    getDashboardSummaryAction(year),
+    getDoctorsAppointmentsSummaryAction(year??currentYear),
+    getQuickOverviewSummaryAction(todaysDate, quickOverviewRange),
+    getSetupStatusAction(),
+  ]);
 
   //appointment report
-  const response = await getMonthWiseReportAction(year, doctorId);
   const report = response?.data ?? [];
 
   //enquiry report
-  const enqResponse = await getEnquiryReportAction(year);
   const enquiryReport = enqResponse.data ?? [];
   //doctors
-  const res = await getDoctorsAction(1, 0);
   const doctors = (res?.data?.doctors ?? []).map((doctor: any) => ({
     name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
     phone: doctor.contactNumber,
@@ -35,7 +52,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
   }));
 
   //total summary
-  const summaryRes = await getDashboardSummaryAction(year);
   const totalSummary = summaryRes?.data?.totalSummary ?? {
     totalAppointments: 0,
     totalEnquiries: 0,
@@ -44,20 +60,15 @@ const page = async (props: { searchParams: Promise<any> }) => {
   };
 
   //doctors summary
-  const docSummaryRes = await getDoctorsAppointmentsSummaryAction(year??currentYear);
   const doctorsAppointmentSummary: DoctorAppointmentSummaryItem[] =
     docSummaryRes?.data ?? [];
 
-  const todaysDate = new Date().toISOString().split("T")[0];
-  const quickOverviewRange = searchParams.quickOverviewRange || "daily";
   //quick overview summary
-  const quickOverviewRes = await getQuickOverviewSummaryAction(todaysDate, quickOverviewRange);
   const quickOverviewSummary = quickOverviewRes.data;
- 
+
   //setup status
-  const setupStatusRes = await getSetupStatusAction();
   const setupStatus = setupStatusRes.data;
-  
+
   return (
     <DashboardHome
       appointmentData={report}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import {
@@ -25,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import EnhancedPieChart from "./DashboardPieChart";
 import {
   ClipboardList,
   CalendarCheck,
@@ -39,6 +39,10 @@ import SummaryCard from "./SummaryCard";
 import DoctorAppointmentSummary from "./DoctorAppointmentSummary";
 import QuickOverview from "./QuickOverview";
 import Image from "next/image";
+
+const EnhancedPieChart = dynamic(() => import("./DashboardPieChart"), {
+  ssr: false,
+});
 
 export type AppointmentStatus =
   | "SCHEDULED"
@@ -165,14 +169,6 @@ const DashboardHome = ({
       ? doctors.find((d) => d.email === user.email)
       : null;
 
-  useEffect(() => {
-    if (!searchParams.get("year")) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("year", initialYear);
-      router.replace(`${pathname}?${params.toString()}`);
-    }
-  }, []);
-
   const updateYearFilter = (newYear: string) => {
     setYear(newYear);
     const params = new URLSearchParams(searchParams.toString());
@@ -180,22 +176,36 @@ const DashboardHome = ({
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  // Combined into a single effect/navigation: fixing up the "year" and
+  // "doctor" params separately (two effects, each calling router.replace)
+  // meant the second replace could clobber the first since both read the
+  // same pre-navigation searchParams snapshot, and it forced doctors through
+  // two sequential server round-trips on first load instead of one.
   useEffect(() => {
-    if (!logginedDoctor) {
+    const yearMissing = !searchParams.get("year");
+    const doctorNeedsFix =
+      !!logginedDoctor &&
+      searchParams.get("doctor") !== logginedDoctor._id.toString();
+
+    if (!doctorNeedsFix) {
+      // Non-doctor roles (or a doctor already correctly scoped) never blocked
+      // on the year fix-up before, so keep that instant, non-blocking UX —
+      // patch the URL in the background only if needed.
       setInitializing(false);
+      if (yearMissing) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("year", initialYear);
+        router.replace(`${pathname}?${params.toString()}`);
+      }
       return;
     }
 
     const params = new URLSearchParams(searchParams.toString());
-    if (params.get("doctor") !== logginedDoctor._id.toString()) {
-      params.set("doctor", logginedDoctor._id.toString());
-      setInitializing(true);
-      router.replace(`${pathname}?${params.toString()}`);
-      return;
-    }
-
-    setInitializing(false);
-  }, [logginedDoctor, searchParams, pathname, router]);
+    if (yearMissing) params.set("year", initialYear);
+    params.set("doctor", logginedDoctor!._id.toString());
+    setInitializing(true);
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [logginedDoctor, searchParams, pathname, router, initialYear]);
 
   const totalAppointments = appointmentData.reduce(
     (sum, i) => sum + i.totalAppointments,
