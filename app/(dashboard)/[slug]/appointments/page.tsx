@@ -14,17 +14,12 @@ const page = async (props: { searchParams: Promise<any> }) => {
   const year = searchParams.year || "";
   const month = searchParams.month || "";
 
-  const appointmentsRes = await getAppointmentsAction(
-    page,
-    limit,
-    doctor,
-    search,
-    status,
-    year,
-    month
-  );
+  const [appointmentsRes, response] = await Promise.all([
+    getAppointmentsAction(page, limit, doctor, search, status, year, month),
+    getDoctorsAction(1, 0),
+  ]);
   const appointments = appointmentsRes?.data?.appointments ?? [];
-  
+
   const pagination = {
     page: appointmentsRes?.data?.pagination?.page ?? 1,
     limit: appointmentsRes?.data?.pagination?.limit ?? 10,
@@ -32,7 +27,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
     totalPages: appointmentsRes?.data?.pagination?.totalPages ?? 0,
   };
   //doctors
-  const response = await getDoctorsAction(1, 0);
   const doctors = (response?.data?.doctors ?? []).map((doctor: any) => ({
     name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
     phone: doctor.contactNumber,

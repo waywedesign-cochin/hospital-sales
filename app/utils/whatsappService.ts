@@ -36,7 +36,13 @@ export const sendWhatsAppTemplate = async (
   params: string[],
   patientId?: string,
   messageType: "REMINDER" | "BOOKING_CONFIRMATION" | "CAMPAIGN" | "MANUAL" = "BOOKING_CONFIRMATION",
-  batchId?: string
+  batchId?: string,
+  // The human-readable text this template send actually represents (the
+  // composed campaign text, or a synthesized summary of the template's
+  // placeholder values). Falls back to the template name when the caller
+  // has no readable text to offer (e.g. a template made only of structured
+  // fields with no equivalent sentence).
+  displayContent?: string
 ) => {
   const config = await getWhatsAppConfig(organizationId);
 
@@ -84,7 +90,7 @@ export const sendWhatsAppTemplate = async (
       recipientPhone: patientPhone,
       patientId,
       messageType,
-      content: `Template: ${templateName}`,
+      content: displayContent || `Template: ${templateName}`,
       status: 'SENT',
       sentAt: new Date(),
       metaMessageId,
@@ -102,7 +108,7 @@ export const sendWhatsAppTemplate = async (
       recipientPhone: patientPhone,
       patientId,
       messageType,
-      content: `Template: ${templateName}`,
+      content: displayContent || `Template: ${templateName}`,
       status: 'FAILED',
       errorDetails,
       batchId,

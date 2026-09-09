@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
               msg.templateParams || [],
               msg.patientId?.toString(),
               msg.messageType as any,
-              msg.batchId
+              msg.batchId,
+              msg.messageContent || undefined
             );
           } else if (msg.messageContent) {
             await sendWhatsAppText(

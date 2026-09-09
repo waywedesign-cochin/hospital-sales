@@ -33,4 +33,4 @@ async function postHandler(req: NextRequest, user: AuthUser) {
   }
 }
 
-export const POST = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST"])(postHandler as any);
+export const POST = withAuth(["ADMIN", "DOCTOR", "RECEPTIONIST", "STAFF", "NURSE"])(postHandler as any);

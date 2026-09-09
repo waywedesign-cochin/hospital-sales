@@ -1,14 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-
-const FullCalendar = dynamic(() => import("@fullcalendar/react"), {
-  ssr: false,
-});
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import listPlugin from "@fullcalendar/list";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Calendar as CalendarIcon,
@@ -22,6 +14,13 @@ import { useAuthStore } from "@/providers/AuthStoreProvider";
 import { Doctor } from "@/lib/types";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+
+const FullCalendar = dynamic(() => import("./FullCalendarWrapper"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[600px] w-full animate-pulse rounded-xl bg-slate-100/70" />
+  ),
+});
 
 // --- UPDATED HELPER FUNCTION (UNCHANGED UI)
 const renderEventContent = (eventInfo: any) => {
@@ -76,6 +75,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
   const user = useAuthStore((state) => state.user);
   const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [locked, setLocked] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -110,59 +110,131 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
       return;
     }
 
-    // Fix URL
+    // This route's server component only loads the doctors list and never reads
+    // the "doctor" param, so a router.replace would re-run the whole RSC fetch
+    // for byte-identical data and hold the doctor on a spinner while it went to
+    // the server. Update the URL in place instead — Next syncs useSearchParams
+    // with history.replaceState — and unlock immediately.
     params.set("doctor", logginedDoctor._id);
-    router.replace(`/appointments/calendar?${params.toString()}`);
-  }, [logginedDoctor]);
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?${params.toString()}`,
+    );
+    setLocked(false);
+  }, [logginedDoctor, searchParams]);
 
-  const handleEventClick = (info: any) => {
-    router.push(`/appointments/${info.event.id}`);
-  };
+  const handleEventClick = useCallback(
+    (info: any) => {
+      router.push(`/appointments/${info.event.id}`);
+    },
+    [router],
+  );
 
-  const handleDateClick = (info: any) => {
-    router.push(`/appointments/create-appointment?date=${info.dateStr}`);
-  };
+  const handleDateClick = useCallback(
+    (info: any) => {
+      router.push(`/appointments/create-appointment?date=${info.dateStr}`);
+    },
+    [router],
+  );
+
+  // datesSet also fires when only the view changes (Month → Week → List), where
+  // the visible range is often identical — refetching there made every view
+  // switch wait on the network. Track the last fetched range and skip those.
+  const lastRangeRef = useRef("");
+  const requestIdRef = useRef(0);
 
   //  Fetch events dynamically based on calendar visible date range
-  const handleDataSet = async (info: any) => {
-    if (locked) return;
-    try {
+  const handleDataSet = useCallback(
+    async (info: any) => {
       const startDate = info.startStr.split("T")[0];
       const endDate = info.endStr.split("T")[0];
       const doctorId = searchParams.get("doctor") ?? logginedDoctor?._id ?? "";
 
-      const res = await axios.get(
-        `/api/appointment/calendar?doctor=${doctorId}&startDate=${startDate}&endDate=${endDate}&limit=1000`
-      );
+      const rangeKey = `${doctorId}|${startDate}|${endDate}`;
+      if (rangeKey === lastRangeRef.current) return;
+      lastRangeRef.current = rangeKey;
 
-      const data = res.data;
+      const requestId = ++requestIdRef.current;
+      setIsFetching(true);
+      try {
+        const res = await axios.get(
+          `/api/appointment/calendar?doctor=${doctorId}&startDate=${startDate}&endDate=${endDate}&limit=1000`
+        );
 
-      if (data?.data?.appointments) {
-        const formatted = data.data.appointments.map((item: any) => {
-          // Ensure date is ISO formatted properly
-          const dateStr = new Date(item.date).toISOString().split("T")[0];
+        // Clicking prev/next quickly fires overlapping requests; without this an
+        // earlier response can land last and paint the wrong month's events.
+        if (requestId !== requestIdRef.current) return;
 
-          // startTime is already in 24hr format: "14:30"
-          const startISO = `${dateStr}T${item.startTime}:00`;
+        const data = res.data;
 
-          return {
-            id: item._id,
-            title: `${item.firstName} ${item.lastName || ""}`.trim(),
-            start: startISO,
-            allDay: false,
-            extendedProps: {
-              status: item.status,
-            },
-          };
-        });
+        if (data?.data?.appointments) {
+          const formatted = data.data.appointments.map((item: any) => {
+            // Ensure date is ISO formatted properly
+            const dateStr = new Date(item.date).toISOString().split("T")[0];
 
-        setCalendarEvents(formatted);
+            // startTime is already in 24hr format: "14:30"
+            const startISO = `${dateStr}T${item.startTime}:00`;
+
+            return {
+              id: item._id,
+              title: `${item.firstName} ${item.lastName || ""}`.trim(),
+              start: startISO,
+              allDay: false,
+              extendedProps: {
+                status: item.status,
+              },
+            };
+          });
+
+          setCalendarEvents(formatted);
+        }
+      } catch (err) {
+        if (requestId !== requestIdRef.current) return;
+        lastRangeRef.current = ""; // let the next attempt retry this range
+        console.error(err);
+        toast.error("Failed to load calendar events");
+      } finally {
+        if (requestId === requestIdRef.current) setIsFetching(false);
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load calendar events");
-    }
-  };
+    },
+    [searchParams, logginedDoctor],
+  );
+
+  // Fresh object literals on every render make FullCalendar re-apply its
+  // toolbar/format config each time, which is a large part of the view-switch jank.
+  const headerToolbar = useMemo(
+    () => ({
+      left: isMobile ? "prev,next" : "prev,next today",
+      center: "title",
+      right: isMobile
+        ? "dayGridMonth,listMonth"
+        : "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
+    }),
+    [isMobile],
+  );
+
+  const buttonText = useMemo(
+    () => ({
+      today: "Today",
+      month: "Month",
+      week: "Week",
+      day: "Day",
+      list: "List",
+    }),
+    [],
+  );
+
+  const eventTimeFormat = useMemo(
+    () =>
+      ({
+        hour: "numeric",
+        minute: "2-digit",
+        meridiem: "short",
+        hour12: true,
+      }) as const,
+    [],
+  );
 
   if (locked) {
     return (
@@ -451,15 +523,17 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         </div>
 
         {/* Calendar */}
-        <div className="bg-white shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-100 p-1 sm:p-2">
+        <div className="relative bg-white shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-100 p-1 sm:p-2">
+          {isFetching && (
+            <div className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 shadow-sm border border-slate-100">
+              <span className="w-3 h-3 border-2 border-slate-200 border-t-green-700 rounded-full animate-spin" />
+              <span className="text-xs font-medium text-slate-500">
+                Updating
+              </span>
+            </div>
+          )}
           <div className="p-2 sm:p-4">
             <FullCalendar
-              plugins={[
-                dayGridPlugin,
-                interactionPlugin,
-                timeGridPlugin,
-                listPlugin,
-              ]}
               initialView={isMobile ? "listMonth" : "dayGridMonth"}
               events={calendarEvents}
               eventContent={renderEventContent}
@@ -469,26 +543,9 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
               height="auto"
               dayMaxEventRows={isMobile ? 2 : 3}
               datesSet={handleDataSet}
-              headerToolbar={{
-                left: isMobile ? "prev,next" : "prev,next today",
-                center: "title",
-                right: isMobile
-                  ? "dayGridMonth,listMonth"
-                  : "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
-              }}
-              buttonText={{
-                today: "Today",
-                month: "Month",
-                week: "Week",
-                day: "Day",
-                list: "List",
-              }}
-              eventTimeFormat={{
-                hour: "numeric",
-                minute: "2-digit",
-                meridiem: "short",
-                hour12: true,
-              }}
+              headerToolbar={headerToolbar}
+              buttonText={buttonText}
+              eventTimeFormat={eventTimeFormat}
               contentHeight={isMobile ? "auto" : undefined}
               aspectRatio={isMobile ? 1 : 1.35}
             />

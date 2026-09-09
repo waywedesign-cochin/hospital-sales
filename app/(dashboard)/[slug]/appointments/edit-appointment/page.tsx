@@ -11,10 +11,11 @@ const page = async (props: { searchParams: Promise<any> }) => {
     return <p className="text-red-500">Invalid or missing appointment ID.</p>;
   }
 
-  const response = await getAppointmentByIdAction(id);
+  const [response, docResponse] = await Promise.all([
+    getAppointmentByIdAction(id),
+    getDoctorsAction(1, 0, specialization),
+  ]);
   const appointment = response?.data ?? {};
-
-  const docResponse = await getDoctorsAction(1, 0, specialization);
   const doctors = (docResponse?.data?.doctors ?? []).map((doctor: any) => ({
     name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
     phone: doctor.contactNumber,

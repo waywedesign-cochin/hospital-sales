@@ -21,16 +21,22 @@ const page = async (props: { searchParams: Promise<any> }) => {
   const fromDate = searchParams.fromDate || "";
   const toDate = searchParams.toDate || "";
 
-  const response = await getEnquiriesAction(
-    page,
-    limit,
-    search,
-    treatmentCategory,
-    status,
-    source,
-    fromDate,
-    toDate,
-  );
+  const [response, summary, setupStatusRes, categoriesRes] = await Promise.all([
+    getEnquiriesAction(
+      page,
+      limit,
+      search,
+      treatmentCategory,
+      status,
+      source,
+      fromDate,
+      toDate,
+    ),
+    getEnquirySummaryAction(fromDate, toDate),
+    getSetupStatusAction(),
+    getTreatmentCategoriesAction(),
+  ]);
+
   const enquiries = (response?.data?.enquiries ?? []).map((enquiry: any) => ({
     ...enquiry,
     handledBy: enquiry.handledBy === null ? undefined : enquiry.handledBy,
@@ -42,7 +48,6 @@ const page = async (props: { searchParams: Promise<any> }) => {
     totalPages: response?.data?.pagination?.totalPages ?? 0,
   };
 
-  const summary = await getEnquirySummaryAction(fromDate, toDate);
   const enquirySummary = summary.data ?? {
     newEnquiries: 0,
     contacted: 0,
@@ -53,10 +58,8 @@ const page = async (props: { searchParams: Promise<any> }) => {
     topCategory: "SKIN",
   };
 
-  const setupStatusRes = await getSetupStatusAction();
   const setupStatus = setupStatusRes?.data;
 
-  const categoriesRes = await getTreatmentCategoriesAction();
   const categories = categoriesRes?.data?.map((c: any) => c.name) || [];
 
   return (
