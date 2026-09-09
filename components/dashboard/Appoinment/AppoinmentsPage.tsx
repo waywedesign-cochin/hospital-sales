@@ -68,7 +68,7 @@ export default function AppointmentsPage({
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const clinic = useAuthStore((state: any) => state.clinic);
-  const { slug } = useParams() as { slug: string } || { slug: clinic?.slug };
+  const { slug } = (useParams() as { slug: string }) || { slug: clinic?.slug };
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [locked, setLocked] = useState(true);
@@ -244,8 +244,10 @@ export default function AppointmentsPage({
           {user?.role !== "DOCTOR" && (
             <Button
               type="button"
-              onClick={() => router.push(`/${slug}/appointments/create-appointment`)}
-              className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900"
+              onClick={() =>
+                router.push(`/${slug}/appointments/create-appointment`)
+              }
+              className="h-11 px-4 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               New Appointment
@@ -293,7 +295,9 @@ export default function AppointmentsPage({
                 <SelectContent>
                   {!logginedDoctor && (
                     <SelectItem value="ALL">
-                      {staffAssignedDoctorIds ? "All My Doctors" : "All Doctors"}
+                      {staffAssignedDoctorIds
+                        ? "All My Doctors"
+                        : "All Doctors"}
                     </SelectItem>
                   )}
                   {visibleDoctors.map((d) => (

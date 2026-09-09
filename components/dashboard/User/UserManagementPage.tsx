@@ -304,7 +304,7 @@ const UserManagementPage = ({
             }}
           >
             <DialogTrigger asChild>
-              <Button className="h-11 px-6 gap-2 rounded-xl bg-green-700 text-white shadow-md hover:bg-green-800">
+              <Button className="h-11 px-6 gap-2 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center">
                 <UserPlus className="w-4 h-4" />
                 Add User
               </Button>

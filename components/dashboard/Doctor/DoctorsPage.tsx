@@ -150,7 +150,7 @@ export default function DoctorsPage({
 
           <Button
             onClick={() => router.push("/doctors/add-doctor")}
-            className="h-11 px-2 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900"
+            className="h-11 px-4 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4 " />
             Add Doctor

@@ -9,15 +9,13 @@ import {
   Shield,
   Briefcase,
   Save,
-  CheckCircle,
+  CalendarDays,
   EyeOff,
   Eye,
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 import toast from "react-hot-toast";
 import axios from "axios"; // Assuming you use axios for API calls
@@ -37,11 +35,32 @@ export interface IUser {
   updatedAt?: Date;
 }
 
+const NAV_SECTIONS = [
+  { id: "personal", label: "Personal info", icon: User },
+  { id: "security", label: "Security", icon: Shield },
+  { id: "settings", label: "Metadata", icon: Settings },
+] as const;
+
+type SectionId = (typeof NAV_SECTIONS)[number]["id"];
+
+// "PLATFORM_ADMIN" -> "Platform Admin"
+const formatRole = (role: string) =>
+  role
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
 const UserAvatar = ({ firstName }: { firstName: string }) => {
   const initials = firstName ? firstName.charAt(0).toUpperCase() : "?";
   return (
-    <div className="w-24 h-24 rounded-full bg-blue-primary flex items-center justify-center text-yellow-600 text-4xl font-extrabold ring-4 ring-white/50 shadow-2xl">
-      {initials}
+    <div className="relative shrink-0">
+      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#00236F] text-3xl font-semibold text-[#E8C468] ring-4 ring-white shadow-lg shadow-[#00236F]/20">
+        {initials}
+      </div>
+      <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md ring-2 ring-white">
+        <Briefcase className="h-3.5 w-3.5 text-[#00236F]" />
+      </div>
     </div>
   );
 };
@@ -55,13 +74,13 @@ const FieldDisplay = ({
   value: string;
   icon: React.ElementType;
 }) => (
-  <div className="space-y-1">
-    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-      {label}
-    </label>
-    <div className="flex items-center space-x-2 text-sm text-green-700">
-      <Icon className="w-4 h-4 text-green-900" />
-      <p className="font-medium">{value}</p>
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#00236F]/8 text-[#00236F]">
+      <Icon className="h-4 w-4" />
+    </div>
+    <div className="min-w-0">
+      <p className="text-[13px] text-gray-500">{label}</p>
+      <p className="truncate text-sm font-medium text-[#14172B]">{value}</p>
     </div>
   </div>
 );
@@ -78,8 +97,10 @@ const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>(
-    {}
+    {},
   );
+  const [activeSection, setActiveSection] = useState<SectionId>("personal");
+
   // Password visibility toggles
   const [showPassword, setShowPassword] = useState({
     current: false,
@@ -105,8 +126,8 @@ const ProfilePage = () => {
   // Handle loading state if user is null (not authenticated or still loading)
   if (!loggedInUser || !profile) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <div className="flex h-screen items-center justify-center bg-[#F6F7FB]">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#00236F]/15 border-t-[#00236F]"></div>
         <p className="ml-4 text-gray-700">Loading user profile...</p>
       </div>
     );
@@ -153,7 +174,7 @@ const ProfilePage = () => {
 
       const response = await axios.put(
         `/api/user?id=${profile._id}`,
-        updateData
+        updateData,
       );
       if (response.data.success) {
         const updatedUser = response.data.data;
@@ -166,7 +187,7 @@ const ProfilePage = () => {
       }
     } catch (error: any) {
       toast.error(
-        error.message || "An unexpected error occurred during update."
+        error.message || "An unexpected error occurred during update.",
       );
     } finally {
       setIsLoading(false);
@@ -213,7 +234,7 @@ const ProfilePage = () => {
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
           confirmPassword: passwordForm.confirmPassword,
-        }
+        },
       );
 
       if (res.data.success) {
@@ -237,423 +258,381 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2">
-      <div className="relative z-10 mb-6 flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+    <div className="min-h-screen">
+      <div className="mx-auto">
+        <div className="relative z-10 mb-6 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="gap-2 rounded-lg px-2.5 font-medium text-slate-600 transition-all duration-150 hover:bg-[#00236F] hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
 
-        <div className="h-4 w-px bg-slate-300" />
-        <Breadcrumb
-          items={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Profile", current: true },
-          ]}
-        />
-      </div>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Profile Header Card */}
-        <Card className="shadow-2xl border-none rounded-2xl bg-white">
-          <CardContent className="p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Left: Avatar & Meta */}
-            <div className="flex flex-col items-center md:items-start">
-              <UserAvatar firstName={profile.firstName} />
-              <div className=" text-center md:text-left">
-                <h1 className="text-3xl font-extrabold text-gray-900">
-                  {profile.firstName} {profile.lastName}
-                </h1>
-                <p className="text-md font-semibold text-green-600 mt-1 flex items-center justify-center md:justify-start gap-1 uppercase">
-                  <Briefcase className="w-4 h-4" />
-                  {profile.role}
-                </p>
-                <span className="inline-block mt-2 px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700">
-                  Status: Active
-                </span>
-              </div>
-            </div>
+          <div className="h-4 w-px bg-slate-300" />
+          <Breadcrumb
+            items={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Profile", current: true },
+            ]}
+          />
+        </div>
 
-            {/* Right: Actions & Quick Info */}
-            <div className="flex-1 space-y-4 md:pl-10 border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0">
-              <div className="flex justify-center sm:justify-end gap-3 w-full">
-                <Button
-                  onClick={handleEditToggle}
-                  variant={isEditing ? "outline" : "default"}
-                  className={`transition-colors ${
-                    isEditing
-                      ? "border-gray-300 text-gray-700 hover:bg-gray-100"
-                      : "bg-green-800 hover:bg-green-900 text-white"
-                  }`}
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  {isEditing ? "Cancel" : "Edit Profile"}
-                </Button>
+        <div className="space-y-6">
+          {/* Identity header */}
+          <div className="overflow-hidden rounded-2xl border border-[#E7E9F0] bg-white shadow-sm">
+            <div className="h-20 bg-[#00236F] sm:h-24" />
+            <div className="px-5 pb-6 sm:px-8">
+              <div className="-mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
+                  <UserAvatar firstName={profile.firstName} />
+                  <div className="text-center sm:pb-4 sm:text-left">
+                    <h1 className="text-2xl font-semibold tracking-tight text-[#E8C468] sm:text-[28px]">
+                      {profile.firstName} {profile.lastName}
+                    </h1>
+                    <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                      <span className="text-sm font-medium text-[#00236F]">
+                        {formatRole(profile.role)}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                {isEditing && (
+                <div className="flex justify-center gap-2 sm:justify-end sm:pb-1">
                   <Button
-                    onClick={handleSaveChanges}
-                    disabled={isLoading}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleEditToggle}
+                    variant={isEditing ? "outline" : "default"}
+                    className={`transition-colors ${
+                      isEditing
+                        ? "border-gray-300 text-gray-700 hover:bg-gray-100"
+                        : "bg-[#00236F] text-white hover:bg-[#001a52]"
+                    }`}
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    {isLoading ? "Saving..." : "Save Changes"}
+                    <Edit className="mr-2 h-4 w-4" />
+                    {isEditing ? "Cancel" : "Edit Profile"}
                   </Button>
-                )}
+
+                  {isEditing && (
+                    <Button
+                      onClick={handleSaveChanges}
+                      disabled={isLoading}
+                      className="bg-[#00236F] text-white hover:bg-[#001a52]"
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {isLoading ? "Saving..." : "Save Changes"}
+                    </Button>
+                  )}
+                </div>
               </div>
 
-              {/* Quick Contact Info */}
-              <div className="hidden  sm:grid grid-cols-1  gap-4 mt-6">
+              <div className="mt-6 grid grid-cols-1 gap-4 border-t border-[#E7E9F0] pt-6 sm:grid-cols-2">
                 <FieldDisplay
-                  label="Email Address"
+                  label="Email address"
                   value={profile.email}
                   icon={Mail}
                 />
                 <FieldDisplay
-                  label="Account Role"
-                  value={profile.role}
-                  icon={CheckCircle}
+                  label="Account role"
+                  value={formatRole(profile.role)}
+                  icon={Shield}
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Profile Tabs */}
-        <Tabs defaultValue="personal" className="w-full">
-          {/* SCROLL WRAPPER — THIS IS CRITICAL */}
-          <div className="w-full overflow-x-auto scrollbar-hide">
-            <TabsList
-              className="
-      inline-flex
-      min-w-max
-      gap-1
-      rounded-xl
-      border
-      bg-white
-      shadow-md
-      px-2
-      py-1
-    "
-            >
-              <TabsTrigger
-                value="personal"
-                className="
-        shrink-0
-        flex items-center gap-2
-        text-sm
-        px-4 py-2
-        data-[state=active]:bg-green-800
-        data-[state=active]:text-white
-        data-[state=active]:shadow-lg
-        data-[state=active]:rounded-xl
-        transition-all
-      "
-              >
-                <User className="w-4 h-4" />
-                Personal Info
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="security"
-                className="
-        shrink-0
-        flex items-center gap-2
-        text-sm
-        px-4 py-2
-        data-[state=active]:bg-green-800
-        data-[state=active]:text-white
-        data-[state=active]:shadow-lg
-        data-[state=active]:rounded-xl
-        transition-all
-      "
-              >
-                <Shield className="w-4 h-4" />
-                Security
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="settings"
-                className="
-        shrink-0
-        flex items-center gap-2
-        text-sm
-        px-4 py-2
-        data-[state=active]:bg-green-800
-        data-[state=active]:text-white
-        data-[state=active]:shadow-lg
-        data-[state=active]:rounded-xl
-        transition-all
-      "
-              >
-                <Settings className="w-4 h-4" />
-                Metadata
-              </TabsTrigger>
-            </TabsList>
           </div>
 
-          {/* TAB CONTENT CONTINUES BELOW */}
+          {/* Settings */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+            <nav className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+              {NAV_SECTIONS.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => setActiveSection(section.id)}
+                  className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors lg:w-full ${
+                    activeSection === section.id
+                      ? "bg-[#00236F] text-white"
+                      : "text-gray-600 hover:bg-[#00236F]/5 hover:text-[#00236F]"
+                  }`}
+                >
+                  <section.icon className="h-4 w-4" />
+                  {section.label}
+                </button>
+              ))}
+            </nav>
 
-          {/* PERSONAL TAB CONTENT: First Name, Last Name, Email (non-editable) */}
-          <TabsContent value="personal" className="mt-6">
-            <Card className="rounded-2xl shadow-xl border-none">
-              <CardHeader className="border-b border-gray-100 p-6">
-                <CardTitle className="text-xl font-bold text-gray-800">
-                  Basic Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                {/* Name Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1">
+            <div
+              key={activeSection}
+              className="animate-in fade-in duration-300 rounded-2xl border border-[#E7E9F0] bg-white p-6 shadow-sm"
+            >
+              {/* PERSONAL: First Name, Last Name, Email (non-editable) */}
+              {activeSection === "personal" && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#14172B]">
+                      Basic details
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Update your name as it appears across the platform.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">
+                        First name
+                      </label>
+                      <Input
+                        disabled={!isEditing}
+                        name="firstName"
+                        value={profile.firstName}
+                        onChange={handleInputChange}
+                        className="h-11 rounded-lg"
+                        required
+                      />
+                      {errors.firstName && (
+                        <p className="text-xs text-red-500">
+                          {errors.firstName}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">
+                        Last name
+                      </label>
+                      <Input
+                        disabled={!isEditing}
+                        name="lastName"
+                        value={profile.lastName || ""}
+                        onChange={handleInputChange}
+                        className="h-11 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
                     <label className="text-sm font-medium text-gray-700">
-                      First Name
+                      Email address
                     </label>
                     <Input
-                      disabled={!isEditing}
-                      name="firstName"
-                      value={profile.firstName}
-                      onChange={handleInputChange}
-                      className="h-11 rounded-lg"
-                      required
+                      disabled
+                      name="email"
+                      value={profile.email}
+                      className="h-11 cursor-not-allowed rounded-lg bg-gray-50 opacity-70"
                     />
-                    {errors.firstName && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.firstName}
-                      </p>
+                  </div>
+
+                  {isEditing && (
+                    <Button
+                      onClick={handleSaveChanges}
+                      disabled={isLoading}
+                      className="h-11 w-full bg-[#00236F] text-base hover:bg-[#001a52]"
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {isLoading
+                        ? "Saving profile..."
+                        : "Confirm & save changes"}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* SECURITY: Change Password */}
+              {activeSection === "security" && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#14172B]">
+                      Account security
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Changing your password frequently is recommended for
+                      better security.
+                    </p>
+                  </div>
+
+                  <div className="space-y-5">
+                    {/* CURRENT PASSWORD */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">
+                        Current password
+                      </label>
+
+                      <div className="relative">
+                        <Input
+                          type={showPassword.current ? "text" : "password"}
+                          name="currentPassword"
+                          value={passwordForm.currentPassword}
+                          onChange={handlePasswordChange}
+                          className="h-11 rounded-lg pr-10"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword({
+                              ...showPassword,
+                              current: !showPassword.current,
+                            })
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00236F]"
+                        >
+                          {showPassword.current ? (
+                            <EyeOff className="h-4.5 w-4.5" />
+                          ) : (
+                            <Eye className="h-4.5 w-4.5" />
+                          )}
+                        </button>
+                      </div>
+
+                      {passwordErrors.currentPassword && (
+                        <p className="text-xs text-red-500">
+                          {passwordErrors.currentPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* NEW PASSWORD */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">
+                        New password
+                      </label>
+
+                      <div className="relative">
+                        <Input
+                          type={showPassword.new ? "text" : "password"}
+                          name="newPassword"
+                          value={passwordForm.newPassword}
+                          onChange={handlePasswordChange}
+                          className="h-11 rounded-lg pr-10"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword({
+                              ...showPassword,
+                              new: !showPassword.new,
+                            })
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00236F]"
+                        >
+                          {showPassword.new ? (
+                            <EyeOff className="h-4.5 w-4.5" />
+                          ) : (
+                            <Eye className="h-4.5 w-4.5" />
+                          )}
+                        </button>
+                      </div>
+
+                      {passwordErrors.newPassword && (
+                        <p className="text-xs text-red-500">
+                          {passwordErrors.newPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* CONFIRM PASSWORD */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">
+                        Confirm new password
+                      </label>
+
+                      <div className="relative">
+                        <Input
+                          type={showPassword.confirm ? "text" : "password"}
+                          name="confirmPassword"
+                          value={passwordForm.confirmPassword}
+                          onChange={handlePasswordChange}
+                          className="h-11 rounded-lg pr-10"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword({
+                              ...showPassword,
+                              confirm: !showPassword.confirm,
+                            })
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00236F]"
+                        >
+                          {showPassword.confirm ? (
+                            <EyeOff className="h-4.5 w-4.5" />
+                          ) : (
+                            <Eye className="h-4.5 w-4.5" />
+                          )}
+                        </button>
+                      </div>
+
+                      {passwordErrors.confirmPassword && (
+                        <p className="text-xs text-red-500">
+                          {passwordErrors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* SUBMIT */}
+                    <Button
+                      onClick={handlePasswordSubmit}
+                      disabled={passwordLoading || !passwordForm.newPassword}
+                      className="h-11 w-full bg-[#00236F] text-base text-white hover:bg-[#001a52]"
+                    >
+                      {passwordLoading
+                        ? "Updating password..."
+                        : "Update password"}
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    Your password is encrypted and never stored in plain text.
+                  </p>
+                </div>
+              )}
+
+              {/* METADATA: Role, CreatedAt, UpdatedAt */}
+              {activeSection === "settings" && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#14172B]">
+                      Account metadata
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      These fields are system-generated and cannot be edited.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <FieldDisplay
+                      label="Account role"
+                      value={formatRole(profile.role)}
+                      icon={User}
+                    />
+
+                    {profile.createdAt && (
+                      <FieldDisplay
+                        label="Account created"
+                        value={new Date(profile.createdAt).toLocaleDateString()}
+                        icon={CalendarDays}
+                      />
+                    )}
+                    {profile.updatedAt && (
+                      <FieldDisplay
+                        label="Last updated"
+                        value={new Date(profile.updatedAt).toLocaleDateString()}
+                        icon={CalendarDays}
+                      />
                     )}
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      Last Name
-                    </label>
-                    <Input
-                      disabled={!isEditing}
-                      name="lastName"
-                      value={profile.lastName || ""}
-                      onChange={handleInputChange}
-                      className="h-11 rounded-lg"
-                    />
-                  </div>
                 </div>
-
-                {/* Email Field (Non-editable as per standard practice) */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Email Address
-                  </label>
-                  <Input
-                    disabled
-                    name="email"
-                    value={profile.email}
-                    className="cursor-not-allowed opacity-70 h-11 rounded-lg bg-gray-100"
-                  />
-                </div>
-
-                {isEditing && (
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={isLoading}
-                    className="w-full bg-green-800 hover:bg-green-900 h-11 text-base mt-4"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {isLoading ? "Saving Profile..." : "Confirm & Save Changes"}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* SECURITY TAB: Change Password (Hides the actual password field) */}
-          <TabsContent value="security" className="mt-6">
-            <Card className="p-6 shadow-xl rounded-2xl border-none">
-              <CardTitle className="font-bold text-gray-800 mb-4">
-                Account Security
-              </CardTitle>
-
-              <p className="text-gray-600 text-sm mb-6">
-                Changing your password frequently is recommended for better
-                security.
-              </p>
-
-              {/* Password Form */}
-              <div className="space-y-5">
-                {/* CURRENT PASSWORD */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Current Password
-                  </label>
-
-                  <div className="relative">
-                    <Input
-                      type={showPassword.current ? "text" : "password"}
-                      name="currentPassword"
-                      value={passwordForm.currentPassword}
-                      onChange={handlePasswordChange}
-                      className="h-11 rounded-lg pr-10"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword({
-                          ...showPassword,
-                          current: !showPassword.current,
-                        })
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
-                    >
-                      {showPassword.current ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {passwordErrors.currentPassword && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {passwordErrors.currentPassword}
-                    </p>
-                  )}
-                </div>
-
-                {/* NEW PASSWORD */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    New Password
-                  </label>
-
-                  <div className="relative">
-                    <Input
-                      type={showPassword.new ? "text" : "password"}
-                      name="newPassword"
-                      value={passwordForm.newPassword}
-                      onChange={handlePasswordChange}
-                      className="h-11 rounded-lg pr-10"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword({
-                          ...showPassword,
-                          new: !showPassword.new,
-                        })
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
-                    >
-                      {showPassword.new ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {passwordErrors.newPassword && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {passwordErrors.newPassword}
-                    </p>
-                  )}
-                </div>
-
-                {/* CONFIRM PASSWORD */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    Confirm New Password
-                  </label>
-
-                  <div className="relative">
-                    <Input
-                      type={showPassword.confirm ? "text" : "password"}
-                      name="confirmPassword"
-                      value={passwordForm.confirmPassword}
-                      onChange={handlePasswordChange}
-                      className="h-11 rounded-lg pr-10"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword({
-                          ...showPassword,
-                          confirm: !showPassword.confirm,
-                        })
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
-                    >
-                      {showPassword.confirm ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {passwordErrors.confirmPassword && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {passwordErrors.confirmPassword}
-                    </p>
-                  )}
-                </div>
-
-                {/* SUBMIT */}
-                <Button
-                  onClick={handlePasswordSubmit}
-                  disabled={passwordLoading || !passwordForm.newPassword}
-                  className="w-full bg-green-800 hover:bg-green-900 text-white h-11 text-base"
-                >
-                  {passwordLoading ? "Updating Password..." : "Update Password"}
-                </Button>
-              </div>
-
-              <p className="text-xs text-gray-500 mt-5">
-                Note: Your password is encrypted and never stored in plain text.
-              </p>
-            </Card>
-          </TabsContent>
-
-          {/* METADATA TAB: Role, CreatedAt, UpdatedAt */}
-          <TabsContent value="settings" className="mt-6">
-            <Card className="p-6 shadow-xl rounded-2xl border-none">
-              <CardTitle className="font-bold text-gray-800 mb-4">
-                Account Metadata
-              </CardTitle>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <FieldDisplay
-                  label="Account Role"
-                  value={profile.role}
-                  icon={User}
-                />
-
-                {profile.createdAt && (
-                  <FieldDisplay
-                    label="Account Created"
-                    value={new Date(profile.createdAt).toLocaleDateString()}
-                    icon={Mail}
-                  />
-                )}
-                {profile.updatedAt && (
-                  <FieldDisplay
-                    label="Last Updated"
-                    value={new Date(profile.updatedAt).toLocaleDateString()}
-                    icon={Mail}
-                  />
-                )}
-              </div>
-
-              <p className="text-gray-500 text-sm mt-6">
-                These fields are system-generated and cannot be edited.
-              </p>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

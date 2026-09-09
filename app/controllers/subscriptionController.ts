@@ -300,3 +300,29 @@ export const adminChangePlan = async (
     return error(err.message, 500);
   }
 };
+
+
+/**
+ * Get a single subscription + org data needed to render an invoice
+ */
+export const getInvoiceData = async (organizationId: string, subscriptionId: string) => {
+  try {
+    const subscription = await Subscription.findOne({
+      _id: subscriptionId,
+      organizationId,
+    }).lean();
+
+    if (!subscription) return error("Invoice not found", 404);
+
+    const org = await Organization.findById(organizationId)
+      .select("name email phone address gstin")
+      .lean();
+
+    return success({
+      subscription: JSON.parse(JSON.stringify(subscription)),
+      organization: org ? JSON.parse(JSON.stringify(org)) : null,
+    });
+  } catch (err: any) {
+    return error(err.message, 500);
+  }
+};
