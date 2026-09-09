@@ -43,7 +43,7 @@ const renderEventContent = (eventInfo: any) => {
     <div
       className={`flex flex-col w-full h-full px-2.5 py-1.5 overflow-hidden 
         ${cornerClass} 
-        bg-green-800 hover:bg-green-900 transition-colors duration-200 shadow-sm cursor-pointer`}
+        bg-[#00236F] hover:bg-[#001a52] transition-colors duration-200 shadow-sm cursor-pointer`}
     >
       {isListView ? (
         <div className="flex items-center gap-2 h-full">
@@ -95,6 +95,9 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
       ? doctors.find((doc) => doc.email === user.email)
       : null;
 
+  // Doctors only view their appointments, they cannot create new ones
+  const isDoctorView = user?.role === "DOCTOR";
+
   useEffect(() => {
     if (!logginedDoctor) {
       setLocked(false);
@@ -133,9 +136,11 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
 
   const handleDateClick = useCallback(
     (info: any) => {
+      // Doctors don't book appointments from the calendar, only view them
+      if (isDoctorView) return;
       router.push(`/appointments/create-appointment?date=${info.dateStr}`);
     },
-    [router],
+    [router, isDoctorView],
   );
 
   // datesSet also fires when only the view changes (Month → Week → List), where
@@ -331,9 +336,9 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
 
         .fc .fc-button-primary:not(:disabled).fc-button-active,
         .fc .fc-button-primary:not(:disabled):active {
-          color: #036a01;
-          background-color: #effff2;
-          border-color: #1aa9183c;
+          color: #00236f;
+          background-color: #eff6ff;
+          border-color: #bfdbfe;
         }
 
         .fc .fc-theme-standard th {
@@ -403,7 +408,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         }
 
         .fc .fc-day-today .fc-daygrid-day-number {
-          background: #036a01;
+          background: #00236f;
           color: white;
         }
 
@@ -539,7 +544,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
               eventContent={renderEventContent}
               eventClick={handleEventClick}
               dateClick={handleDateClick}
-              selectable={true}
+              selectable={!isDoctorView}
               height="auto"
               dayMaxEventRows={isMobile ? 2 : 3}
               datesSet={handleDataSet}

@@ -16,29 +16,42 @@ import {
   TrendingUp,
   Receipt,
   XCircle,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { downloadInvoiceAction } from "@/app/actions/subscriptionActions";
 
 const PLAN_PRICING = {
-  BASIC: { 
-    monthly: 999, 
-    yearly: 9990, 
-    name: "Basic", 
-    icon: Zap, 
+  BASIC: {
+    monthly: 999,
+    yearly: 9990,
+    name: "Basic",
+    icon: Zap,
     color: "blue",
-    features: ["Up to 2 Doctors", "Up to 5 Staff", "Patient CRM", "Appointment Scheduling"]
+    features: [
+      "Up to 2 Doctors",
+      "Up to 5 Staff",
+      "Patient CRM",
+      "Appointment Scheduling",
+    ],
   },
-  PRO: { 
-    monthly: 2999, 
-    yearly: 29990, 
-    name: "Pro", 
-    icon: Crown, 
+  PRO: {
+    monthly: 2999,
+    yearly: 29990,
+    name: "Pro",
+    icon: Crown,
     color: "indigo",
-    features: ["Unlimited Doctors", "Unlimited Staff", "Advanced Analytics", "WhatsApp Reminders", "Custom Departments"]
-  }
+    features: [
+      "Unlimited Doctors",
+      "Unlimited Staff",
+      "Advanced Analytics",
+      "WhatsApp Reminders",
+      "Custom Departments",
+    ],
+  },
 };
 
 interface BillingData {
@@ -61,7 +74,9 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
   const { slug } = useParams() as { slug: string };
   const [upgrading, setUpgrading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
+  const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
+    "MONTHLY",
+  );
 
   if (!data) {
     return (
@@ -108,6 +123,33 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
     }
   };
 
+  //Invoice download handler
+  const handleDownloadInvoice = async (subscriptionId: string) => {
+    try {
+      const res = await downloadInvoiceAction(subscriptionId);
+      if (res.success && res.data) {
+        const byteChars = atob(res.data);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+          byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+        const blob = new Blob([new Uint8Array(byteNumbers)], {
+          type: "application/pdf",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = res.filename || "invoice.pdf";
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        toast.error(res.message || "Failed to generate invoice");
+      }
+    } catch {
+      toast.error("Failed to generate invoice");
+    }
+  };
+
   return (
     <div className="space-y-6 p-2">
       {/* Breadcrumb */}
@@ -149,9 +191,13 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
 
       {/* Trial Banner */}
       {isTrial && (
-        <div className={`rounded-2xl p-5 border ${organization.trialDaysRemaining <= 7 ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}>
+        <div
+          className={`rounded-2xl p-5 border ${organization.trialDaysRemaining <= 7 ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}
+        >
           <div className="flex items-start gap-3">
-            <AlertTriangle className={`w-5 h-5 mt-0.5 ${organization.trialDaysRemaining <= 7 ? "text-red-500" : "text-amber-500"}`} />
+            <AlertTriangle
+              className={`w-5 h-5 mt-0.5 ${organization.trialDaysRemaining <= 7 ? "text-red-500" : "text-amber-500"}`}
+            />
             <div>
               <h3 className="font-bold text-slate-800">
                 {organization.trialDaysRemaining > 0
@@ -159,7 +205,8 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                   : "Your free trial has expired"}
               </h3>
               <p className="text-sm text-slate-600 mt-1">
-                Upgrade to a paid plan to continue using all features without interruption.
+                Upgrade to a paid plan to continue using all features without
+                interruption.
               </p>
             </div>
           </div>
@@ -173,14 +220,22 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
             <div className="p-2 bg-indigo-50 rounded-lg">
               <Crown className="w-4 h-4 text-indigo-600" />
             </div>
-            <span className="text-sm font-medium text-slate-500">Current Plan</span>
+            <span className="text-sm font-medium text-slate-500">
+              Current Plan
+            </span>
           </div>
-          <p className="text-2xl font-bold text-slate-800 capitalize">{organization.plan}</p>
-          <span className={`text-xs font-semibold px-2 py-1 rounded-full mt-2 inline-block ${
-            isActive ? "bg-green-100 text-green-700" :
-            isTrial ? "bg-amber-100 text-amber-700" :
-            "bg-red-100 text-red-700"
-          }`}>
+          <p className="text-2xl font-bold text-slate-800 capitalize">
+            {organization.plan}
+          </p>
+          <span
+            className={`text-xs font-semibold px-2 py-1 rounded-full mt-2 inline-block ${
+              isActive
+                ? "bg-green-100 text-green-700"
+                : isTrial
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700"
+            }`}
+          >
             {organization.subscriptionStatus}
           </span>
         </div>
@@ -190,10 +245,16 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
             <div className="p-2 bg-emerald-50 rounded-lg">
               <IndianRupee className="w-4 h-4 text-emerald-600" />
             </div>
-            <span className="text-sm font-medium text-slate-500">Total Spent</span>
+            <span className="text-sm font-medium text-slate-500">
+              Total Spent
+            </span>
           </div>
-          <p className="text-2xl font-bold text-slate-800">₹{totalSpent.toLocaleString("en-IN")}</p>
-          <span className="text-xs text-slate-400 mt-1 block">Lifetime payments</span>
+          <p className="text-2xl font-bold text-slate-800">
+            ₹{totalSpent.toLocaleString("en-IN")}
+          </p>
+          <span className="text-xs text-slate-400 mt-1 block">
+            Lifetime payments
+          </span>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -207,9 +268,16 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
           </div>
           <p className="text-2xl font-bold text-slate-800">
             {isTrial && organization.trialEndsAt
-              ? new Date(organization.trialEndsAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+              ? new Date(organization.trialEndsAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })
               : currentSubscription?.expiresAt
-                ? new Date(currentSubscription.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                ? new Date(currentSubscription.expiresAt).toLocaleDateString(
+                    "en-IN",
+                    { day: "numeric", month: "short", year: "numeric" },
+                  )
                 : "—"}
           </p>
           <span className="text-xs text-slate-400 mt-1 block">
@@ -221,42 +289,73 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
       {/* Upgrade Plans */}
       {(isTrial || isExpired || organization.plan === "free") && (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-800 mb-2">Upgrade Your Plan</h2>
-          <p className="text-sm text-slate-500 mb-4">Choose a plan to unlock full access.</p>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">
+            Upgrade Your Plan
+          </h2>
+          <p className="text-sm text-slate-500 mb-4">
+            Choose a plan to unlock full access.
+          </p>
 
           {/* Billing Toggle */}
           <div className="flex items-center gap-3 mb-6">
-            <span className={`text-sm font-medium ${billingCycle === "MONTHLY" ? "text-slate-800" : "text-slate-400"}`}>Monthly</span>
+            <span
+              className={`text-sm font-medium ${billingCycle === "MONTHLY" ? "text-slate-800" : "text-slate-400"}`}
+            >
+              Monthly
+            </span>
             <button
-              onClick={() => setBillingCycle(billingCycle === "MONTHLY" ? "YEARLY" : "MONTHLY")}
+              onClick={() =>
+                setBillingCycle(
+                  billingCycle === "MONTHLY" ? "YEARLY" : "MONTHLY",
+                )
+              }
               className={`relative w-12 h-6 rounded-full transition-colors ${billingCycle === "YEARLY" ? "bg-indigo-600" : "bg-slate-200"}`}
             >
-              <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${billingCycle === "YEARLY" ? "translate-x-6" : ""}`} />
+              <div
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${billingCycle === "YEARLY" ? "translate-x-6" : ""}`}
+              />
             </button>
-            <span className={`text-sm font-medium ${billingCycle === "YEARLY" ? "text-slate-800" : "text-slate-400"}`}>
-              Yearly <span className="text-xs text-emerald-600 font-semibold">Save 17%</span>
+            <span
+              className={`text-sm font-medium ${billingCycle === "YEARLY" ? "text-slate-800" : "text-slate-400"}`}
+            >
+              Yearly{" "}
+              <span className="text-xs text-emerald-600 font-semibold">
+                Save 17%
+              </span>
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {Object.entries(PLAN_PRICING).map(([key, plan]) => {
-              const price = billingCycle === "YEARLY" ? plan.yearly : plan.monthly;
+              const price =
+                billingCycle === "YEARLY" ? plan.yearly : plan.monthly;
               const Icon = plan.icon;
-              const isCurrentPlan = organization.plan === key.toLowerCase() && isActive;
+              const isCurrentPlan =
+                organization.plan === key.toLowerCase() && isActive;
               return (
-                <div key={key} className={`rounded-2xl border-2 p-5 transition-all ${isCurrentPlan ? "border-green-300 bg-green-50" : "border-slate-100 hover:border-indigo-200 hover:shadow-md"}`}>
+                <div
+                  key={key}
+                  className={`rounded-2xl border-2 p-5 transition-all ${isCurrentPlan ? "border-green-300 bg-green-50" : "border-slate-100 hover:border-indigo-200 hover:shadow-md"}`}
+                >
                   <div className="flex items-center gap-2 mb-3">
                     <Icon className="w-5 h-5 text-indigo-600" />
                     <h3 className="font-bold text-slate-800">{plan.name}</h3>
                   </div>
                   <div className="mb-6">
-                    <span className="text-3xl font-bold text-slate-800">₹{price.toLocaleString("en-IN")}</span>
-                    <span className="text-sm text-slate-500">/{billingCycle === "YEARLY" ? "year" : "month"}</span>
+                    <span className="text-3xl font-bold text-slate-800">
+                      ₹{price.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-sm text-slate-500">
+                      /{billingCycle === "YEARLY" ? "year" : "month"}
+                    </span>
                   </div>
 
                   <ul className="mb-6 space-y-3">
                     {plan.features.map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-600 font-medium">
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2.5 text-sm text-slate-600 font-medium"
+                      >
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>
@@ -273,7 +372,9 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                       disabled={upgrading}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
                     >
-                      {upgrading && selectedPlan === key ? "Processing..." : `Upgrade to ${plan.name}`}
+                      {upgrading && selectedPlan === key
+                        ? "Processing..."
+                        : `Upgrade to ${plan.name}`}
                     </Button>
                   )}
                 </div>
@@ -290,8 +391,12 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
             <div>
               <h3 className="font-bold text-slate-800">Active Subscription</h3>
               <p className="text-sm text-slate-500">
-                {currentSubscription.plan} · {currentSubscription.billingCycle} · Expires{" "}
-                {new Date(currentSubscription.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                {currentSubscription.plan} · {currentSubscription.billingCycle}{" "}
+                · Expires{" "}
+                {new Date(currentSubscription.expiresAt).toLocaleDateString(
+                  "en-IN",
+                  { day: "numeric", month: "short", year: "numeric" },
+                )}
               </p>
             </div>
             <Button
@@ -316,40 +421,84 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
           <div className="text-center py-12 text-slate-400">
             <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="font-medium">No payments yet</p>
-            <p className="text-sm mt-1">Your payment history will appear here.</p>
+            <p className="text-sm mt-1">
+              Your payment history will appear here.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Invoice</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Plan</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">
+                    Invoice
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">
+                    Date
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">
+                    Plan
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">
+                    Amount
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">
+                    Status
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((item: any) => (
-                  <tr key={item._id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                    <td className="py-3 px-4 text-sm font-mono text-slate-600">{item.invoiceNumber || "—"}</td>
+                  <tr
+                    key={item._id}
+                    className="border-b border-slate-50 hover:bg-slate-50/50"
+                  >
+                    <td className="py-3 px-4 text-sm font-mono text-slate-600">
+                      {item.invoiceNumber || "—"}
+                    </td>
                     <td className="py-3 px-4 text-sm text-slate-600">
-                      {new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      {new Date(item.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="text-sm font-semibold text-slate-700">{item.plan}</span>
-                      <span className="text-xs text-slate-400 ml-1">({item.billingCycle})</span>
+                      <span className="text-sm font-semibold text-slate-700">
+                        {item.plan}
+                      </span>
+                      <span className="text-xs text-slate-400 ml-1">
+                        ({item.billingCycle})
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-sm font-semibold text-slate-800">₹{item.amount?.toLocaleString("en-IN")}</td>
+                    <td className="py-3 px-4 text-sm font-semibold text-slate-800">
+                      ₹{item.amount?.toLocaleString("en-IN")}
+                    </td>
                     <td className="py-3 px-4">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        item.status === "PAID" ? "bg-green-100 text-green-700" :
-                        item.status === "CANCELLED" ? "bg-red-100 text-red-700" :
-                        "bg-amber-100 text-amber-700"
-                      }`}>
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          item.status === "PAID"
+                            ? "bg-green-100 text-green-700"
+                            : item.status === "CANCELLED"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
                         {item.status}
                       </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {item.status === "PAID" && (
+                        <button
+                          onClick={() => handleDownloadInvoice(item._id)}
+                          className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold flex items-center gap-1"
+                        >
+                          <Download className="w-3.5 h-3.5" /> Invoice
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
