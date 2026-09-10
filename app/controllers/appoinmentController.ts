@@ -367,6 +367,57 @@ export const getAllAppointments = async (
   });
 };
 
+// Today's agenda for one doctor — a small, focused list (not paginated)
+// meant for a "what's next" dashboard widget rather than the full
+// appointments table.
+export const getTodaysAgenda = async (
+  organizationId: string,
+  requestingUser: RequestingUser,
+  doctorId: string,
+  dateStr: string, // "YYYY-MM-DD"
+) => {
+  const doctorScope = await resolveDoctorScope(organizationId, requestingUser);
+  if (doctorScope && !doctorScope.some((id) => id.toString() === doctorId)) {
+    return sendResponse(true, "Today's agenda fetched successfully", {
+      appointments: [],
+    });
+  }
+
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const dayStart = new Date(year, month - 1, day, 0, 0, 0);
+  const dayEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+  const appointments = await Appointment.find({
+    organizationId,
+    doctor: doctorId,
+    date: { $gte: dayStart, $lte: dayEnd },
+    status: { $ne: "CANCELLED" },
+  })
+    .sort({ startTime: 1 })
+    .lean();
+
+  const agenda = appointments.map((appointment) => ({
+    _id: appointment._id.toString(),
+    bookingId: appointment.bookingId,
+    firstName:
+      appointment.firstName ||
+      (appointment as any).patientName?.split(" ")[0] ||
+      "Unknown",
+    lastName:
+      appointment.lastName ||
+      (appointment as any).patientName?.split(" ").slice(1).join(" ") ||
+      "",
+    treatmentCategory: appointment.treatmentCategory,
+    startTime: appointment.startTime,
+    startTimeLabel: minutesToTimeString(appointment.startTime),
+    status: appointment.status,
+  }));
+
+  return sendResponse(true, "Today's agenda fetched successfully", {
+    appointments: agenda,
+  });
+};
+
 //update appoinment
 export const updateAppointment = async (
   organizationId: string,

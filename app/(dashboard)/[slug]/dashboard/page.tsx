@@ -1,6 +1,7 @@
 import {
   getMonthWiseReportAction,
   getAppointmentsAction,
+  getTodaysAgendaAction,
 } from "@/app/actions/appointmentsActions";
 import {
   getDashboardSummaryAction,
@@ -43,6 +44,7 @@ const page = async (props: {
     recentAppointmentsRes,
     newEnquiriesRes,
     patientsRes,
+    todaysAgendaRes,
   ] = await Promise.all([
     getMonthWiseReportAction(year, doctorId),
     getEnquiryReportAction(year),
@@ -54,6 +56,9 @@ const page = async (props: {
     getAppointmentsAction(1, 5),
     getEnquiriesAction(1, 5, undefined, undefined, "NEW"),
     getPatientsAction(1, 1),
+    doctorId
+      ? getTodaysAgendaAction(doctorId, todaysDate)
+      : Promise.resolve({ data: { appointments: [] } }),
   ]);
 
   //appointment report
@@ -95,6 +100,9 @@ const page = async (props: {
   //total patients (scoped to the requesting user, same as the Patients page)
   const totalPatients = patientsRes?.data?.pagination?.totalCount ?? 0;
 
+  //today's agenda (doctor's own schedule, only populated once ?doctor= is set)
+  const todaysAgenda = todaysAgendaRes?.data?.appointments ?? [];
+
   return (
     <DashboardHome
       slug={slug}
@@ -105,6 +113,7 @@ const page = async (props: {
       recentAppointments={recentAppointments}
       newEnquiries={newEnquiries}
       totalPatients={totalPatients}
+      todaysAgenda={todaysAgenda}
       doctorsAppointmentSummary={doctorsAppointmentSummary}
       quickOverview={quickOverviewSummary as QuickOverviewData}
       setupStatus={setupStatus}

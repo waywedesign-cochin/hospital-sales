@@ -43,6 +43,7 @@ import TodayOverviewCard from "./TodayOverviewCard";
 import MiniCalendar from "./MiniCalendar";
 import AppointmentRequests from "./AppointmentRequests";
 import RecentAppointmentsTable from "./RecentAppointmentsTable";
+import TodaysAgenda, { AgendaAppointment } from "./TodaysAgenda";
 import Image from "next/image";
 
 const EnhancedPieChart = dynamic(() => import("./DashboardPieChart"), {
@@ -199,6 +200,7 @@ const DashboardHome = ({
   recentAppointments = [],
   newEnquiries = [],
   totalPatients = 0,
+  todaysAgenda = [],
 }: {
   slug: string;
   appointmentData: MonthWiseReport;
@@ -211,6 +213,7 @@ const DashboardHome = ({
   recentAppointments?: RecentAppointmentItem[];
   newEnquiries?: NewEnquiryItem[];
   totalPatients?: number;
+  todaysAgenda?: AgendaAppointment[];
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -432,7 +435,11 @@ const DashboardHome = ({
               icon={<CheckCircle2 className="w-5 h-5" />}
             />
           </div>
-          <MiniCalendar />
+          {logginedDoctor ? (
+            <TodaysAgenda appointments={todaysAgenda} />
+          ) : (
+            <MiniCalendar />
+          )}
         </div>
       </section>
 

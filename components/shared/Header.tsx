@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Menu, Calendar } from "lucide-react";
+import { Menu, Calendar } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../provider/SidebarContext";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
+import NotificationBell from "./NotificationBell";
 
 export function Header() {
   const router = useRouter();
@@ -102,6 +103,8 @@ export function Header() {
           <Calendar className="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform" />
           <span className="text-xs font-semibold text-blue-700">{today || "..."}</span>
         </div>
+
+        <NotificationBell />
 
         {/* Vertical Separator */}
         <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>

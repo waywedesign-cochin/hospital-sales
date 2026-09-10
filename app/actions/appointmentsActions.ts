@@ -4,6 +4,7 @@ import {
   getAllAppointments,
   getAppointmentById,
   getMonthWiseReport,
+  getTodaysAgenda,
   updateAppointment,
   deleteAppointment,
 } from "../controllers/appoinmentController";
@@ -40,6 +41,13 @@ export const getAppointmentsAction = async (
     year,
     month,
   );
+};
+
+export const getTodaysAgendaAction = async (doctorId: string, dateStr: string) => {
+  await dbConnect();
+  const user = await requireAuth();
+  const requestingUser = await buildRequestingUser(user);
+  return await getTodaysAgenda(user.organizationId, requestingUser, doctorId, dateStr);
 };
 
 export const getAppointmentByIdAction = async (id: string) => {
