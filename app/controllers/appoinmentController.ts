@@ -530,6 +530,56 @@ export const updateAppointment = async (
   return sendApiResponse(true, "Appoinment updated successfully", responseAppt);
 };
 
+//update only the status of an appointment (quick action from the appointments table)
+export const updateAppointmentStatus = async (
+  organizationId: string,
+  id: string,
+  userId: string,
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW",
+  requestingUser?: RequestingUser,
+) => {
+  const appointment = await Appointment.findOne({ _id: id, organizationId });
+  if (!appointment) {
+    return sendApiResponse(false, "Appoinment not found");
+  }
+
+  if (requestingUser) {
+    const doctorScope = await resolveDoctorScope(organizationId, requestingUser);
+    if (
+      doctorScope &&
+      !doctorScope.some((sid) => sid.toString() === appointment.doctor.toString())
+    ) {
+      return sendApiResponse(false, "Appoinment not found");
+    }
+  }
+
+  const updated = await Appointment.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true },
+  );
+
+  if (userId) {
+    await logActivity(
+      organizationId,
+      userId,
+      "UPDATED_APPOINTMENT",
+      "Appointment",
+      `Marked appointment for ${appointment.firstName} ${appointment.lastName || ""} as ${status.replace("_", " ")}`.trim(),
+      id,
+    );
+  }
+
+  const responseAppt: any = updated ? updated.toObject() : null;
+  if (responseAppt) {
+    responseAppt.startTime = minutesToTimeString(responseAppt.startTime);
+    if (responseAppt.endTime)
+      responseAppt.endTime = minutesToTimeString(responseAppt.endTime);
+  }
+
+  return sendApiResponse(true, "Appointment status updated successfully", responseAppt);
+};
+
 //delete appoinment
 export const deleteAppointment = async (
   organizationId: string,

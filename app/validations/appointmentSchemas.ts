@@ -32,3 +32,7 @@ export const appointmentSchema = z.object({
 
   notes: z.string().optional(),
 });
+
+export const updateAppointmentStatusSchema = z.object({
+  status: z.enum(["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED", "NO_SHOW"]),
+});
