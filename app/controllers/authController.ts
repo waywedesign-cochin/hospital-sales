@@ -67,7 +67,7 @@ export const registerClinic = async (data: {
     }
 
     // 1. Generate unique slug for clinic
-    let baseSlug = data.clinicName
+    const baseSlug = data.clinicName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
@@ -280,6 +280,11 @@ export const signIn = async (data: {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { lastLoginAt: new Date() } },
+    );
 
     return sendResponse(true, "Login successful", {
       _id: user._id.toString(),

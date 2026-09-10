@@ -13,6 +13,7 @@ export interface IUser {
   resetPasswordExpires?: Date;
   inviteToken?: string;
   inviteExpiresAt?: Date;
+  lastLoginAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -48,6 +49,7 @@ const userSchema = new Schema<IUser>(
     resetPasswordExpires: { type: Date },
     inviteToken: { type: String },
     inviteExpiresAt: { type: Date },
+    lastLoginAt: { type: Date },
   },
   { timestamps: true }
 );

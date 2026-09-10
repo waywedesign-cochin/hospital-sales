@@ -133,6 +133,22 @@ export const doctorsAppointmentsSummary = async (
     },
     { $unwind: "$doctor" },
 
+    // "status" is an employment flag an admin sets by hand (Active/On
+    // Leave/Inactive) — it says nothing about whether the doctor has ever
+    // actually signed in. Login recency is tracked separately below, and
+    // the two are combined client-side rather than collapsed into one
+    // value here, so "Active" employment status can't masquerade as
+    // "currently active" when the doctor has never logged in.
+    {
+      $lookup: {
+        from: "users",
+        localField: "doctor.userId",
+        foreignField: "_id",
+        as: "loginUser",
+      },
+    },
+    { $unwind: { path: "$loginUser", preserveNullAndEmptyArrays: true } },
+
     {
       $project: {
         _id: 0,
@@ -146,6 +162,9 @@ export const doctorsAppointmentsSummary = async (
             "$doctor.lastName",
           ],
         },
+        status: "$doctor.status",
+        hasLoginAccount: { $toBool: { $ifNull: ["$doctor.userId", false] } },
+        lastActiveAt: "$loginUser.lastLoginAt",
         totalAppointments: 1,
         completedAppointments: 1,
         cancelledAppointments: 1,
