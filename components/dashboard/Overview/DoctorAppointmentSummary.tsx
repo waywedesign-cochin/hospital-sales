@@ -17,7 +17,8 @@ interface DoctorPresence {
   lastActiveAt?: string | Date | null;
 }
 
-const POLL_INTERVAL_MS = 30 * 1000;
+const POLL_INTERVAL_MS = 10 * 1000;
+const CLOCK_TICK_MS = 15 * 1000;
 
 function getProgressColor(percentage: number) {
   const base = { r: 45, g: 212, b: 191 }; // #2DD4BF Teal Accent
@@ -144,6 +145,7 @@ export default function DoctorAppointmentSummary({
     if (doctors.length === 0) return;
 
     let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval>;
 
     const poll = async () => {
       try {
@@ -151,7 +153,7 @@ export default function DoctorAppointmentSummary({
         // Not permitted to read presence (or session expired) — stop quietly
         // rather than retrying on a loop that will never succeed.
         if (res.status === 401 || res.status === 403) {
-          clearInterval(id);
+          clearInterval(intervalId);
           return;
         }
 
@@ -170,14 +172,32 @@ export default function DoctorAppointmentSummary({
       }
     };
 
-    const id = setInterval(poll, POLL_INTERVAL_MS);
+    // Re-poll the instant this tab becomes visible again, so switching back
+    // to it after a doctor logs in/out reflects reality immediately instead
+    // of waiting for the next interval tick.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+
+    intervalId = setInterval(poll, POLL_INTERVAL_MS);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", poll);
     poll();
 
     return () => {
       cancelled = true;
-      clearInterval(id);
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", poll);
     };
   }, [doctors.length]);
+
+  // Keeps "Last active Xm ago" counting up between polls, even if a poll
+  // itself fails — this only advances the clock, never presence data.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), CLOCK_TICK_MS);
+    return () => clearInterval(id);
+  }, []);
 
   // If no doctors, show the exact empty state from the image
   if (!doctors || doctors.length === 0) {
