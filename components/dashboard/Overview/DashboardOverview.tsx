@@ -44,6 +44,7 @@ import MiniCalendar from "./MiniCalendar";
 import AppointmentRequests from "./AppointmentRequests";
 import RecentAppointmentsTable from "./RecentAppointmentsTable";
 import TodaysAgenda, { AgendaAppointment } from "./TodaysAgenda";
+import MiniSparkline from "./MiniSparkline";
 import Image from "next/image";
 
 const EnhancedPieChart = dynamic(() => import("./DashboardPieChart"), {
@@ -108,11 +109,15 @@ interface EnquiryReport {
 
 export type MonthWiseReport = MonthWiseReportItem[];
 
+// Reuses the exact colors the stat cards above already assign per metric
+// (Appointments=sky, Completed=green, Cancelled=red) so the donut reads as
+// part of the same system instead of an unrelated palette. NO_SHOW gets its
+// own violet since nothing above it represents that state.
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
-  SCHEDULED: "#F8D66D",
-  COMPLETED: "#62D99E",
-  CANCELLED: "#FF6B6B",
-  NO_SHOW: "#C084FC",
+  SCHEDULED: "#0EA5E9",
+  COMPLETED: "#22C55E",
+  CANCELLED: "#EF4444",
+  NO_SHOW: "#A78BFA",
 };
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -153,11 +158,13 @@ const AreaBubbleTooltip = ({ active, payload }: any) => {
     </div>
   );
 };
-//bar color intensity based on value
+// Bar color intensity based on value — uses the same sky-blue the
+// "Appointments" stat card already uses, so this chart reads as its
+// detail view rather than an unrelated color.
 function getBarColor(value: number, max: number) {
-  const base = { r: 41, g: 172, b: 106 }; // #29AC6A
+  const base = { r: 14, g: 165, b: 233 }; // #0EA5E9
 
-  if (!max || max <= 0) return "rgb(200, 230, 215)"; // fallback
+  if (!max || max <= 0) return "rgb(210, 235, 250)"; // fallback
 
   const ratio = Math.min(Math.max(value / max, 0), 1); // clamp 0–1
 
@@ -188,6 +195,13 @@ interface NewEnquiryItem {
   createdAt?: string | Date;
 }
 
+interface RecentPatientItem {
+  _id: string;
+  firstName: string;
+  lastName?: string;
+  createdAt?: string | Date;
+}
+
 const DashboardHome = ({
   slug,
   appointmentData,
@@ -201,6 +215,7 @@ const DashboardHome = ({
   newEnquiries = [],
   totalPatients = 0,
   todaysAgenda = [],
+  recentPatients = [],
 }: {
   slug: string;
   appointmentData: MonthWiseReport;
@@ -214,6 +229,7 @@ const DashboardHome = ({
   newEnquiries?: NewEnquiryItem[];
   totalPatients?: number;
   todaysAgenda?: AgendaAppointment[];
+  recentPatients?: RecentPatientItem[];
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -284,6 +300,14 @@ const DashboardHome = ({
             100,
         )
       : 0;
+
+  // Feeds the sparkline in each stat card's otherwise-empty footer space —
+  // reuses the same monthly series already fetched for the bar chart below,
+  // rather than a second request.
+  const appointmentsTrend = appointmentData.map((d) => d.totalAppointments ?? 0);
+  const completedTrend = appointmentData.map(
+    (d) => d.statusSummary?.COMPLETED ?? 0,
+  );
 
   const statusSummary = appointmentData.reduce(
     (acc, item) => {
@@ -419,6 +443,26 @@ const DashboardHome = ({
               percent={100}
               color="#2DD4BF"
               icon={<Users className="w-5 h-5" />}
+              footer={
+                recentPatients.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Recently Added
+                    </p>
+                    {recentPatients.slice(0, 3).map((p) => (
+                      <div key={p._id} className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-[#2DD4BF]/10 text-[#0F9C8A] text-[10px] font-bold flex items-center justify-center shrink-0">
+                          {p.firstName?.[0]}
+                          {p.lastName?.[0] ?? ""}
+                        </span>
+                        <span className="text-xs font-medium text-[#00236F] truncate">
+                          {p.firstName} {p.lastName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : undefined
+              }
             />
             <TodayOverviewCard
               title="Appointments"
@@ -426,6 +470,16 @@ const DashboardHome = ({
               percent={completionRate}
               color="#0EA5E9"
               icon={<CalendarDays className="w-5 h-5" />}
+              footer={
+                appointmentsTrend.some((v) => v > 0) ? (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {year} Trend
+                    </p>
+                    <MiniSparkline data={appointmentsTrend} color="#0EA5E9" />
+                  </div>
+                ) : undefined
+              }
             />
             <TodayOverviewCard
               title="Completed"
@@ -433,6 +487,16 @@ const DashboardHome = ({
               percent={completionRate}
               color="#22C55E"
               icon={<CheckCircle2 className="w-5 h-5" />}
+              footer={
+                completedTrend.some((v) => v > 0) ? (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {year} Trend
+                    </p>
+                    <MiniSparkline data={completedTrend} color="#22C55E" />
+                  </div>
+                ) : undefined
+              }
             />
           </div>
           {logginedDoctor ? (
@@ -491,7 +555,7 @@ const DashboardHome = ({
             </h2>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border-t-4 border-t-[#2DD4BF] border-x border-b border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-sm md:text-lg text-nowrap font-semibold text-[#00236F]">
                 Enquiries vs Appointments
@@ -506,12 +570,12 @@ const DashboardHome = ({
                 >
                   <defs>
                     <linearGradient id="colorEnquiries" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#64748B" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#64748B" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorAppointments" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
@@ -540,27 +604,27 @@ const DashboardHome = ({
                     cursor={{ stroke: "#CBD5E1", strokeDasharray: "3 3" }}
                   />
 
-                  {/* Enquiries – Amber */}
+                  {/* Enquiries – same slate used by the Enquiries stat card */}
                   <Area
                     type="monotone"
                     dataKey="totalEnquiries"
                     name="Enquiries"
-                    stroke="#F59E0B"
+                    stroke="#64748B"
                     strokeWidth={2.5}
                     fill="url(#colorEnquiries)"
-                    dot={{ r: 4, fill: "#F59E0B", strokeWidth: 0 }}
+                    dot={{ r: 4, fill: "#64748B", strokeWidth: 0 }}
                     activeDot={{ r: 6 }}
                   />
 
-                  {/* Appointments – Blue */}
+                  {/* Appointments – same sky-blue used by the Appointments stat card */}
                   <Area
                     type="monotone"
                     dataKey="appointmentsBooked"
                     name="Appointments"
-                    stroke="#3B82F6"
+                    stroke="#0EA5E9"
                     strokeWidth={2.5}
                     fill="url(#colorAppointments)"
-                    dot={{ r: 4, fill: "#3B82F6", strokeWidth: 0 }}
+                    dot={{ r: 4, fill: "#0EA5E9", strokeWidth: 0 }}
                     activeDot={{ r: 6 }}
                   />
 
@@ -590,7 +654,7 @@ const DashboardHome = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Appointment chart */}
-          <div className="lg:col-span-2 bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+          <div className="lg:col-span-2 bg-white/70 backdrop-blur-2xl rounded-3xl border-t-4 border-t-[#0EA5E9] border-x border-b border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
             <p className="font-semibold mb-4 text-[#00236F]">
               Monthly Appointments
             </p>
@@ -611,7 +675,7 @@ const DashboardHome = ({
                     dataKey="monthName"
                     interval={0}
                     padding={{ left: 40, right: 40 }}
-                    tick={{ fill: "#2E7D4F", fontSize: 13 }}
+                    tick={{ fill: "#94A3B8", fontSize: 13 }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -622,7 +686,7 @@ const DashboardHome = ({
                     tickLine={false}
                   />
 
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
 
                   <Bar dataKey="totalAppointments" radius={[8, 8, 8, 8]}>
                     {appointmentData.map((entry, index) => (
@@ -638,7 +702,7 @@ const DashboardHome = ({
                     <LabelList
                       dataKey="totalAppointments"
                       position="center"
-                      fill="#0F3D2E"
+                      fill="#00236F"
                       fontSize={13}
                       fontWeight={600}
                     />
@@ -649,13 +713,11 @@ const DashboardHome = ({
           </div>
 
           {/* Pie chart */}
-          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 flex flex-col items-center transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border-t-4 border-t-[#A78BFA] border-x border-b border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 flex flex-col items-center transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
             <p className="font-semibold text-[#00236F]">Status Distribution</p>
             <div className="w-full h-full">
               <EnhancedPieChart pieData={pieData} />
             </div>
-            {/* <p className="text-4xl font-bold mt-4">{totalAppointments}</p>
-            <span className="text-sm text-gray-500">Total appointments</span> */}
           </div>
         </div>
       </section>

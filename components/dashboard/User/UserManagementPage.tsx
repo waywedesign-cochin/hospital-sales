@@ -296,11 +296,23 @@ const UserManagementPage = ({
             open={isAddUserOpen}
             onOpenChange={(open) => {
               setIsAddUserOpen(open);
-              if (!open) {
-                setShowPassword(false);
-                setPasswordCopied(false);
-                setLinkStaffToDoctor(false);
+              // Reset on every open, not just after a successful submit —
+              // otherwise a cancelled or failed attempt leaves the previous
+              // values sitting in the form the next time it's opened.
+              if (open) {
+                setAddUserForm({
+                  firstName: "",
+                  lastName: "",
+                  email: "",
+                  password: "",
+                  role: "STAFF",
+                  assignedDoctors: [],
+                  doctorProfileId: "",
+                });
               }
+              setShowPassword(false);
+              setPasswordCopied(false);
+              setLinkStaffToDoctor(false);
             }}
           >
             <DialogTrigger asChild>
@@ -326,7 +338,11 @@ const UserManagementPage = ({
                 </div>
               </div>
 
-              <form onSubmit={handleAddUser} className="space-y-4 p-6">
+              <form
+                onSubmit={handleAddUser}
+                className="space-y-4 p-6"
+                autoComplete="off"
+              >
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label
@@ -339,6 +355,8 @@ const UserManagementPage = ({
                       <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
                         id="add-user-first-name"
+                        name="new-user-first-name"
+                        autoComplete="off"
                         placeholder="Jane"
                         value={addUserForm.firstName}
                         onChange={(e) =>
@@ -361,6 +379,8 @@ const UserManagementPage = ({
                     </Label>
                     <Input
                       id="add-user-last-name"
+                      name="new-user-last-name"
+                      autoComplete="off"
                       placeholder="Doe"
                       value={addUserForm.lastName}
                       onChange={(e) =>
@@ -385,7 +405,9 @@ const UserManagementPage = ({
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       id="add-user-email"
+                      name="new-user-email"
                       type="email"
+                      autoComplete="off"
                       placeholder="jane.doe@example.com"
                       value={addUserForm.email}
                       onChange={(e) =>
@@ -421,7 +443,9 @@ const UserManagementPage = ({
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       id="add-user-password"
+                      name="new-user-password"
                       type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
                       placeholder="Set a password"
                       value={addUserForm.password}
                       onChange={(e) =>

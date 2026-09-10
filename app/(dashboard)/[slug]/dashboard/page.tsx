@@ -55,7 +55,7 @@ const page = async (props: {
     getSetupStatusAction(),
     getAppointmentsAction(1, 5),
     getEnquiriesAction(1, 5, undefined, undefined, "NEW"),
-    getPatientsAction(1, 1),
+    getPatientsAction(1, 4),
     doctorId
       ? getTodaysAgendaAction(doctorId, todaysDate)
       : Promise.resolve({ data: { appointments: [] } }),
@@ -100,6 +100,16 @@ const page = async (props: {
   //total patients (scoped to the requesting user, same as the Patients page)
   const totalPatients = patientsRes?.data?.pagination?.totalCount ?? 0;
 
+  //most recently added patients (fills the Total Patients card's footer)
+  const recentPatients = (patientsRes?.data?.patients ?? []).map(
+    (p: any) => ({
+      _id: p._id.toString(),
+      firstName: p.firstName,
+      lastName: p.lastName,
+      createdAt: p.createdAt ? String(p.createdAt) : undefined,
+    }),
+  );
+
   //today's agenda (doctor's own schedule, only populated once ?doctor= is set)
   const todaysAgenda = todaysAgendaRes?.data?.appointments ?? [];
 
@@ -113,6 +123,7 @@ const page = async (props: {
       recentAppointments={recentAppointments}
       newEnquiries={newEnquiries}
       totalPatients={totalPatients}
+      recentPatients={recentPatients}
       todaysAgenda={todaysAgenda}
       doctorsAppointmentSummary={doctorsAppointmentSummary}
       quickOverview={quickOverviewSummary as QuickOverviewData}

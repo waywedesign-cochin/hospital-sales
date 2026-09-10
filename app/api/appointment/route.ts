@@ -3,12 +3,16 @@ import {
   deleteAppointment,
   getBookedSlots,
   updateAppointment,
+  updateAppointmentStatus,
 } from "@/app/controllers/appoinmentController";
 import { dbConnect } from "@/app/lib/dbConnect";
 import { validate } from "@/app/middlewares/validate";
 import { withAuth } from "@/app/middlewares/withAuth";
 import { sendApiResponse } from "@/app/utils/nextResponseHandler";
-import { appointmentSchema } from "@/app/validations/appointmentSchemas";
+import {
+  appointmentSchema,
+  updateAppointmentStatusSchema,
+} from "@/app/validations/appointmentSchemas";
 import User from "@/app/models/User";
 import type { RequestingUser } from "@/app/utils/DoctorScope";
 import { NextRequest, NextResponse } from "next/server";
@@ -112,6 +116,38 @@ export const PUT = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) =
       id,
       user._id,
       data,
+      requestingUser,
+    );
+  } catch (error) {
+    let message = "Server error";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return sendApiResponse(false, message, null);
+  }
+});
+
+// Quick status-only update from the appointments table dropdown — staff/admin only.
+export const PATCH = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
+  try {
+    await dbConnect();
+    const id = req.nextUrl.searchParams.get("id");
+    if (!id) {
+      return sendApiResponse(false, "Invalid request", null);
+    }
+    const [data, errorResponse] = await validate(updateAppointmentStatusSchema, req);
+    if (errorResponse) {
+      return sendApiResponse(false, "Validation failed", null);
+    }
+    if (!data) {
+      return sendApiResponse(false, "Invalid request", null);
+    }
+    const requestingUser = await buildRequestingUser(user);
+    return await updateAppointmentStatus(
+      user.organizationId,
+      id,
+      user._id,
+      data.status,
       requestingUser,
     );
   } catch (error) {

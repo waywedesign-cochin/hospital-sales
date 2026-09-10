@@ -13,6 +13,8 @@ import {
   Download,
   ClipboardList,
   ArrowRight,
+  LayoutGrid,
+  List as ListIcon,
 } from "lucide-react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -29,9 +31,13 @@ import { IEnquiry } from "@/app/models/Enquiry";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { EnquiryDTO } from "@/lib/types";
-import { getEnquirySummaryAction } from "@/app/actions/enquiryActions";
+import {
+  getEnquirySummaryAction,
+  getEnquiriesAction,
+} from "@/app/actions/enquiryActions";
 import { EnquirySummary } from "@/app/controllers/enquiryController";
 import EnquirySummaryCards from "./EnquirySummaryCards";
+import EnquiryKanbanBoard from "./EnquiryKanbanBoard";
 import Link from "next/link";
 import BASE_URL from "@/app/utils/baseUrl";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -82,6 +88,9 @@ export default function EnquiryPage({
   const [fromDate, setFromDate] = useState(searchParams.get("fromDate") ?? "");
   const [toDate, setToDate] = useState(searchParams.get("toDate") ?? "");
   const [exporting, setExporting] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "board">("list");
+  const [boardEnquiries, setBoardEnquiries] = useState<EnquiryDTO[]>([]);
+  const [boardLoading, setBoardLoading] = useState(false);
   const clinic = useAuthStore((state: any) => state.clinic);
   const user = useAuthStore((state: any) => state.user);
   const paramsHook = useParams();
@@ -99,6 +108,48 @@ export default function EnquiryPage({
 
     return () => clearTimeout(timeout);
   }, [search]);
+
+  // Board view needs every status on screen at once (not one paginated page
+  // of 10), so it fetches its own larger, unpaginated slice directly via the
+  // server action rather than reusing the table's paginated response.
+  useEffect(() => {
+    if (viewMode !== "board") return;
+
+    let cancelled = false;
+    setBoardLoading(true);
+
+    getEnquiriesAction(
+      1,
+      300,
+      searchParams.get("search") ?? undefined,
+      searchParams.get("treatmentCategory") ?? undefined,
+      undefined,
+      searchParams.get("source") ?? undefined,
+      fromDate || undefined,
+      toDate || undefined,
+    )
+      .then((res) => {
+        if (cancelled) return;
+        const items = (res?.data?.enquiries ?? []).map((e: any) => ({
+          ...e,
+          createdAt: e.createdAt ? String(e.createdAt) : undefined,
+        }));
+        setBoardEnquiries(items);
+      })
+      .finally(() => {
+        if (!cancelled) setBoardLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [viewMode, searchParams, fromDate, toDate]);
+
+  const handleBoardStatusChanged = (id: string, status: string) => {
+    setBoardEnquiries((prev) =>
+      prev.map((e) => (e._id === id ? { ...e, status: status as EnquiryDTO["status"] } : e)),
+    );
+  };
 
   //filters
   const handleFilter = (key: string, value: string) => {
@@ -351,18 +402,45 @@ export default function EnquiryPage({
               </p>
             </div>
           </div>
-          <Button
-            type="button"
-            onClick={() => router.push(`/${slug}/enquiries/add-enquiry`)}
-            disabled={
-              setupStatus &&
-              (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors)
-            }
-            className="h-11 px-4 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Plus className="w-4 h-4" />
-            Add Enquiry
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  viewMode === "list"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <ListIcon className="w-3.5 h-3.5" />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode("board")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  viewMode === "board"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                Board
+              </button>
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => router.push(`/${slug}/enquiries/add-enquiry`)}
+              disabled={
+                setupStatus &&
+                (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors)
+              }
+              className="h-11 px-4 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Add Enquiry
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -430,24 +508,26 @@ export default function EnquiryPage({
             </div>
           )}
 
-          {/* Status Filter */}
-          <Select
-            value={searchParams.get("status") ?? ""}
-            onValueChange={(val) => handleFilter("status", val)}
-          >
-            <SelectTrigger className="h-9 w-full lg:w-44 bg-slate-50 border-slate-200 rounded-xl font-medium">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Status</SelectItem>
-              <SelectItem value="NEW">New</SelectItem>
-              <SelectItem value="CONTACTED">Contacted</SelectItem>
-              <SelectItem value="FOLLOW_UP">Follow Up</SelectItem>
-              <SelectItem value="APPOINTMENT_BOOKED">
-                Appointment Booked
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Status Filter — not shown in Board mode, where columns already are the status */}
+          {viewMode === "list" && (
+            <Select
+              value={searchParams.get("status") ?? ""}
+              onValueChange={(val) => handleFilter("status", val)}
+            >
+              <SelectTrigger className="h-9 w-full lg:w-44 bg-slate-50 border-slate-200 rounded-xl font-medium">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="NEW">New</SelectItem>
+                <SelectItem value="CONTACTED">Contacted</SelectItem>
+                <SelectItem value="FOLLOW_UP">Follow Up</SelectItem>
+                <SelectItem value="APPOINTMENT_BOOKED">
+                  Appointment Booked
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          )}
 
           {/* Source Filter */}
           <Select
@@ -514,6 +594,23 @@ export default function EnquiryPage({
         </div>
       </div>
 
+      {viewMode === "board" ? (
+        <div className="relative z-10">
+          {boardLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+            </div>
+          ) : (
+            <EnquiryKanbanBoard
+              enquiries={boardEnquiries}
+              slug={String(slug)}
+              currentUserId={user?._id}
+              onStatusChanged={handleBoardStatusChanged}
+            />
+          )}
+        </div>
+      ) : (
+      <>
       {/* Enquiries Table */}
       <div className="relative z-10 bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
         <div className="overflow-x-auto">
@@ -835,6 +932,8 @@ export default function EnquiryPage({
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

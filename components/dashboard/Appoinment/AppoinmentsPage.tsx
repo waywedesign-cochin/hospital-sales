@@ -28,6 +28,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import DeleteDialog from "@/components/shared/DeleteDialog";
+import AppointmentStatusDropdown, {
+  AppointmentStatus,
+} from "./AppointmentStatusDropdown";
 import { Doctor } from "@/lib/types";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
 
@@ -72,6 +75,18 @@ export default function AppointmentsPage({
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [locked, setLocked] = useState(true);
+  const [statusOverrides, setStatusOverrides] = useState<
+    Record<string, AppointmentStatus>
+  >({});
+  const canEditStatus = user?.role === "ADMIN" || user?.role === "STAFF";
+
+  const rows = appointments.map((a) =>
+    statusOverrides[a._id] ? { ...a, status: statusOverrides[a._id] } : a,
+  );
+
+  const handleStatusChanged = (id: string, status: AppointmentStatus) => {
+    setStatusOverrides((prev) => ({ ...prev, [id]: status }));
+  };
 
   const logginedDoctor =
     user?.role === "DOCTOR"
@@ -405,14 +420,14 @@ export default function AppointmentsPage({
             </thead>
 
             <tbody className="bg-white/10 divide-y divide-gray-100">
-              {appointments.length === 0 ? (
+              {rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-10 text-gray-500">
                     No appointments found
                   </td>
                 </tr>
               ) : (
-                appointments.map((apt) => (
+                rows.map((apt) => (
                   <tr
                     key={apt._id}
                     className="hover:bg-gray-50 transition-colors"
@@ -458,7 +473,17 @@ export default function AppointmentsPage({
                       </div>
                     </td>
 
-                    <td className="px-6 py-4">{getStatusBadge(apt.status)}</td>
+                    <td className="px-6 py-4">
+                      {canEditStatus ? (
+                        <AppointmentStatusDropdown
+                          appointmentId={apt._id}
+                          status={apt.status}
+                          onStatusChanged={handleStatusChanged}
+                        />
+                      ) : (
+                        getStatusBadge(apt.status)
+                      )}
+                    </td>
 
                     <td className="px-6 py-4">
                       <div className="flex">
