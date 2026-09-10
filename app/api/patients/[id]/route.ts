@@ -27,7 +27,7 @@ async function getAuthedRequestingUser(): Promise<{
   const decoded = verifyJwt<DecodedToken>(token);
   if (!decoded || !decoded.organizationId) return null;
 
-  let requestingUser: RequestingUser = {
+  const requestingUser: RequestingUser = {
     _id: decoded._id,
     role: decoded.role as RequestingUser["role"],
   };

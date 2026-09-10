@@ -34,7 +34,7 @@ export const getActivityLogs = async (
   const skip = (page - 1) * limit;
 
   // Build the match query
-  let matchQuery: any = { organizationId: new mongoose.Types.ObjectId(organizationId) };
+  const matchQuery: any = { organizationId: new mongoose.Types.ObjectId(organizationId) };
 
   if (search) {
     const searchRegex = { $regex: search, $options: "i" };

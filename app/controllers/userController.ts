@@ -204,7 +204,7 @@ export const getUsers = async (
 ) => {
   try {
     const skip = (page - 1) * limit;
-    let whereClause: any = { organizationId };
+    const whereClause: any = { organizationId };
     if (role) {
       whereClause.role = role;
     }

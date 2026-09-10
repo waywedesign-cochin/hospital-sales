@@ -16,7 +16,7 @@ export const GET = withAuth(["ADMIN", "STAFF", "DOCTOR"])(async (req: NextReques
 
     // withAuth only gives us the decoded JWT ({ _id, role, organizationId }) —
     // assignedDoctors isn't in the token, so STAFF needs one extra DB lookup.
-    let requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
+    const requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
     if (user.role === "STAFF") {
       const userDoc = await User.findById(user._id).select("assignedDoctors");
       requestingUser.assignedDoctors = userDoc?.assignedDoctors?.map((id: any) => id.toString()) || [];

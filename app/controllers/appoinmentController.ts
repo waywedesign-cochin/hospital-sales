@@ -643,12 +643,12 @@ export const getBookedSlots = async (
     return sendApiResponse(false, "Doctor not found", []);
   }
 
-  let workingHours =
+  const workingHours =
     doctor.workingHours && doctor.workingHours.length > 0
       ? doctor.workingHours
       : org?.defaultWorkingHours || [{ start: 600, end: 1080 }];
 
-  let breakTime =
+  const breakTime =
     doctor.breakTime && doctor.breakTime.length > 0
       ? doctor.breakTime
       : org?.defaultBreakTime || [{ start: 780, end: 840 }];

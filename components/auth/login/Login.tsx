@@ -4,6 +4,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import { Activity } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -331,12 +332,12 @@ const AuthForm = () => {
                 ) : (
                   <>
                     New clinic?{" "}
-                    <a
+                    <Link
                       href="/onboarding"
                       className="text-indigo-300 font-bold hover:text-indigo-200 transition-colors duration-200 hover:underline underline-offset-2"
                     >
                       Get Started Free
-                    </a>
+                    </Link>
                   </>
                 )}
               </p>
