@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { signJwt } from "../lib/jwt";
+import { signJwt, verifyJwt } from "../lib/jwt";
 import User from "../models/User";
 import Organization from "../models/Organization";
 import Subscription from "../models/Subscription";
@@ -281,9 +281,10 @@ export const signIn = async (data: {
       maxAge: 60 * 60 * 24 * 7,
     });
 
+    const now = new Date();
     await User.updateOne(
       { _id: user._id },
-      { $set: { lastLoginAt: new Date() } },
+      { $set: { lastLoginAt: now, lastSeenAt: now, isOnline: true } },
     );
 
     return sendResponse(true, "Login successful", {
@@ -305,6 +306,20 @@ export const signIn = async (data: {
 export const logout = async () => {
   try {
     const cookieStore = await cookies();
+
+    // Mark the user offline before the token goes away — afterwards there's
+    // no way to tell who logged out.
+    const token = cookieStore.get("token")?.value;
+    if (token) {
+      const decoded = verifyJwt<{ _id: string }>(token);
+      if (decoded?._id) {
+        await User.updateOne(
+          { _id: decoded._id },
+          { $set: { isOnline: false, lastSeenAt: new Date() } },
+        );
+      }
+    }
+
     cookieStore.delete("token");
 
     return sendResponse(true, "Logged out successfully");

@@ -72,6 +72,8 @@ export interface DoctorAppointmentSummaryItem {
   name: string; // "Dr. First Last"
   status?: "ACTIVE" | "INACTIVE" | "ON_LEAVE";
   hasLoginAccount?: boolean;
+  hasEverLoggedIn?: boolean;
+  isOnline?: boolean;
   lastActiveAt?: string | Date | null;
   totalAppointments: number;
   completedAppointments: number;

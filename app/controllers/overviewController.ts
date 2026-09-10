@@ -164,7 +164,11 @@ export const doctorsAppointmentsSummary = async (
         },
         status: "$doctor.status",
         hasLoginAccount: { $toBool: { $ifNull: ["$doctor.userId", false] } },
-        lastActiveAt: "$loginUser.lastLoginAt",
+        hasEverLoggedIn: { $toBool: { $ifNull: ["$loginUser.lastLoginAt", false] } },
+        isOnline: { $toBool: { $ifNull: ["$loginUser.isOnline", false] } },
+        lastActiveAt: {
+          $ifNull: ["$loginUser.lastSeenAt", "$loginUser.lastLoginAt"],
+        },
         totalAppointments: 1,
         completedAppointments: 1,
         cancelledAppointments: 1,
