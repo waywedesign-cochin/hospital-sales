@@ -13,8 +13,8 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Legend,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   Cell,
   LabelList,
 } from "recharts";
@@ -34,10 +34,16 @@ import {
   Mail,
   CalendarDays,
   ArrowRight,
+  Users,
 } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import DoctorAppointmentSummary from "./DoctorAppointmentSummary";
 import QuickOverview from "./QuickOverview";
+import TodayOverviewCard from "./TodayOverviewCard";
+import MiniCalendar from "./MiniCalendar";
+import AppointmentRequests from "./AppointmentRequests";
+import RecentAppointmentsTable from "./RecentAppointmentsTable";
+import TodaysAgenda, { AgendaAppointment } from "./TodaysAgenda";
 import Image from "next/image";
 
 const EnhancedPieChart = dynamic(() => import("./DashboardPieChart"), {
@@ -65,6 +71,11 @@ export interface DashboardTotalSummary {
 export interface DoctorAppointmentSummaryItem {
   doctorId: string; // Mongo ObjectId as string
   name: string; // "Dr. First Last"
+  status?: "ACTIVE" | "INACTIVE" | "ON_LEAVE";
+  hasLoginAccount?: boolean;
+  hasEverLoggedIn?: boolean;
+  isOnline?: boolean;
+  lastActiveAt?: string | Date | null;
   totalAppointments: number;
   completedAppointments: number;
   cancelledAppointments: number;
@@ -119,6 +130,29 @@ const CustomTooltip = ({ active, payload }: any) => {
     </div>
   );
 };
+
+// Floating value bubble on hover, similar to a "250 Male" style tooltip.
+const AreaBubbleTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="bg-slate-900/95 text-white px-3 py-2 rounded-xl shadow-xl flex flex-col gap-1">
+      {payload.map((p: any) => (
+        <div
+          key={p.dataKey}
+          className="flex items-center gap-2 text-xs font-semibold whitespace-nowrap"
+        >
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: p.color }}
+          />
+          <span>{p.value}</span>
+          <span className="text-slate-300 font-normal">{p.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 //bar color intensity based on value
 function getBarColor(value: number, max: number) {
   const base = { r: 41, g: 172, b: 106 }; // #29AC6A
@@ -134,7 +168,28 @@ function getBarColor(value: number, max: number) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+interface RecentAppointmentItem {
+  _id: string;
+  bookingId: string;
+  firstName: string;
+  lastName?: string;
+  doctor?: { _id?: string; firstName?: string; lastName?: string } | null;
+  treatmentCategory?: string;
+  date: string | Date;
+  startTime: string;
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+}
+
+interface NewEnquiryItem {
+  _id: string;
+  firstName: string;
+  lastName?: string;
+  treatmentCategory?: string;
+  createdAt?: string | Date;
+}
+
 const DashboardHome = ({
+  slug,
   appointmentData,
   doctors,
   enquiryData,
@@ -142,7 +197,12 @@ const DashboardHome = ({
   doctorsAppointmentSummary,
   quickOverview,
   setupStatus,
+  recentAppointments = [],
+  newEnquiries = [],
+  totalPatients = 0,
+  todaysAgenda = [],
 }: {
+  slug: string;
   appointmentData: MonthWiseReport;
   doctors: Doctor[];
   enquiryData: EnquiryReport[];
@@ -150,6 +210,10 @@ const DashboardHome = ({
   doctorsAppointmentSummary: DoctorAppointmentSummaryItem[];
   quickOverview: QuickOverviewData;
   setupStatus?: { hasTreatmentCategories: boolean; hasDoctors: boolean };
+  recentAppointments?: RecentAppointmentItem[];
+  newEnquiries?: NewEnquiryItem[];
+  totalPatients?: number;
+  todaysAgenda?: AgendaAppointment[];
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -211,6 +275,15 @@ const DashboardHome = ({
     (sum, i) => sum + i.totalAppointments,
     0,
   );
+
+  const completionRate =
+    totalSummary.totalAppointments > 0
+      ? Math.round(
+          (totalSummary.completedAppointments /
+            totalSummary.totalAppointments) *
+            100,
+        )
+      : 0;
 
   const statusSummary = appointmentData.reduce(
     (acc, item) => {
@@ -335,8 +408,43 @@ const DashboardHome = ({
           </div>
         )}
 
-      <section className="grid grid-cols-1 gap-6 mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Today's Overview: headline stat cards + calendar, at-a-glance */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold text-[#00236F]">Today's Overview</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <TodayOverviewCard
+              title="Total Patients"
+              value={totalPatients}
+              percent={100}
+              color="#2DD4BF"
+              icon={<Users className="w-5 h-5" />}
+            />
+            <TodayOverviewCard
+              title="Appointments"
+              value={totalSummary.totalAppointments}
+              percent={completionRate}
+              color="#0EA5E9"
+              icon={<CalendarDays className="w-5 h-5" />}
+            />
+            <TodayOverviewCard
+              title="Completed"
+              value={totalSummary.completedAppointments}
+              percent={completionRate}
+              color="#22C55E"
+              icon={<CheckCircle2 className="w-5 h-5" />}
+            />
+          </div>
+          {logginedDoctor ? (
+            <TodaysAgenda appointments={todaysAgenda} />
+          ) : (
+            <MiniCalendar />
+          )}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {!hideEnquiryData && (
             <SummaryCard
               title="Enquiries"
@@ -348,22 +456,6 @@ const DashboardHome = ({
           )}
 
           <SummaryCard
-            title="Appointments"
-            value={totalSummary.totalAppointments}
-            subtitle=""
-            accentColor="#2DD4BF"
-            icon={<CalendarDays className="w-6 h-6" />}
-          />
-
-          <SummaryCard
-            title="Completed"
-            value={totalSummary.completedAppointments}
-            subtitle=""
-            accentColor="#0EA5E9"
-            icon={<CheckCircle2 className="w-6 h-6" />}
-          />
-
-          <SummaryCard
             title="Cancelled"
             value={totalSummary.cancelledAppointments}
             subtitle=""
@@ -371,6 +463,12 @@ const DashboardHome = ({
             icon={<XCircle className="w-6 h-6" />}
           />
         </div>
+      </section>
+
+      {/* New Enquiries + Recent Appointments, mirroring the requests/patient-list pairing */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AppointmentRequests enquiries={newEnquiries} slug={slug} />
+        <RecentAppointmentsTable appointments={recentAppointments} slug={slug} />
       </section>
 
       <section className="mt-6">
@@ -402,10 +500,21 @@ const DashboardHome = ({
 
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
+                <AreaChart
                   data={enquiryData}
                   margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
                 >
+                  <defs>
+                    <linearGradient id="colorEnquiries" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorAppointments" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
@@ -414,60 +523,59 @@ const DashboardHome = ({
 
                   <XAxis
                     dataKey="monthName"
-                    tick={{ fill: "#2563eb", fontSize: 12 }}
+                    tick={{ fill: "#94A3B8", fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                   />
 
                   <YAxis
                     allowDecimals={false}
-                    tick={{ fill: "#2563eb", fontSize: 12 }}
+                    tick={{ fill: "#94A3B8", fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                   />
 
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(255,255,255,0.96)",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "12px",
-                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-                    }}
-                    cursor={{ stroke: "#E5E7EB", strokeDasharray: "3 3" }}
+                    content={<AreaBubbleTooltip />}
+                    cursor={{ stroke: "#CBD5E1", strokeDasharray: "3 3" }}
                   />
 
-                  <Legend
-                    verticalAlign="top"
-                    align="left"
-                    iconType="square"
-                    wrapperStyle={{
-                      paddingBottom: "16px",
-                      fontSize: "13px",
-                    }}
-                  />
-
-                  {/* Enquiries – Green */}
-                  <Line
+                  {/* Enquiries – Amber */}
+                  <Area
                     type="monotone"
                     dataKey="totalEnquiries"
                     name="Enquiries"
-                    stroke="#22C55E"
-                    strokeWidth={2}
-                    dot={{ r: 4, fill: "#22C55E" }}
+                    stroke="#F59E0B"
+                    strokeWidth={2.5}
+                    fill="url(#colorEnquiries)"
+                    dot={{ r: 4, fill: "#F59E0B", strokeWidth: 0 }}
                     activeDot={{ r: 6 }}
                   />
 
                   {/* Appointments – Blue */}
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="appointmentsBooked"
                     name="Appointments"
                     stroke="#3B82F6"
-                    strokeWidth={2}
-                    dot={{ r: 4, fill: "#3B82F6" }}
+                    strokeWidth={2.5}
+                    fill="url(#colorAppointments)"
+                    dot={{ r: 4, fill: "#3B82F6", strokeWidth: 0 }}
                     activeDot={{ r: 6 }}
                   />
-                </LineChart>
+
+                  <Legend
+                    verticalAlign="bottom"
+                    align="center"
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{
+                      paddingTop: "16px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                    }}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>

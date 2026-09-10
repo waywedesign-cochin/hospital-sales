@@ -13,6 +13,13 @@ export interface IUser {
   resetPasswordExpires?: Date;
   inviteToken?: string;
   inviteExpiresAt?: Date;
+  lastLoginAt?: Date;
+  // Presence: lastSeenAt is refreshed by a heartbeat while a dashboard tab is
+  // open, so a session that ends by closing the browser goes stale on its own
+  // rather than staying "online" forever. isOnline is the explicit
+  // login/logout flag; both must agree for a user to count as active.
+  lastSeenAt?: Date;
+  isOnline?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -48,6 +55,9 @@ const userSchema = new Schema<IUser>(
     resetPasswordExpires: { type: Date },
     inviteToken: { type: String },
     inviteExpiresAt: { type: Date },
+    lastLoginAt: { type: Date },
+    lastSeenAt: { type: Date },
+    isOnline: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

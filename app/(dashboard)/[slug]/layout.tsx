@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/shared/Sidebar";
 import { Header } from "@/components/shared/Header";
 import { SidebarProvider } from "@/components/provider/SidebarContext";
 import TrialEnforcer from "@/components/dashboard/TrialEnforcer";
+import PresenceHeartbeat from "@/components/shared/PresenceHeartbeat";
 import Organization from "@/app/models/Organization";
 import { dbConnect } from "@/app/lib/dbConnect";
 import "@/app/globals.css";
@@ -48,6 +49,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
+      <PresenceHeartbeat />
       <div className="flex h-dvh overflow-hidden bg-linear-to-br from-[#F0FDF4] via-[#F4F7FB] to-[#E0F2FE] text-[#00236F] font-sans relative">
         {/* Luminous Organic Abstract Background */}
         <div className="absolute inset-0 bg-white/20 backdrop-blur-[100px] z-0 pointer-events-none"></div>

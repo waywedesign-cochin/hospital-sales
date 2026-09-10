@@ -68,6 +68,7 @@ export const signUpAction = async (data: {
 //logout action
 export const logoutAction = async () => {
   try {
+    await dbConnect();
     return await logout();
   } catch {
     return sendResponse(false, "Internal server error");

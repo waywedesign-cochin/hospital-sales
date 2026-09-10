@@ -3,10 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 import { DoctorAppointmentSummaryItem } from "./DashboardOverview";
 import { User, Activity } from "lucide-react";
+import { isPresenceFresh } from "@/lib/presence";
 
 interface DoctorAppointmentSummaryProps {
   doctors: DoctorAppointmentSummaryItem[];
 }
+
+interface DoctorPresence {
+  status?: DoctorAppointmentSummaryItem["status"];
+  hasLoginAccount?: boolean;
+  hasEverLoggedIn?: boolean;
+  isOnline?: boolean;
+  lastActiveAt?: string | Date | null;
+}
+
+const POLL_INTERVAL_MS = 10 * 1000;
+const CLOCK_TICK_MS = 15 * 1000;
 
 function getProgressColor(percentage: number) {
   const base = { r: 45, g: 212, b: 191 }; // #2DD4BF Teal Accent
@@ -15,11 +27,109 @@ function getProgressColor(percentage: number) {
   return `rgba(${base.r}, ${base.g}, ${base.b}, ${alpha})`;
 }
 
+type ActivityBadgeKind =
+  | "ACTIVE"
+  | "OFFLINE"
+  | "ON_LEAVE"
+  | "INACTIVE"
+  | "NEVER_LOGGED_IN"
+  | "NO_LOGIN";
+
+const BADGE_CONFIG: Record<
+  ActivityBadgeKind,
+  { label: string; dot: string; classes: string }
+> = {
+  ACTIVE: {
+    label: "Active",
+    dot: "bg-emerald-500 animate-pulse",
+    classes: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  OFFLINE: {
+    label: "Offline",
+    dot: "bg-slate-300",
+    classes: "bg-slate-50 text-slate-500 border-slate-200",
+  },
+  ON_LEAVE: {
+    label: "On Leave",
+    dot: "bg-amber-500",
+    classes: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  INACTIVE: {
+    label: "Inactive",
+    dot: "bg-slate-400",
+    classes: "bg-slate-100 text-slate-600 border-slate-200",
+  },
+  NEVER_LOGGED_IN: {
+    label: "Never Logged In",
+    dot: "bg-amber-400",
+    classes: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  NO_LOGIN: {
+    label: "No Login Access",
+    dot: "bg-slate-400",
+    classes: "bg-slate-100 text-slate-500 border-slate-200",
+  },
+};
+
+// The employment "status" an admin sets by hand (Active/On Leave/Inactive) is
+// an explicit override; past that, the badge reflects live presence rather
+// than login history, so "Active" means signed in right now — not "signed in
+// once, months ago".
+function getActivityBadge(
+  doctor: DoctorPresence,
+  now: number,
+): ActivityBadgeKind {
+  if (doctor.status === "ON_LEAVE") return "ON_LEAVE";
+  if (doctor.status === "INACTIVE") return "INACTIVE";
+  if (!doctor.hasLoginAccount) return "NO_LOGIN";
+  if (!doctor.hasEverLoggedIn && !doctor.lastActiveAt) return "NEVER_LOGGED_IN";
+  if (isPresenceFresh(doctor.isOnline, doctor.lastActiveAt, now))
+    return "ACTIVE";
+  return "OFFLINE";
+}
+
+function StatusBadge({ kind }: { kind: ActivityBadgeKind }) {
+  const config = BADGE_CONFIG[kind];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide border shrink-0 ${config.classes}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+      {config.label}
+    </span>
+  );
+}
+
+function formatRelativeTime(date?: string | Date | null, now: number = Date.now()) {
+  if (!date) return "recently";
+  const diffMs = now - new Date(date).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(months / 12);
+  return `${years}y ago`;
+}
+
 export default function DoctorAppointmentSummary({
   doctors,
 }: DoctorAppointmentSummaryProps) {
   const [animate, setAnimate] = useState(false);
   const hasAnimated = useRef(false);
+
+  // Live presence, polled separately from the (heavier) page data so badges
+  // and "last active" text stay current without a page refresh. Server props
+  // are the starting point; polled values override them per doctor.
+  const [livePresence, setLivePresence] = useState<
+    Record<string, DoctorPresence>
+  >({});
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     // Only animate ONCE, when doctors data is ready
@@ -30,6 +140,64 @@ export default function DoctorAppointmentSummary({
       });
     }
   }, [doctors]);
+
+  useEffect(() => {
+    if (doctors.length === 0) return;
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/presence");
+        // Not permitted to read presence (or session expired) — stop quietly
+        // rather than retrying on a loop that will never succeed.
+        if (res.status === 401 || res.status === 403) {
+          clearInterval(intervalId);
+          return;
+        }
+
+        const json = await res.json();
+        if (cancelled || !json?.success) return;
+
+        const next: Record<string, DoctorPresence> = {};
+        for (const entry of json.data?.presence ?? []) {
+          next[entry.doctorId] = entry;
+        }
+        setLivePresence(next);
+      } catch {
+        // Transient network failure; the next tick will retry.
+      } finally {
+        if (!cancelled) setNow(Date.now());
+      }
+    };
+
+    // Re-poll the instant this tab becomes visible again, so switching back
+    // to it after a doctor logs in/out reflects reality immediately instead
+    // of waiting for the next interval tick.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+
+    intervalId = setInterval(poll, POLL_INTERVAL_MS);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", poll);
+    poll();
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", poll);
+    };
+  }, [doctors.length]);
+
+  // Keeps "Last active Xm ago" counting up between polls, even if a poll
+  // itself fails — this only advances the clock, never presence data.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), CLOCK_TICK_MS);
+    return () => clearInterval(id);
+  }, []);
 
   // If no doctors, show the exact empty state from the image
   if (!doctors || doctors.length === 0) {
@@ -87,14 +255,33 @@ export default function DoctorAppointmentSummary({
           const total = doctor.totalAppointments || 1;
           const percentage = Math.round((completed / total) * 100);
 
+          const presence: DoctorPresence =
+            livePresence[doctor.doctorId] ?? doctor;
+          const badgeKind = getActivityBadge(presence, now);
+          const showLastActiveCaption =
+            badgeKind === "OFFLINE" ||
+            badgeKind === "ON_LEAVE" ||
+            badgeKind === "INACTIVE";
+
           return (
             <div key={doctor.doctorId} className="space-y-3">
               {/* Header */}
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-semibold text-[#00236F] flex items-center gap-2">
-                  <User className="h-4 w-4 text-[#2DD4BF]" /> {doctor.name}
-                </span>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <div className="flex justify-between items-start text-sm gap-3">
+                <div className="min-w-0">
+                  <span className="font-semibold text-[#00236F] flex items-center gap-2 flex-wrap">
+                    <User className="h-4 w-4 text-[#2DD4BF] shrink-0" />
+                    <span className="truncate">{doctor.name}</span>
+                    <StatusBadge kind={badgeKind} />
+                  </span>
+                  {showLastActiveCaption && (
+                    <p className="text-[10px] font-medium text-slate-400 mt-1 ml-6">
+                      {presence.lastActiveAt
+                        ? `Last active ${formatRelativeTime(presence.lastActiveAt, now)}`
+                        : "Never logged in"}
+                    </p>
+                  )}
+                </div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">
                   {completed}/{total}
                 </span>
               </div>

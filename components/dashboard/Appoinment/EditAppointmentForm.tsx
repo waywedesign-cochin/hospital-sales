@@ -85,7 +85,7 @@ export default function EditAppointmentForm({
     setErrors((p) => ({ ...p, [key]: "" }));
 
     setForm((prev) => {
-      let next = { ...prev, [key]: value };
+      const next = { ...prev, [key]: value };
 
       if (key === "treatmentCategory" && value !== prev.treatmentCategory) {
         next.doctor = value === initialTreatmentCategory ? initialDoctorId : "";
@@ -122,7 +122,7 @@ export default function EditAppointmentForm({
       );
 
       if (res.data.success) {
-        let slots: {time: string, reason: string}[] = res.data.data || [];
+        const slots: {time: string, reason: string}[] = res.data.data || [];
 
         // If editing the same doctor on the same date, the backend will have blocked the 
         // slot that this appointment already holds. We must inject it back as an available option.

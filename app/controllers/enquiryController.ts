@@ -378,7 +378,7 @@ export const getEnquirySummary = async (
     : null;
 
   /* ---------------- Snapshot Date Logic ---------------- */
-  let snapshotMatch: any = {
+  const snapshotMatch: any = {
     organizationId: new mongoose.Types.ObjectId(organizationId),
   };
   let overviewMatch: any = {

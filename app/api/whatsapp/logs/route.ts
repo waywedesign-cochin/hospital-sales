@@ -20,7 +20,7 @@ async function getHandler(req: NextRequest, user: AuthUser) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const page  = parseInt(searchParams.get("page")  || "1");
 
-    let requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
+    const requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
     if (user.role === "STAFF") {
       const userDoc = await User.findById(user._id).select("assignedDoctors");
       requestingUser.assignedDoctors = userDoc?.assignedDoctors?.map((id: any) => id.toString()) || [];

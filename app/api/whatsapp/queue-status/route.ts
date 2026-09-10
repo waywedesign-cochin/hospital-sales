@@ -18,7 +18,7 @@ async function getHandler(req: NextRequest, user: AuthUser) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    let requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
+    const requestingUser: RequestingUser = { _id: user._id, role: user.role as RequestingUser["role"] };
     if (user.role === "STAFF") {
       const userDoc = await User.findById(user._id).select("assignedDoctors");
       requestingUser.assignedDoctors = userDoc?.assignedDoctors?.map((id: any) => id.toString()) || [];
