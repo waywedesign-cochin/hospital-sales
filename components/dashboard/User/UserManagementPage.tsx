@@ -296,11 +296,23 @@ const UserManagementPage = ({
             open={isAddUserOpen}
             onOpenChange={(open) => {
               setIsAddUserOpen(open);
-              if (!open) {
-                setShowPassword(false);
-                setPasswordCopied(false);
-                setLinkStaffToDoctor(false);
+              // Reset on every open, not just after a successful submit —
+              // otherwise a cancelled or failed attempt leaves the previous
+              // values sitting in the form the next time it's opened.
+              if (open) {
+                setAddUserForm({
+                  firstName: "",
+                  lastName: "",
+                  email: "",
+                  password: "",
+                  role: "STAFF",
+                  assignedDoctors: [],
+                  doctorProfileId: "",
+                });
               }
+              setShowPassword(false);
+              setPasswordCopied(false);
+              setLinkStaffToDoctor(false);
             }}
           >
             <DialogTrigger asChild>
