@@ -55,19 +55,12 @@ export default function ViewAppointmentPage({
 
   return (
     <div className="min-h-screen p-2 relative">
-      {/* Background blobs – same as Appointments page */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl" />
-      </div>
-
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -84,16 +77,18 @@ export default function ViewAppointmentPage({
       </div>
 
       {/* Main Card */}
-      <div className="relative z-10 bg-white/60 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden">
+      <div className="relative z-10 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-primary p-8 text-white flex flex-col sm:flex-row gap-6">
-          <div className=" p-4 rounded-2xl backdrop-blur-md flex items-center justify-center">
-            <UserCircle className="w-20 h-20" />
+        <div className="bg-[#0D1117] p-8 text-white flex flex-col sm:flex-row gap-6">
+          <div className="p-4 rounded-2xl bg-white/5 flex items-center justify-center">
+            <UserCircle className="w-20 h-20 text-emerald-400" />
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold">{appointment.firstName} {appointment.lastName || ""}</h1>
-            <p className="text-blue-100 mt-1">
+            <h1 className="text-3xl font-bold">
+              {appointment.firstName} {appointment.lastName || ""}
+            </h1>
+            <p className="text-slate-300 mt-1">
               Booking ID:{" "}
               <span className="font-semibold">{appointment.bookingId}</span>
             </p>
@@ -101,8 +96,8 @@ export default function ViewAppointmentPage({
             <span
               className={`mt-3 inline-block px-4 py-1.5 rounded-full text-xs font-semibold ${
                 isUpcoming
-                  ? "bg-green-400/80 text-emerald-50"
-                  : "bg-yellow-400/30 text-yellow-100"
+                  ? "bg-emerald-400/20 text-emerald-300"
+                  : "bg-amber-400/20 text-amber-300"
               }`}
             >
               {appointment.status}
@@ -115,7 +110,10 @@ export default function ViewAppointmentPage({
           <InfoItem
             icon={<User className="w-5" />}
             label="Patient Name"
-            value={`${appointment.firstName} ${appointment.lastName || ""}`.trim() || "-"}
+            value={
+              `${appointment.firstName} ${appointment.lastName || ""}`.trim() ||
+              "-"
+            }
           />
           <InfoItem
             icon={<Phone className="w-5" />}
@@ -157,8 +155,8 @@ export default function ViewAppointmentPage({
         {/* Notes */}
         {appointment.notes && (
           <div className="px-8 pb-6">
-            <div className="bg-blue-50/60 p-5 rounded-xl border border-blue-100 text-slate-700">
-              <p className="font-semibold mb-2 flex items-center gap-2 text-green-700">
+            <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100 text-slate-700">
+              <p className="font-semibold mb-2 flex items-center gap-2 text-emerald-700">
                 <FileText className="w-4" /> Notes
               </p>
               <p className="text-sm">{appointment.notes}</p>
@@ -170,14 +168,14 @@ export default function ViewAppointmentPage({
         <div className="px-8 pb-8 flex gap-4">
           <Button
             onClick={() => handleEdit(appointment._id ?? "")}
-            className="px-6 py-3 flex-1 bg-green-700 hover:bg-green-700 text-white rounded-xl shadow-md gap-2"
+            className="px-6 py-3 flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm gap-2"
           >
             <Edit className="w-4" /> Edit
           </Button>
 
           <DeleteDialog
             trigger={
-              <Button className="px-6 py-3 flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-md gap-2">
+              <Button className="px-6 py-3 flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-sm gap-2">
                 <Trash2 className="w-4" /> Delete
               </Button>
             }
@@ -204,12 +202,14 @@ function InfoItem({
 }) {
   return (
     <div
-      className={`group bg-white/60 backdrop-blur-md p-5 rounded-xl border border-slate-100 hover:border-green-300 transition-all ${className}`}
+      className={`group bg-white p-5 rounded-xl border border-slate-100 hover:border-emerald-300 transition-all ${className}`}
     >
       <div className="flex items-start gap-3">
-        <div className="text-green-600 group-hover:text-green-700">{icon}</div>
+        <div className="text-emerald-600 group-hover:text-emerald-700">
+          {icon}
+        </div>
         <div>
-          <p className="text-xs text-green-600 uppercase font-semibold">
+          <p className="text-xs text-emerald-600 uppercase font-semibold">
             {label}
           </p>
           <p className="text-sm font-medium text-slate-800">{value}</p>

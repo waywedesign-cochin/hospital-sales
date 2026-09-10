@@ -41,7 +41,11 @@ interface LogEntry {
   };
 }
 
-export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }) {
+export default function MessageLogs({
+  readOnly = false,
+}: {
+  readOnly?: boolean;
+}) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,20 +83,20 @@ export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }
     switch (status) {
       case "SENT":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200">
             <CheckCircle2 className="w-3 h-3" /> Sent
           </span>
         );
       case "DELIVERED":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200">
             <CheckCheck className="w-3 h-3" /> Delivered
           </span>
         );
       case "READ":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-            <CheckCheck className="w-3 h-3 text-green-500" /> Read
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <CheckCheck className="w-3 h-3 text-emerald-500" /> Read
           </span>
         );
       case "FAILED":
@@ -120,7 +124,8 @@ export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }
       : "Unknown Patient"
     : "";
   const chatPhone = selectedLog?.recipientPhone || "";
-  const chatPatientId = selectedLog?.patientDetails?._id || selectedLog?.patientId;
+  const chatPatientId =
+    selectedLog?.patientDetails?._id || selectedLog?.patientId;
 
   return (
     <>
@@ -128,7 +133,9 @@ export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }
         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <div>
             <h3 className="font-semibold text-slate-800">Conversations</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Click a patient to view their full message history</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Click a patient to view their full message history
+            </p>
           </div>
           <Button
             variant="outline"
@@ -137,7 +144,9 @@ export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }
             disabled={loading}
             className="h-8 text-slate-600"
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 mr-2 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -157,13 +166,19 @@ export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }
             <TableBody>
               {loading && logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-slate-500"
+                  >
                     Loading logs...
                   </TableCell>
                 </TableRow>
               ) : logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-slate-500"
+                  >
                     No messages sent yet.
                   </TableCell>
                 </TableRow>
@@ -171,37 +186,55 @@ export default function MessageLogs({ readOnly = false }: { readOnly?: boolean }
                 logs.map((log) => (
                   <TableRow
                     key={log._id}
-                    className="cursor-pointer hover:bg-green-50/40 transition-colors group"
+                    className="cursor-pointer hover:bg-emerald-50/40 transition-colors group"
                     onClick={() => openChat(log)}
                   >
                     <TableCell className="text-sm text-slate-600 whitespace-nowrap">
-                      {new Date(log.lastSentAt || log.lastCreatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                      {new Date(
+                        log.lastSentAt || log.lastCreatedAt,
+                      ).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-slate-800">
-                          {log.patientDetails ? `${log.patientDetails.firstName} ${log.patientDetails.lastName}` : 'Unknown Patient'}
+                          {log.patientDetails
+                            ? `${log.patientDetails.firstName} ${log.patientDetails.lastName}`
+                            : "Unknown Patient"}
                         </span>
                         <span className="text-xs text-slate-500">
                           {log.recipientPhone}
-                          {log.totalMessages > 1 ? ` · ${log.totalMessages} messages` : ''}
-                          {log.failedCount > 0 ? ` · ${log.failedCount} failed` : ''}
+                          {log.totalMessages > 1
+                            ? ` · ${log.totalMessages} messages`
+                            : ""}
+                          {log.failedCount > 0
+                            ? ` · ${log.failedCount} failed`
+                            : ""}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
-                        {log.lastMessageType?.replace('_', ' ')}
+                        {log.lastMessageType?.replace("_", " ")}
                       </span>
                     </TableCell>
-                    <TableCell className="max-w-[300px] truncate text-sm text-slate-600" title={log.lastContent}>
+                    <TableCell
+                      className="max-w-[300px] truncate text-sm text-slate-600"
+                      title={log.lastContent}
+                    >
                       {log.lastContent}
                     </TableCell>
                     <TableCell className="text-right">
                       {getStatusBadge(log)}
                     </TableCell>
                     <TableCell>
-                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-green-500 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 transition-colors" />
                     </TableCell>
                   </TableRow>
                 ))

@@ -158,7 +158,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -173,16 +173,16 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
       </div>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="relative flex items-center gap-4 p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
-          <div className="bg-indigo-600 p-4 rounded-xl shadow-lg shadow-indigo-500/30">
-            <CreditCard className="w-8 h-8 text-white" />
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="relative flex items-center gap-4 p-6 rounded-2xl">
+          <div className="bg-[#0D1117] p-4 rounded-xl">
+            <CreditCard className="w-8 h-8 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-linear-to-r from-indigo-700 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
               Billing & Plans
             </h1>
-            <p className="text-slate-600 font-medium text-sm mt-1">
+            <p className="text-slate-500 font-medium text-sm mt-1">
               Manage your subscription and view payment history
             </p>
           </div>
@@ -217,8 +217,8 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <Crown className="w-4 h-4 text-indigo-600" />
+            <div className="p-2 bg-[#0D1117] rounded-lg">
+              <Crown className="w-4 h-4 text-emerald-400" />
             </div>
             <span className="text-sm font-medium text-slate-500">
               Current Plan
@@ -230,7 +230,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-full mt-2 inline-block ${
               isActive
-                ? "bg-green-100 text-green-700"
+                ? "bg-emerald-100 text-emerald-700"
                 : isTrial
                   ? "bg-amber-100 text-amber-700"
                   : "bg-red-100 text-red-700"
@@ -259,8 +259,8 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Calendar className="w-4 h-4 text-blue-600" />
+            <div className="p-2 bg-sky-50 rounded-lg">
+              <Calendar className="w-4 h-4 text-sky-600" />
             </div>
             <span className="text-sm font-medium text-slate-500">
               {isTrial ? "Trial Ends" : "Next Billing"}
@@ -309,7 +309,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                   billingCycle === "MONTHLY" ? "YEARLY" : "MONTHLY",
                 )
               }
-              className={`relative w-12 h-6 rounded-full transition-colors ${billingCycle === "YEARLY" ? "bg-indigo-600" : "bg-slate-200"}`}
+              className={`relative w-12 h-6 rounded-full transition-colors ${billingCycle === "YEARLY" ? "bg-emerald-600" : "bg-slate-200"}`}
             >
               <div
                 className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${billingCycle === "YEARLY" ? "translate-x-6" : ""}`}
@@ -325,7 +325,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
             {Object.entries(PLAN_PRICING).map(([key, plan]) => {
               const price =
                 billingCycle === "YEARLY" ? plan.yearly : plan.monthly;
@@ -335,10 +335,10 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
               return (
                 <div
                   key={key}
-                  className={`rounded-2xl border-2 p-5 transition-all ${isCurrentPlan ? "border-green-300 bg-green-50" : "border-slate-100 hover:border-indigo-200 hover:shadow-md"}`}
+                  className={`flex flex-col rounded-2xl border-2 p-5 transition-all ${isCurrentPlan ? "border-emerald-300 bg-emerald-50" : "border-slate-100 hover:border-emerald-200 hover:shadow-md"}`}
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <Icon className="w-5 h-5 text-indigo-600" />
+                    <Icon className="w-5 h-5 text-emerald-600" />
                     <h3 className="font-bold text-slate-800">{plan.name}</h3>
                   </div>
                   <div className="mb-6">
@@ -350,7 +350,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                     </span>
                   </div>
 
-                  <ul className="mb-6 space-y-3">
+                  <ul className="flex-1 mb-6 space-y-3">
                     {plan.features.map((feature: string, idx: number) => (
                       <li
                         key={idx}
@@ -363,14 +363,14 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                   </ul>
 
                   {isCurrentPlan ? (
-                    <div className="flex items-center gap-2 text-green-600 text-sm font-semibold">
+                    <div className="flex items-center gap-2 text-emerald-600 text-sm font-semibold">
                       <CheckCircle2 className="w-4 h-4" /> Current Plan
                     </div>
                   ) : (
                     <Button
                       onClick={() => handleUpgrade(key)}
                       disabled={upgrading}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
                     >
                       {upgrading && selectedPlan === key
                         ? "Processing..."
@@ -481,7 +481,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                       <span
                         className={`text-xs font-semibold px-2 py-1 rounded-full ${
                           item.status === "PAID"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-emerald-100 text-emerald-700"
                             : item.status === "CANCELLED"
                               ? "bg-red-100 text-red-700"
                               : "bg-amber-100 text-amber-700"
@@ -494,7 +494,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
                       {item.status === "PAID" && (
                         <button
                           onClick={() => handleDownloadInvoice(item._id)}
-                          className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold flex items-center gap-1"
+                          className="text-emerald-600 hover:text-emerald-800 text-xs font-semibold flex items-center gap-1"
                         >
                           <Download className="w-3.5 h-3.5" /> Invoice
                         </button>

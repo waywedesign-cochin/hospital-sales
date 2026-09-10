@@ -28,12 +28,17 @@ const sources = ["PHONE", "WHATSAPP", "OTHER"];
 
 /* ---------------- PAGE ---------------- */
 
-export default function AddEnquiryForm({ initialCategories = [] }: { initialCategories?: string[] }) {
+export default function AddEnquiryForm({
+  initialCategories = [],
+}: {
+  initialCategories?: string[];
+}) {
   const router = useRouter();
   const clinic = useAuthStore((state: any) => state.clinic);
 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [localCategories, setLocalCategories] = useState<string[]>(initialCategories);
+  const [localCategories, setLocalCategories] =
+    useState<string[]>(initialCategories);
 
   useEffect(() => {
     if (initialCategories.length > 0) {
@@ -115,7 +120,7 @@ export default function AddEnquiryForm({ initialCategories = [] }: { initialCate
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -134,125 +139,130 @@ export default function AddEnquiryForm({ initialCategories = [] }: { initialCate
       {localCategories.length === 0 ? (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">
           <h2 className="text-xl font-bold mb-2">Configuration Required</h2>
-          <p className="mb-6 max-w-md">You must create at least one Treatment Category before you can add an Enquiry.</p>
-          <Button onClick={() => router.push("/settings/treatment-category")} className="bg-amber-600 hover:bg-amber-700 text-white">
+          <p className="mb-6 max-w-md">
+            You must create at least one Treatment Category before you can add
+            an Enquiry.
+          </p>
+          <Button
+            onClick={() => router.push("/settings/treatment-category")}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
             Set up Treatment Categories
           </Button>
         </div>
       ) : (
-        <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border p-6 space-y-6">
-        {/* Inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+          {/* Inputs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Input
+                placeholder="First Name"
+                value={form.firstName}
+                onChange={(e) => onChange("firstName", e.target.value)}
+              />
+              {errors.firstName && (
+                <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+              )}
+            </div>
+
             <Input
-              placeholder="First Name"
-              value={form.firstName}
-              onChange={(e) => onChange("firstName", e.target.value)}
+              placeholder="Last Name (optional)"
+              value={form.lastName}
+              onChange={(e) => onChange("lastName", e.target.value)}
             />
-            {errors.firstName && (
-              <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
-            )}
+
+            <div>
+              <Input
+                placeholder="Email"
+                value={form.email}
+                onChange={(e) => onChange("email", e.target.value)}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <PhoneInput
+                placeholder="Phone"
+                value={form.phone}
+                onChange={(val: string) => onChange("phone", val || "")}
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+              )}
+            </div>
+
+            {/* Category */}
+            <div>
+              <Select
+                value={form.treatmentCategory}
+                onValueChange={(val) => onChange("treatmentCategory", val)}
+              >
+                <SelectTrigger className="h-11 w-full">
+                  <SelectValue placeholder="Treatment Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {localCategories.map((c: string) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {errors.treatmentCategory && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.treatmentCategory}
+                </p>
+              )}
+            </div>
+
+            {/* Source */}
+            <div>
+              <Select
+                value={form.source}
+                onValueChange={(val) => onChange("source", val)}
+              >
+                <SelectTrigger className="h-11 w-full">
+                  <SelectValue placeholder="Source" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sources.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {errors.source && (
+                <p className="text-red-500 text-xs mt-1">{errors.source}</p>
+              )}
+            </div>
           </div>
 
-          <Input
-            placeholder="Last Name (optional)"
-            value={form.lastName}
-            onChange={(e) => onChange("lastName", e.target.value)}
-          />
-
+          {/* Message */}
           <div>
-            <Input
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => onChange("email", e.target.value)}
+            <Textarea
+              placeholder="Message"
+              value={form.message}
+              onChange={(e) => onChange("message", e.target.value)}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            {errors.message && (
+              <p className="text-red-500 text-xs mt-1">{errors.message}</p>
             )}
           </div>
 
-          <div>
-            <PhoneInput
-              placeholder="Phone"
-              value={form.phone}
-              onChange={(val: string) => onChange("phone", val || "")}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-            )}
-          </div>
-
-          {/* Category */}
-          <div>
-            <Select
-              value={form.treatmentCategory}
-              onValueChange={(val) => onChange("treatmentCategory", val)}
-            >
-              <SelectTrigger className="h-11 w-full">
-                <SelectValue placeholder="Treatment Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {localCategories.map((c: string) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-
-              </SelectContent>
-            </Select>
-
-            {errors.treatmentCategory && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.treatmentCategory}
-              </p>
-            )}
-          </div>
-
-          {/* Source */}
-          <div>
-            <Select
-              value={form.source}
-              onValueChange={(val) => onChange("source", val)}
-            >
-              <SelectTrigger className="h-11 w-full">
-                <SelectValue placeholder="Source" />
-              </SelectTrigger>
-              <SelectContent>
-                {sources.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {errors.source && (
-              <p className="text-red-500 text-xs mt-1">{errors.source}</p>
-            )}
-          </div>
+          {/* Submit */}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700"
+          >
+            {loading ? "Saving..." : "Create Enquiry"}
+          </Button>
         </div>
-
-        {/* Message */}
-        <div>
-          <Textarea
-            placeholder="Message"
-            value={form.message}
-            onChange={(e) => onChange("message", e.target.value)}
-          />
-          {errors.message && (
-            <p className="text-red-500 text-xs mt-1">{errors.message}</p>
-          )}
-        </div>
-
-        {/* Submit */}
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full h-11 rounded-xl bg-green-700 hover:bg-green-800"
-        >
-          {loading ? "Saving..." : "Create Enquiry"}
-        </Button>
-      </div>
       )}
 
       <QuickAddCategoryDialog

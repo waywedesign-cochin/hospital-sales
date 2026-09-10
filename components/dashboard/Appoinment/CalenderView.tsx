@@ -1,5 +1,11 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -43,11 +49,11 @@ const renderEventContent = (eventInfo: any) => {
     <div
       className={`flex flex-col w-full h-full px-2.5 py-1.5 overflow-hidden 
         ${cornerClass} 
-        bg-[#00236F] hover:bg-[#001a52] transition-colors duration-200 shadow-sm cursor-pointer`}
+        bg-[#0D1117] hover:bg-[#141A21] transition-colors duration-200 shadow-sm cursor-pointer`}
     >
       {isListView ? (
         <div className="flex items-center gap-2 h-full">
-          <div className="w-2 h-2 rounded-full bg-white/80 shrink-0" />
+          <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
           <div className="font-bold text-sm text-white truncate leading-tight">
             {displayTitle}
           </div>
@@ -55,7 +61,7 @@ const renderEventContent = (eventInfo: any) => {
       ) : (
         <>
           <div className="flex items-center gap-1 mb-0.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-white/70 shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
             <span className="text-xs font-semibold text-white/90 truncate">
               {eventInfo.timeText}
             </span>
@@ -164,7 +170,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
       setIsFetching(true);
       try {
         const res = await axios.get(
-          `/api/appointment/calendar?doctor=${doctorId}&startDate=${startDate}&endDate=${endDate}&limit=1000`
+          `/api/appointment/calendar?doctor=${doctorId}&startDate=${startDate}&endDate=${endDate}&limit=1000`,
         );
 
         // Clicking prev/next quickly fires overlapping requests; without this an
@@ -244,9 +250,9 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
   if (locked) {
     return (
       <div className="flex items-center justify-center h-[70vh]">
-        <div className="bg-white/70 backdrop-blur-xl border border-gray-200 shadow-xl p-8 rounded-2xl flex flex-col items-center gap-4 animate-in fade-in duration-300">
+        <div className="bg-white border border-slate-200 shadow-sm p-8 rounded-2xl flex flex-col items-center gap-4 animate-in fade-in duration-300">
           {/* Spinner */}
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
 
           {/* Text */}
           <p className="text-sm font-semibold text-gray-700 tracking-wide animate-pulse">
@@ -267,8 +273,8 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
           --fc-button-border-color: transparent;
           --fc-button-hover-bg-color: #f8fafc;
           --fc-button-hover-border-color: #e2e8f0;
-          --fc-button-active-bg-color: #eff6ff;
-          --fc-button-active-border-color: #bfdbfe;
+          --fc-button-active-bg-color: #ecfdf5;
+          --fc-button-active-border-color: #a7f3d0;
           --fc-event-bg-color: transparent;
           --fc-event-border-color: transparent;
           --fc-today-bg-color: #f8fafc;
@@ -336,9 +342,9 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
 
         .fc .fc-button-primary:not(:disabled).fc-button-active,
         .fc .fc-button-primary:not(:disabled):active {
-          color: #00236f;
-          background-color: #eff6ff;
-          border-color: #bfdbfe;
+          color: #047857;
+          background-color: #ecfdf5;
+          border-color: #a7f3d0;
         }
 
         .fc .fc-theme-standard th {
@@ -397,7 +403,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         .fc .fc-daygrid-day-number {
           font-size: 0.9rem;
           font-weight: 500;
-          color: #2563eb;
+          color: #059669;
           width: 28px;
           height: 28px;
           display: flex;
@@ -408,7 +414,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         }
 
         .fc .fc-day-today .fc-daygrid-day-number {
-          background: #00236f;
+          background: #0d1117;
           color: white;
         }
 
@@ -477,7 +483,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
               variant="ghost"
               size="sm"
               onClick={() => router.back()}
-              className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+              className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -495,20 +501,18 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         </div>
 
         {/* Header */}
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-green-500/10 bg-blue-50">
-          <div className="absolute inset-0 pointer-events-none bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
-
-          <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 backdrop-blur-sm p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-slate-200 shadow-sm">
+          <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
             <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-3 sm:gap-4 w-full md:w-auto">
-              <div className="bg-blue-primary p-3 sm:p-4 rounded-xl shadow-lg shadow-blue-500/30">
-                <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className="bg-[#0D1117] p-3 sm:p-4 rounded-xl">
+                <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
               </div>
 
               <div className="flex-1 md:flex-initial">
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">
                   Appointments Calendar
                 </h1>
-                <p className="text-slate-600 font-medium text-xs sm:text-sm mt-1">
+                <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1">
                   Visual overview of appointments by date and time
                 </p>
               </div>
@@ -518,7 +522,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
               <Button
                 type="button"
                 onClick={() => router.push("/appointments/create-appointment")}
-                className="h-10 sm:h-11 px-3 sm:px-4 rounded-xl bg-green-800 hover:bg-green-900 text-white shadow-md hover:shadow-lg w-full md:w-auto text-sm"
+                className="h-10 sm:h-11 px-3 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md w-full md:w-auto text-sm"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 New Appointment
@@ -531,7 +535,7 @@ export default function CalendarView({ doctors }: { doctors: Doctor[] }) {
         <div className="relative bg-white shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-100 p-1 sm:p-2">
           {isFetching && (
             <div className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 shadow-sm border border-slate-100">
-              <span className="w-3 h-3 border-2 border-slate-200 border-t-green-700 rounded-full animate-spin" />
+              <span className="w-3 h-3 border-2 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
               <span className="text-xs font-medium text-slate-500">
                 Updating
               </span>

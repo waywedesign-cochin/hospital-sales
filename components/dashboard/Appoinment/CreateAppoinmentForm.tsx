@@ -73,7 +73,11 @@ export default function AppointmentForm({
     enquiryId: prefill?.enquiryId ?? undefined,
     firstName: prefillNameSplit[0] || "",
     lastName: prefillNameSplit.slice(1).join(" ") || "",
-    patientPhone: prefill?.phone ? (prefill.phone.startsWith("+") ? prefill.phone : `+${prefill.phone}`) : "",
+    patientPhone: prefill?.phone
+      ? prefill.phone.startsWith("+")
+        ? prefill.phone
+        : `+${prefill.phone}`
+      : "",
     patientEmail: prefill?.email || "",
     dateOfBirth: "",
     doctor: "",
@@ -89,7 +93,7 @@ export default function AppointmentForm({
   });
 
   const [availableSlots, setAvailableSlots] = useState<
-    { time: string; reason: string }[]
+    Array<{ time: string; reason: string }>
   >([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -308,7 +312,7 @@ export default function AppointmentForm({
                 variant="ghost"
                 size="sm"
                 onClick={() => router.back()}
-                className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+                className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
@@ -328,17 +332,16 @@ export default function AppointmentForm({
       </div>
 
       {/* Header – SAME as AppointmentsPage */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="absolute inset-0 " />
-        <div className="flex flex-col sm:flex-row text-center sm: items-center gap-4 p-6 rounded-2xl border border-blue-100/50">
-          <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-            <CalendarIcon className="w-8 h-8 text-white" />
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row text-center sm:items-center gap-4 p-6 rounded-2xl">
+          <div className="bg-[#0D1117] p-4 rounded-xl">
+            <CalendarIcon className="w-8 h-8 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
               Create Appointment
             </h1>
-            <p className="text-slate-600 font-medium text-sm mt-1">
+            <p className="text-slate-500 font-medium text-sm mt-1">
               Schedule a new patient appointment
             </p>
           </div>
@@ -361,7 +364,7 @@ export default function AppointmentForm({
           </Button>
         </div>
       ) : (
-        <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
           {/* Patient Info */}
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-12 md:col-span-4 lg:col-span-2">
@@ -404,7 +407,7 @@ export default function AppointmentForm({
                   {patientSuggestions.map((p) => (
                     <div
                       key={p._id}
-                      className="p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
+                      className="p-3 hover:bg-emerald-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
                       onClick={() => handleSelectSuggestion(p)}
                     >
                       <div className="font-semibold text-sm text-slate-800">
@@ -581,7 +584,7 @@ export default function AppointmentForm({
                     No available slots found for this date.
                   </p>
                 )}
-                {availableSlots.map((slotObj) => {
+                {availableSlots.map((slotObj: { time: any }) => {
                   const time = slotObj.time;
                   const isPast = isPastSlot(time);
                   const isSelected = form.startTime === time;
@@ -592,11 +595,13 @@ export default function AppointmentForm({
                     "h-11 rounded-xl text-sm border transition flex items-center justify-center";
 
                   if (isSelected)
-                    cls += " bg-blue-600 text-white border-blue-700";
+                    cls += " bg-[#0D1117] text-white border-[#0D1117]";
                   else if (isPast)
                     cls +=
                       " bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed";
-                  else cls += " bg-blue-50 border-blue-300 hover:bg-blue-100";
+                  else
+                    cls +=
+                      " bg-emerald-50 border-emerald-200 hover:bg-emerald-100";
 
                   return (
                     <button
@@ -637,7 +642,7 @@ export default function AppointmentForm({
             <Button
               onClick={handleAddAppointment}
               disabled={loading}
-              className="w-full h-12 rounded-xl bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold text-base"
+              className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-base"
             >
               {loading ? "Adding..." : "Create Appointment"}
             </Button>
@@ -646,7 +651,7 @@ export default function AppointmentForm({
             <Button
               onClick={handleEnquiryUpdate}
               disabled={loading}
-              className="w-full h-12 rounded-xl bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold text-base"
+              className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-base"
             >
               {loading ? "Saving..." : "Save"}
             </Button>

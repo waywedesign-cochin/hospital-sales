@@ -42,10 +42,10 @@ const TYPE_LABELS: Record<ActivityType, string> = {
 };
 
 const TYPE_BADGE: Record<ActivityType, string> = {
-  NEW: "bg-green-100 text-green-800",
-  CONTACTED: "bg-blue-100 text-blue-800",
-  FOLLOW_UP: "bg-amber-100 text-amber-800",
-  APPOINTMENT_BOOKED: "bg-green-100 text-green-800",
+  NEW: "bg-amber-100 text-amber-800",
+  CONTACTED: "bg-sky-100 text-sky-800",
+  FOLLOW_UP: "bg-violet-100 text-violet-800",
+  APPOINTMENT_BOOKED: "bg-emerald-100 text-emerald-800",
 };
 
 function fmtDate(iso?: string) {
@@ -197,24 +197,25 @@ export default function ActivityPage({
     <div className="space-y-6">
       {/* Back */}
       <Button
+        variant="ghost"
+        size="sm"
         onClick={() => router.push("/enquiries")}
-        size={"sm"}
-        className="inline-flex items-center gap-2 bg-green-800 shadow-md hover:bg-green-900 text-white px-4 py-2 rounded-lg text-sm transition-colors w-fit"
+        className="inline-flex items-center gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600 w-fit"
       >
         <ArrowLeftIcon size={16} /> Back
       </Button>
 
       {/* Card */}
-      <div className="bg-white rounded-xl border border-green-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-green-100">
-          <h2 className="text-lg font-semibold text-[#1a3a1a]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h2 className="text-lg font-semibold text-slate-900">
             Activity Timeline ({activities.length})
           </h2>
           <Button
             size="sm"
             onClick={openAdd}
-            className="inline-flex bg-green-800 shadow-md hover:bg-green-900 items-center gap-2 text-white  rounded-lg text-sm font-medium transition-colors"
+            className="inline-flex bg-emerald-600 shadow-sm hover:bg-emerald-700 items-center gap-2 text-white rounded-lg text-sm font-medium transition-colors"
           >
             <PlusIcon size={15} /> Add Activity
           </Button>
@@ -234,8 +235,8 @@ export default function ActivityPage({
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-blue-primary">
-                  <tr className="bg-blue-primary text-white text-xs uppercase tracking-wide">
+                <thead className="bg-[#0D1117]">
+                  <tr className="text-slate-200 text-xs uppercase tracking-wide">
                     <th className="px-5 py-3 text-left font-medium">Status</th>
                     <th className="px-5 py-3 text-left font-medium">Note</th>
                     <th className="px-5 py-3 text-left font-medium">Date</th>
@@ -249,14 +250,11 @@ export default function ActivityPage({
                   {activities.map((a) => (
                     <tr
                       key={a._id}
-                      className="border-b border-green-50 hover:bg-green-50/40 transition-colors"
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                     >
                       <td className="px-5 py-3">
                         <span
-                          className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium ${
-                            TYPE_BADGE[a.type]
-                          }
-                        }`}
+                          className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium ${TYPE_BADGE[a.type]}`}
                         >
                           {TYPE_LABELS[a.type]}
                         </span>
@@ -277,7 +275,7 @@ export default function ActivityPage({
                           <Button
                             onClick={() => openEdit(a)}
                             size="sm"
-                            className="bg-white rounded-md hover:bg-green-100 text-green-700 transition-colors shadow-md"
+                            className="bg-white rounded-md hover:bg-emerald-50 text-emerald-700 transition-colors shadow-sm"
                           >
                             <PencilIcon size={14} />
                           </Button>
@@ -287,7 +285,7 @@ export default function ActivityPage({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-xs text-red-600 hover:text-red-700 px-2 py-1 shadow-md rounded-md hover:bg-red-50 transition-all"
+                                className="text-xs text-red-600 hover:text-red-700 px-2 py-1 shadow-sm rounded-md hover:bg-red-50 transition-all"
                                 disabled={a.type === "APPOINTMENT_BOOKED"}
                               >
                                 <Trash2 className="w-3 h-3" />
@@ -310,7 +308,7 @@ export default function ActivityPage({
               {activities.map((a) => (
                 <div
                   key={a._id}
-                  className="border border-green-100 rounded-xl p-4 shadow-sm bg-white"
+                  className="border border-slate-200 rounded-xl p-4 shadow-sm bg-white"
                 >
                   {/* Status */}
                   <div className="flex justify-between items-center mb-2">
@@ -343,7 +341,7 @@ export default function ActivityPage({
                     <Button
                       onClick={() => openEdit(a)}
                       size="sm"
-                      className="flex-1 bg-green-50 text-green-700 hover:bg-green-100"
+                      className="flex-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                     >
                       Edit
                     </Button>
@@ -371,7 +369,7 @@ export default function ActivityPage({
         )}
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-green-100 text-sm text-gray-500">
+        <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 text-sm text-gray-500">
           <span>
             Page {currentPage} of {totalPages}
           </span>
@@ -380,7 +378,7 @@ export default function ActivityPage({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="px-3 py-2 text-xs font-bold  text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Prev
             </button>
@@ -397,10 +395,10 @@ export default function ActivityPage({
                   <button
                     key={1}
                     onClick={() => handlePageChange(1)}
-                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                       cp === 1
-                        ? "bg-blue-primary text-white shadow-lg shadow-green-500/30 scale-105"
-                        : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                        ? "bg-[#0D1117] text-white shadow-md"
+                        : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                     }`}
                   >
                     1
@@ -411,7 +409,7 @@ export default function ActivityPage({
                   nodes.push(
                     <span
                       key="e1"
-                      className="px-1.5 text-green-400 text-xs font-bold"
+                      className="px-1.5 text-emerald-400 text-xs font-bold"
                     >
                       · · ·
                     </span>,
@@ -427,10 +425,10 @@ export default function ActivityPage({
                     <button
                       key={i}
                       onClick={() => handlePageChange(i)}
-                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                         cp === i
-                          ? "bg-blue-primary text-white shadow-lg shadow-indigo-500/40 scale-105"
-                          : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                          ? "bg-[#0D1117] text-white shadow-md"
+                          : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                       }`}
                     >
                       {i}
@@ -442,7 +440,7 @@ export default function ActivityPage({
                   nodes.push(
                     <span
                       key="e2"
-                      className="px-1.5 text-green-400 text-xs font-bold"
+                      className="px-1.5 text-emerald-400 text-xs font-bold"
                     >
                       · · ·
                     </span>,
@@ -454,10 +452,10 @@ export default function ActivityPage({
                     <button
                       key={total}
                       onClick={() => handlePageChange(total)}
-                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                         cp === total
-                          ? "bg-blue-600 text-white shadow-lg shadow-indigo-500/40 scale-105"
-                          : "text-green-700 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 border border-indigo-100"
+                          ? "bg-[#0D1117] text-white shadow-md"
+                          : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                       }`}
                     >
                       {total}
@@ -473,7 +471,7 @@ export default function ActivityPage({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next
             </button>
@@ -487,7 +485,7 @@ export default function ActivityPage({
           <div className="bg-white rounded-2xl w-full max-w-md mx-4 p-7 shadow-2xl">
             {/* Modal header */}
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-[#1a3a1a]">
+              <h3 className="text-lg font-semibold text-slate-900">
                 {editTarget ? "Edit Activity" : "Add Activity"}
               </h3>
               <button
@@ -511,7 +509,7 @@ export default function ActivityPage({
                   if (e.target.value)
                     setErrors((prev) => ({ ...prev, type: "" }));
                 }}
-                className={`w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1a5c1a] focus:ring-2 focus:ring-green-100 ${
+                className={`w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${
                   form.type === "APPOINTMENT_BOOKED"
                     ? "bg-gray-100 cursor-not-allowed"
                     : ""
@@ -543,7 +541,7 @@ export default function ActivityPage({
                   if (e.target.value)
                     setErrors((prev) => ({ ...prev, date: "" }));
                 }}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1a5c1a] focus:ring-2 focus:ring-green-100"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
               />
               {errors.date && (
                 <p className="text-red-500 text-xs mt-1">{errors.date}</p>
@@ -564,7 +562,7 @@ export default function ActivityPage({
                 }}
                 placeholder="Add note about this activity"
                 rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1a5c1a] focus:ring-2 focus:ring-green-100 resize-y"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 resize-y"
               />
               {errors.note && (
                 <p className="text-red-500 text-xs mt-1">{errors.note}</p>
@@ -582,7 +580,7 @@ export default function ActivityPage({
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2 rounded-lg bg-[#1a5c1a] hover:bg-[#2a7a2a] text-white text-sm font-medium transition-colors disabled:opacity-50"
+                className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
               >
                 {saving ? "Saving…" : "Save"}
               </button>

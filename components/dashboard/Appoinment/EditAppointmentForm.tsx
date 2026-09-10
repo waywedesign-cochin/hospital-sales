@@ -20,7 +20,12 @@ import { Doctor } from "@/lib/types";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
-import { Loader2, ArrowLeft, Plus, Calendar as CalendarIcon } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Plus,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import QuickAddCategoryDialog from "../Settings/QuickAddCategoryDialog";
 
 type BlockedSlot = {
@@ -39,19 +44,22 @@ export default function EditAppointmentForm({
   const searchParams = useSearchParams();
   const clinic = useAuthStore((state: any) => state.clinic);
   const user = useAuthStore((state: any) => state.user);
-  const { slug } = useParams() as { slug: string } || { slug: clinic?.slug };
-  
+  const { slug } = (useParams() as { slug: string }) || { slug: clinic?.slug };
+
   const initialDoctorId = appointment.doctor?._id || appointment.doctor || "";
   const initialTreatmentCategory = appointment.treatmentCategory || "";
   const originalSlot = appointment.startTime;
 
   const categories: string[] = clinic?.departments || [];
-  
+
   // Ensure the appointment's current category is always in the list even if it was deleted from clinic settings
-  const allCategories = Array.from(new Set([...categories, initialTreatmentCategory].filter(Boolean)));
+  const allCategories = Array.from(
+    new Set([...categories, initialTreatmentCategory].filter(Boolean)),
+  );
 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [localCategories, setLocalCategories] = useState<string[]>(allCategories);
+  const [localCategories, setLocalCategories] =
+    useState<string[]>(allCategories);
 
   useEffect(() => {
     if (allCategories && allCategories.length > 0) {
@@ -65,7 +73,11 @@ export default function EditAppointmentForm({
     lastName: appointment.lastName || "",
     patientPhone: appointment.patientPhone || "",
     patientEmail: appointment.patientEmail || "",
-    dateOfBirth: (appointment as any).patientId?.dateOfBirth ? new Date((appointment as any).patientId.dateOfBirth).toISOString().split('T')[0] : "",
+    dateOfBirth: (appointment as any).patientId?.dateOfBirth
+      ? new Date((appointment as any).patientId.dateOfBirth)
+          .toISOString()
+          .split("T")[0]
+      : "",
     doctor: initialDoctorId,
     treatmentCategory: initialTreatmentCategory,
     date: appointment.date || "",
@@ -74,7 +86,9 @@ export default function EditAppointmentForm({
     notes: appointment.notes || "",
   });
 
-  const [availableSlots, setAvailableSlots] = useState<{time: string, reason: string}[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<
+    { time: string; reason: string }[]
+  >([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -118,16 +132,19 @@ export default function EditAppointmentForm({
       const formattedDate = new Date(form.date).toISOString().split("T")[0];
 
       const res = await axios.get(
-        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}&organizationId=${(user as any)?.organizationId}&categoryId=${encodeURIComponent(form.treatmentCategory)}`
+        `/api/appointment?doctor=${form.doctor}&date=${formattedDate}&organizationId=${(user as any)?.organizationId}&categoryId=${encodeURIComponent(form.treatmentCategory)}`,
       );
 
       if (res.data.success) {
-        const slots: {time: string, reason: string}[] = res.data.data || [];
+        const slots: { time: string; reason: string }[] = res.data.data || [];
 
-        // If editing the same doctor on the same date, the backend will have blocked the 
+        // If editing the same doctor on the same date, the backend will have blocked the
         // slot that this appointment already holds. We must inject it back as an available option.
-        const isOriginalDate = appointment.date && formattedDate === new Date(appointment.date).toISOString().split("T")[0];
-        
+        const isOriginalDate =
+          appointment.date &&
+          formattedDate ===
+            new Date(appointment.date).toISOString().split("T")[0];
+
         if (form.doctor === initialDoctorId && isOriginalDate && originalSlot) {
           if (!slots.find((s) => s.time === originalSlot)) {
             slots.push({ time: originalSlot, reason: "AVAILABLE" });
@@ -208,7 +225,7 @@ export default function EditAppointmentForm({
     const d = new Date(value);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(d.getDate()).padStart(2, "0")}`;
   };
 
@@ -216,13 +233,12 @@ export default function EditAppointmentForm({
 
   return (
     <div className="min-h-screen p-2 space-y-6 relative">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none"></div>
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -237,17 +253,17 @@ export default function EditAppointmentForm({
           ]}
         />
       </div>
-      
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="relative flex items-center gap-4 p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 ">
-          <div className="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-500/30">
-            <CalendarIcon className="w-8 h-8 text-white" />
+
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="relative flex items-center gap-4 p-6 rounded-2xl">
+          <div className="bg-[#0D1117] p-4 rounded-xl">
+            <CalendarIcon className="w-8 h-8 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
               Edit Appointment
             </h1>
-            <p className="text-slate-600 font-medium text-sm mt-1">
+            <p className="text-slate-500 font-medium text-sm mt-1">
               Update appointment details and reschedule if needed
             </p>
           </div>
@@ -264,8 +280,7 @@ export default function EditAppointmentForm({
       />
 
       {/* Form Card */}
-      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
-      
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
         {/* Patient Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -317,7 +332,6 @@ export default function EditAppointmentForm({
                     {c}
                   </SelectItem>
                 ))}
-
               </SelectContent>
             </Select>
             {errors.treatmentCategory && (
@@ -365,33 +379,40 @@ export default function EditAppointmentForm({
 
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
               {availableSlots.length === 0 && !loadingSlots && (
-                 <p className="text-sm text-gray-500 col-span-full">No available slots found for this date.</p>
+                <p className="text-sm text-gray-500 col-span-full">
+                  No available slots found for this date.
+                </p>
               )}
               {availableSlots.map((slotObj) => {
                 const time = slotObj.time;
                 const isPast = isPastSlot(time);
                 const isSelected = form.startTime === time;
                 const isOriginalSlot = time === originalSlot;
-                
+
                 // Allow the originally booked slot to remain selected and active even if it's in the past
-                const disabled = (isPast && !isOriginalSlot);
+                const disabled = isPast && !isOriginalSlot;
 
                 let cls =
                   "h-11 rounded-xl text-sm border transition flex items-center justify-center";
 
                 if (isSelected)
-                  cls += " bg-blue-600 text-white border-blue-700";
+                  cls += " bg-[#0D1117] text-white border-[#0D1117]";
                 else if (isPast && !isOriginalSlot)
                   cls +=
                     " bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed";
-                else cls += " bg-blue-50 border-blue-300 hover:bg-blue-100";
+                else
+                  cls +=
+                    " bg-emerald-50 border-emerald-200 hover:bg-emerald-100";
 
                 return (
                   <button
                     key={time}
                     type="button"
                     disabled={disabled}
-                    onClick={(e) => { e.preventDefault(); onChange("startTime", time); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange("startTime", time);
+                    }}
                     className={cls}
                   >
                     {time}
@@ -430,7 +451,7 @@ export default function EditAppointmentForm({
         <Button
           onClick={handleUpdate}
           disabled={loading}
-          className="w-full h-11 rounded-xl bg-linear-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900"
+          className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700"
         >
           {loading ? "Updating..." : "Update Appointment"}
         </Button>

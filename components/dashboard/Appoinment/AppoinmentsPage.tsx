@@ -179,17 +179,16 @@ export default function AppointmentsPage({
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, string> = {
-      SCHEDULED: "from-blue-50 to-blue-100 text-blue-700 border-blue-200",
-      IN_PROGRESS:
-        "from-purple-50 to-purple-100 text-purple-700 border-purple-200",
-      COMPLETED: "from-green-50 to-green-100 text-green-700 border-green-200",
-      CANCELLED: "from-red-50 to-red-100 text-red-700 border-red-200",
-      NO_SHOW: "from-amber-50 to-amber-100 text-amber-700 border-amber-200",
+      SCHEDULED: "bg-sky-50 text-sky-700 border-sky-200",
+      IN_PROGRESS: "bg-violet-50 text-violet-700 border-violet-200",
+      COMPLETED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      CANCELLED: "bg-red-50 text-red-700 border-red-200",
+      NO_SHOW: "bg-amber-50 text-amber-700 border-amber-200",
     };
 
     return (
       <span
-        className={`px-3 py-1.5 text-xs font-semibold rounded-full bg-linear-to-r border shadow-sm ${map[status]}`}
+        className={`px-3 py-1.5 text-xs font-semibold rounded-full border shadow-sm ${map[status]}`}
       >
         {status.replace("_", " ")}
       </span>
@@ -201,8 +200,8 @@ export default function AppointmentsPage({
   if (locked) {
     return (
       <div className="flex items-center justify-center h-[70vh]">
-        <div className="bg-white/70 backdrop-blur-xl border shadow-xl p-8 rounded-2xl flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-green-600 rounded-full animate-spin" />
+        <div className="bg-white border border-slate-200 shadow-sm p-8 rounded-2xl flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
           <p className="text-sm font-semibold text-gray-700">
             Loading appointments...
           </p>
@@ -215,14 +214,12 @@ export default function AppointmentsPage({
 
   return (
     <div className="min-h-screen p-2 space-y-6 relative">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none"></div>
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -237,20 +234,18 @@ export default function AppointmentsPage({
         />
       </div>
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="absolute inset-0 pointer-events-none bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
-
-        <div className="relative flex flex-col md:flex-row justify-between items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="relative z-10 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <CalendarIcon className="w-8 h-8 text-white" />
+            <div className="bg-[#0D1117] p-4 rounded-xl">
+              <CalendarIcon className="w-8 h-8 text-emerald-400" />
             </div>
 
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 Appointments Management
               </h1>
-              <p className="text-slate-600 font-medium text-sm mt-1">
+              <p className="text-slate-500 font-medium text-sm mt-1">
                 View and manage patient appointments
               </p>
             </div>
@@ -262,7 +257,7 @@ export default function AppointmentsPage({
               onClick={() =>
                 router.push(`/${slug}/appointments/create-appointment`)
               }
-              className="h-11 px-4 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center gap-2"
+              className="h-11 px-4 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 transition-all flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               New Appointment
@@ -272,19 +267,19 @@ export default function AppointmentsPage({
       </div>
 
       {/* Search + Filters */}
-      <div className="bg-white backdrop-blur-sm rounded-2xl shadow-lg border border-blue-100/50 p-5">
+      <div className="relative z-10 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
         <div className="flex flex-col lg:flex-row lg:items-end gap-4">
           {/* Search */}
           <div className="relative w-full lg:max-w-sm">
             <label className="text-xs font-semibold text-gray-500 mb-1 block">
               Search
             </label>
-            <SearchIcon className="absolute left-4 mt-3 w-5 h-5 text-blue-400" />
+            <SearchIcon className="absolute left-4 mt-3 w-5 h-5 text-slate-400" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Patient name / Booking ID"
-              className="pl-12 h-11 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl"
+              className="pl-12 h-11 bg-slate-50 border-slate-200 rounded-xl"
             />
           </div>
 
@@ -304,7 +299,7 @@ export default function AppointmentsPage({
                 onValueChange={(v) => updateQueryParam("doctor", v)}
                 disabled={!!logginedDoctor}
               >
-                <SelectTrigger className="h-11 rounded-xl bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50">
+                <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
                   <SelectValue placeholder="All doctors" />
                 </SelectTrigger>
                 <SelectContent>
@@ -333,7 +328,7 @@ export default function AppointmentsPage({
                 value={searchParams.get("status") ?? ""}
                 onValueChange={(v) => updateQueryParam("status", v)}
               >
-                <SelectTrigger className="h-11 rounded-xl bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50">
+                <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -356,7 +351,7 @@ export default function AppointmentsPage({
                 value={searchParams.get("month") ?? String(currentMonth)}
                 onValueChange={(v) => updateQueryParam("month", v)}
               >
-                <SelectTrigger className="h-11 rounded-xl bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50">
+                <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
                 <SelectContent>
@@ -378,7 +373,7 @@ export default function AppointmentsPage({
                 value={searchParams.get("year") ?? String(currentYear)}
                 onValueChange={(v) => updateQueryParam("year", v)}
               >
-                <SelectTrigger className="h-11 rounded-xl bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50">
+                <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -395,10 +390,10 @@ export default function AppointmentsPage({
       </div>
 
       {/* Table */}
-      <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+      <div className="relative z-10 bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-blue-primary">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-[#0D1117]">
               <tr>
                 {[
                   "Booking ID",
@@ -411,14 +406,13 @@ export default function AppointmentsPage({
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left"
+                    className="px-6 py-3 text-xs font-bold text-slate-200 uppercase tracking-wider text-left"
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-
             <tbody className="bg-white/10 divide-y divide-gray-100">
               {rows.length === 0 ? (
                 <tr>
@@ -430,7 +424,7 @@ export default function AppointmentsPage({
                 rows.map((apt) => (
                   <tr
                     key={apt._id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-6 py-4 font-semibold text-sm">
                       {apt.bookingId}
@@ -491,7 +485,7 @@ export default function AppointmentsPage({
                           variant="ghost"
                           onClick={() => handleView(apt._id)}
                         >
-                          <Eye className="w-4 h-4 text-blue-600" />
+                          <Eye className="w-4 h-4 text-emerald-600" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -518,22 +512,22 @@ export default function AppointmentsPage({
           </table>
 
           {/* Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-linear-to-r from-indigo-50/30 via-purple-50/20 to-pink-50/10 border-t border-indigo-100/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
             {/* Info */}
             <div className="text-xs text-gray-600 font-medium mb-2 sm:mb-0">
               Showing{" "}
-              <span className="font-bold text-green-700">
+              <span className="font-bold text-emerald-700">
                 {(currentPage - 1) * pagination.limit + 1}
               </span>{" "}
               to{" "}
-              <span className="font-bold text-green-700">
+              <span className="font-bold text-emerald-700">
                 {Math.min(
                   currentPage * pagination.limit,
                   pagination.totalCount,
                 )}
               </span>{" "}
               of{" "}
-              <span className="font-bold text-green-700">
+              <span className="font-bold text-emerald-700">
                 {pagination.totalCount}
               </span>
             </div>
@@ -546,7 +540,7 @@ export default function AppointmentsPage({
                   updateQueryParam("page", String(currentPage - 1))
                 }
                 disabled={currentPage <= 1}
-                className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+                className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Prev
               </button>
@@ -559,10 +553,10 @@ export default function AppointmentsPage({
                     <button
                       key={page}
                       onClick={() => updateQueryParam("page", String(page))}
-                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                         currentPage === page
-                          ? "bg-blue-primary text-white shadow-lg scale-105"
-                          : "text-green-700 hover:bg-indigo-50 border border-green-100"
+                          ? "bg-[#0D1117] text-white shadow-md"
+                          : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                       }`}
                     >
                       {page}
@@ -577,7 +571,7 @@ export default function AppointmentsPage({
                   updateQueryParam("page", String(currentPage + 1))
                 }
                 disabled={currentPage >= pagination.totalPages}
-                className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+                className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Next
               </button>
