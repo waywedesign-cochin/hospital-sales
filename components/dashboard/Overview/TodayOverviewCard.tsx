@@ -6,6 +6,7 @@ interface TodayOverviewCardProps {
   percent: number;
   color: string;
   icon: ReactNode;
+  footer?: ReactNode;
 }
 
 export default function TodayOverviewCard({
@@ -14,11 +15,12 @@ export default function TodayOverviewCard({
   percent,
   color,
   icon,
+  footer,
 }: TodayOverviewCardProps) {
   const clamped = Math.min(Math.max(percent, 0), 100);
 
   return (
-    <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 flex flex-col gap-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.01]">
+    <div className="h-full bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 flex flex-col gap-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)] hover:scale-[1.01]">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-3xl font-black text-[#00236F]">{value}</p>
@@ -45,6 +47,8 @@ export default function TodayOverviewCard({
           {clamped}%
         </span>
       </div>
+
+      {footer && <div className="flex-1 flex flex-col justify-end">{footer}</div>}
     </div>
   );
 }

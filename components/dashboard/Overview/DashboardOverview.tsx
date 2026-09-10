@@ -44,6 +44,7 @@ import MiniCalendar from "./MiniCalendar";
 import AppointmentRequests from "./AppointmentRequests";
 import RecentAppointmentsTable from "./RecentAppointmentsTable";
 import TodaysAgenda, { AgendaAppointment } from "./TodaysAgenda";
+import MiniSparkline from "./MiniSparkline";
 import Image from "next/image";
 
 const EnhancedPieChart = dynamic(() => import("./DashboardPieChart"), {
@@ -194,6 +195,13 @@ interface NewEnquiryItem {
   createdAt?: string | Date;
 }
 
+interface RecentPatientItem {
+  _id: string;
+  firstName: string;
+  lastName?: string;
+  createdAt?: string | Date;
+}
+
 const DashboardHome = ({
   slug,
   appointmentData,
@@ -207,6 +215,7 @@ const DashboardHome = ({
   newEnquiries = [],
   totalPatients = 0,
   todaysAgenda = [],
+  recentPatients = [],
 }: {
   slug: string;
   appointmentData: MonthWiseReport;
@@ -220,6 +229,7 @@ const DashboardHome = ({
   newEnquiries?: NewEnquiryItem[];
   totalPatients?: number;
   todaysAgenda?: AgendaAppointment[];
+  recentPatients?: RecentPatientItem[];
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -290,6 +300,14 @@ const DashboardHome = ({
             100,
         )
       : 0;
+
+  // Feeds the sparkline in each stat card's otherwise-empty footer space —
+  // reuses the same monthly series already fetched for the bar chart below,
+  // rather than a second request.
+  const appointmentsTrend = appointmentData.map((d) => d.totalAppointments ?? 0);
+  const completedTrend = appointmentData.map(
+    (d) => d.statusSummary?.COMPLETED ?? 0,
+  );
 
   const statusSummary = appointmentData.reduce(
     (acc, item) => {
@@ -425,6 +443,26 @@ const DashboardHome = ({
               percent={100}
               color="#2DD4BF"
               icon={<Users className="w-5 h-5" />}
+              footer={
+                recentPatients.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Recently Added
+                    </p>
+                    {recentPatients.slice(0, 3).map((p) => (
+                      <div key={p._id} className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-[#2DD4BF]/10 text-[#0F9C8A] text-[10px] font-bold flex items-center justify-center shrink-0">
+                          {p.firstName?.[0]}
+                          {p.lastName?.[0] ?? ""}
+                        </span>
+                        <span className="text-xs font-medium text-[#00236F] truncate">
+                          {p.firstName} {p.lastName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : undefined
+              }
             />
             <TodayOverviewCard
               title="Appointments"
@@ -432,6 +470,16 @@ const DashboardHome = ({
               percent={completionRate}
               color="#0EA5E9"
               icon={<CalendarDays className="w-5 h-5" />}
+              footer={
+                appointmentsTrend.some((v) => v > 0) ? (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {year} Trend
+                    </p>
+                    <MiniSparkline data={appointmentsTrend} color="#0EA5E9" />
+                  </div>
+                ) : undefined
+              }
             />
             <TodayOverviewCard
               title="Completed"
@@ -439,6 +487,16 @@ const DashboardHome = ({
               percent={completionRate}
               color="#22C55E"
               icon={<CheckCircle2 className="w-5 h-5" />}
+              footer={
+                completedTrend.some((v) => v > 0) ? (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {year} Trend
+                    </p>
+                    <MiniSparkline data={completedTrend} color="#22C55E" />
+                  </div>
+                ) : undefined
+              }
             />
           </div>
           {logginedDoctor ? (
