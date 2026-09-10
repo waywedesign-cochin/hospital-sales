@@ -35,11 +35,13 @@ import EnquirySummaryCards from "./EnquirySummaryCards";
 import Link from "next/link";
 import BASE_URL from "@/app/utils/baseUrl";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
+
 const statusStyles: Record<string, string> = {
-  NEW: "bg-yellow-50 text-yellow-700 border border-yellow-200",
-  CONTACTED: "bg-blue-50 text-blue-700 border border-blue-200",
-  FOLLOW_UP: "bg-purple-50 text-purple-700 border border-purple-200",
-  APPOINTMENT_BOOKED: "bg-green-50 text-green-700 border border-green-200",
+  NEW: "bg-amber-50 text-amber-700 border border-amber-200",
+  CONTACTED: "bg-sky-50 text-sky-700 border border-sky-200",
+  FOLLOW_UP: "bg-violet-50 text-violet-700 border border-violet-200",
+  APPOINTMENT_BOOKED:
+    "bg-emerald-50 text-emerald-700 border border-emerald-200",
 };
 
 export interface EnquirySummaryCardsData {
@@ -164,7 +166,9 @@ export default function EnquiryPage({
       staffNotes: enquiry.staffNotes || "",
     });
 
-    router.push(`/${clinic?.slug || ""}/appointments/create-appointment?${params.toString()}`);
+    router.push(
+      `/${clinic?.slug || ""}/appointments/create-appointment?${params.toString()}`,
+    );
   };
 
   // Export to Excel
@@ -267,17 +271,17 @@ export default function EnquiryPage({
   };
 
   return (
-    <div className="min-h-screen   p-2 space-y-6">
+    <div className="min-h-screen   space-y-6">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-green-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-green-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-emerald-400/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
       </div>
+
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -294,52 +298,55 @@ export default function EnquiryPage({
       </div>
 
       {/* Onboarding Setup Banner */}
-      {setupStatus && (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors) && user?.role === "ADMIN" && (
-        <div className="bg-linear-to-r from-indigo-600 to-blue-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-500/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div>
-            <h2 className="text-2xl font-bold flex items-center gap-3">
-              <ClipboardList className="w-7 h-7 text-indigo-200" />
-              Welcome to your Workspace! Let's get you set up.
-            </h2>
-            <p className="text-indigo-100 mt-2 font-medium">
-              {!setupStatus.hasTreatmentCategories 
-                ? "You must create at least one Treatment Category before you can add Patients or Enquiries."
-                : "You should add your first Doctor to start scheduling appointments."}
-            </p>
-          </div>
-          <div>
-            {!setupStatus.hasTreatmentCategories ? (
-              <button 
-                onClick={() => router.push(`/${slug}/settings/treatment-category`)}
-                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
-              >
-                Create Category <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button 
-                onClick={() => router.push(`/${slug}/doctors`)}
-                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
-              >
-                Add Doctor <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5"></div>
-        <div className="flex flex-col md:flex-row justify-between items-center md:items-center gap-4  backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
-          <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <MessageSquare className="w-8 h-8 text-white" />
+      {setupStatus &&
+        (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors) &&
+        user?.role === "ADMIN" && (
+          <div className="relative z-10 bg-linear-to-r from-[#0D1117] to-emerald-800 rounded-2xl p-6 md:p-8 text-white shadow-xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <ClipboardList className="w-7 h-7 text-emerald-300" />
+                Welcome to your workspace — let's get you set up.
+              </h2>
+              <p className="text-slate-300 mt-2 font-medium">
+                {!setupStatus.hasTreatmentCategories
+                  ? "You must create at least one treatment category before you can add patients or enquiries."
+                  : "You should add your first doctor to start scheduling appointments."}
+              </p>
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+              {!setupStatus.hasTreatmentCategories ? (
+                <button
+                  onClick={() =>
+                    router.push(`/${slug}/settings/treatment-category`)
+                  }
+                  className="bg-emerald-400 text-[#0D1117] px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-emerald-300 transition-all shadow-sm flex items-center gap-2"
+                >
+                  Create Category <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push(`/${slug}/doctors`)}
+                  className="bg-emerald-400 text-[#0D1117] px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-emerald-300 transition-all shadow-sm flex items-center gap-2"
+                >
+                  Add Doctor <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+      {/* Header */}
+      <div className="relative z-10 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-center gap-4 p-6 rounded-2xl">
+          <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
+            <div className="bg-[#0D1117] p-4 rounded-xl">
+              <MessageSquare className="w-8 h-8 text-emerald-400" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 Enquiry Management
               </h1>
-              <p className="text-slate-600 font-medium text-sm mt-1">
+              <p className="text-slate-500 font-medium text-sm mt-1">
                 View and manage all customer enquiries
               </p>
             </div>
@@ -347,14 +354,18 @@ export default function EnquiryPage({
           <Button
             type="button"
             onClick={() => router.push(`/${slug}/enquiries/add-enquiry`)}
-            disabled={setupStatus && (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors)}
-            className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              setupStatus &&
+              (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors)
+            }
+            className="h-11 px-4 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Add Enquiry
           </Button>
         </div>
       </div>
+
       {/* Summary Cards */}
       <EnquirySummaryCards
         data={{
@@ -368,16 +379,16 @@ export default function EnquiryPage({
         }}
       />
 
-      <div className="flex flex-col gap-4 p-5 bg-white backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="relative z-10 flex flex-col gap-4 p-5 bg-white rounded-2xl shadow-sm border border-slate-200">
         {/* Row 1: Search + Export */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, email or phone..."
-              className="pl-12 h-9 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl"
+              className="pl-12 h-9 w-full bg-slate-50 border-slate-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl"
             />
           </div>
 
@@ -386,7 +397,7 @@ export default function EnquiryPage({
             size="sm"
             onClick={exportExcel}
             disabled={exporting}
-            className="h-9 px-4 w-full sm:w-auto rounded-xl border-green-200 bg-green-50 text-green-700 hover:bg-green-100  whitespace-nowrap disabled:opacity-50 shrink-0"
+            className="h-9 px-4 w-full sm:w-auto rounded-xl border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 whitespace-nowrap disabled:opacity-50 shrink-0"
           >
             <Download className="w-4 h-4 mr-1" />
             {exporting ? "Exporting..." : "Export Excel"}
@@ -401,7 +412,7 @@ export default function EnquiryPage({
               value={searchParams.get("treatmentCategory") ?? ""}
               onValueChange={(val) => handleFilter("treatmentCategory", val)}
             >
-              <SelectTrigger className="h-9 w-full lg:w-44 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+              <SelectTrigger className="h-9 w-full lg:w-44 bg-slate-50 border-slate-200 rounded-xl font-medium">
                 <SelectValue placeholder="Filter by treatment" />
               </SelectTrigger>
               <SelectContent>
@@ -424,7 +435,7 @@ export default function EnquiryPage({
             value={searchParams.get("status") ?? ""}
             onValueChange={(val) => handleFilter("status", val)}
           >
-            <SelectTrigger className="h-9 w-full lg:w-44 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+            <SelectTrigger className="h-9 w-full lg:w-44 bg-slate-50 border-slate-200 rounded-xl font-medium">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -443,7 +454,7 @@ export default function EnquiryPage({
             value={searchParams.get("source") ?? ""}
             onValueChange={(val) => handleFilter("source", val)}
           >
-            <SelectTrigger className="h-9 w-full lg:w-44 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+            <SelectTrigger className="h-9 w-full lg:w-44 bg-slate-50 border-slate-200 rounded-xl font-medium">
               <SelectValue placeholder="Filter by source" />
             </SelectTrigger>
             <SelectContent>
@@ -458,7 +469,7 @@ export default function EnquiryPage({
           {/* Date Range */}
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <div className="flex flex-col gap-1 w-full sm:w-36">
-              <label className="text-[11px] font-semibold text-gray-600 leading-none">
+              <label className="text-[11px] font-semibold text-slate-500 leading-none">
                 From Date
               </label>
               <Input
@@ -469,12 +480,12 @@ export default function EnquiryPage({
                   setFromDate(value);
                   handleDateRangeFilter(value, toDate);
                 }}
-                className="h-9 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium text-xs"
+                className="h-9 bg-slate-50 border-slate-200 rounded-xl font-medium text-xs"
               />
             </div>
 
             <div className="flex flex-col gap-1 w-full sm:w-36">
-              <label className="text-[11px] font-semibold text-gray-600 leading-none">
+              <label className="text-[11px] font-semibold text-slate-500 leading-none">
                 To Date
               </label>
               <Input
@@ -486,7 +497,7 @@ export default function EnquiryPage({
                   setToDate(value);
                   handleDateRangeFilter(fromDate, value);
                 }}
-                className="h-9 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium text-xs"
+                className="h-9 bg-slate-50 border-slate-200 rounded-xl font-medium text-xs"
               />
             </div>
           </div>
@@ -504,47 +515,47 @@ export default function EnquiryPage({
       </div>
 
       {/* Enquiries Table */}
-      <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <div className="overflow-x-auto ">
-          <table className="min-w-[1300px] w-full table-auto divide-y divide-purple-300 table">
-            <thead className="bg-blue-primary">
+      <div className="relative z-10 bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+        <div className="overflow-x-auto">
+          <table className="min-w-[1300px] w-full table-auto divide-y divide-slate-200 table">
+            <thead className="bg-[#0D1117]">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Phone
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Treatment
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Message
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Status (Handled By)
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Staff Note
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Source
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-bold text-slate-200 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
 
-            <tbody className="bg-white/10 divide-y divide-gray-100">
+            <tbody className="bg-white divide-y divide-slate-100">
               {enquiries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
-                    className="text-center py-8 text-xs text-gray-500"
+                    colSpan={9}
+                    className="text-center py-8 text-xs text-slate-500"
                   >
                     No enquiries found
                   </td>
@@ -553,19 +564,19 @@ export default function EnquiryPage({
                 enquiries.map((enq) => (
                   <tr
                     key={enq._id}
-                    className="hover:bg-gray-50 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 transition-colors border-b duration-150"
+                    className="hover:bg-slate-50 transition-colors duration-150"
                   >
                     {/* Name */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm hover:shadow-md transition-shadow">
+                        <div className="h-8 w-8 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                           {enq.firstName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-gray-900 hover:text-green-800 transition-colors">
+                          <div className="text-xs font-semibold text-slate-900">
                             {enq.firstName} {enq.lastName}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-slate-500">
                             {enq.email}
                           </div>
                         </div>
@@ -573,17 +584,17 @@ export default function EnquiryPage({
                     </td>
 
                     {/* Phone */}
-                    <td className="px-4 py-3 text-xs text-gray-600 font-medium">
+                    <td className="px-4 py-3 text-xs text-slate-600 font-medium">
                       {enq.phone}
                     </td>
 
                     {/* About */}
-                    <td className="px-4 py-3 text-xs font-medium text-blue-600">
+                    <td className="px-4 py-3 text-xs font-medium text-emerald-700">
                       {enq.treatmentCategory}
                     </td>
 
                     {/* Message */}
-                    <td className="px-4 py-3 text-xs text-gray-600 max-w-[200px] relative">
+                    <td className="px-4 py-3 text-xs text-slate-600 max-w-[200px] relative">
                       <div className="group cursor-pointer relative">
                         {/* Single-line fixed height */}
                         <div
@@ -593,7 +604,7 @@ export default function EnquiryPage({
                         </div>
 
                         {/* Full message on hover */}
-                        <div className="absolute left-0 top-full z-50 hidden group-hover:block bg-white shadow-lg border border-green-600 rounded-md p-3 w-[300px] whitespace-normal">
+                        <div className="absolute left-0 top-full z-50 hidden group-hover:block bg-white shadow-lg border border-emerald-600 rounded-md p-3 w-[300px] whitespace-normal">
                           {enq.message}
                         </div>
                       </div>
@@ -604,7 +615,7 @@ export default function EnquiryPage({
                       <span
                         className={`inline-flex items-center rounded-full px-3 py-1 text-xs text-nowrap font-medium ${
                           statusStyles[enq.status] ??
-                          "bg-gray-50 text-gray-700 border border-gray-200"
+                          "bg-slate-50 text-slate-700 border border-slate-200"
                         }`}
                       >
                         {enq.status.replace("_", " ")}
@@ -617,7 +628,7 @@ export default function EnquiryPage({
                     </td>
 
                     {/* Date */}
-                    <td className="px-4 py-3 text-xs text-gray-600 text-nowrap">
+                    <td className="px-4 py-3 text-xs text-slate-600 text-nowrap">
                       {enq.createdAt
                         ? new Date(enq.createdAt).toLocaleString("en-US", {
                             day: "numeric",
@@ -629,21 +640,21 @@ export default function EnquiryPage({
                           })
                         : "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-600 max-w-[200px] relative">
+                    <td className="px-4 py-3 text-xs text-slate-600 max-w-[200px] relative">
                       <div className="group cursor-pointer">
                         {/* Preview (1 line, fixed height) */}
                         <div className="truncate">{enq.staffNotes || "—"}</div>
 
                         {/* Full content on hover */}
                         {enq.staffNotes && (
-                          <div className="absolute left-4 top-auto z-50 hidden group-hover:block bg-white shadow-lg border border-green-600 rounded-md p-3 w-[300px] whitespace-normal">
+                          <div className="absolute left-4 top-auto z-50 hidden group-hover:block bg-white shadow-lg border border-emerald-600 rounded-md p-3 w-[300px] whitespace-normal">
                             {enq.staffNotes}
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="max-w-xs text-xs font-semibold text-gray-600 line-clamp-1 hover:line-clamp-none transition-all duration-150 cursor-pointer">
+                      <div className="max-w-xs text-xs font-semibold text-slate-600 line-clamp-1 hover:line-clamp-none transition-all duration-150 cursor-pointer">
                         {enq.source || "—"}
                       </div>
                     </td>
@@ -651,9 +662,11 @@ export default function EnquiryPage({
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 px-2">
                         <Button
-                          onClick={() => router.push(`/${slug}/enquiries/${enq?._id}`)}
+                          onClick={() =>
+                            router.push(`/${slug}/enquiries/${enq?._id}`)
+                          }
                           size="sm"
-                          className="text-xs bg-white shadow-sm text-blue-primary hover:text-blue-600 px-2 py-1 rounded-md hover:bg-blue-50 transition-all shrink-0"
+                          className="text-xs bg-white shadow-sm text-emerald-700 hover:text-emerald-800 px-2 py-1 rounded-md hover:bg-emerald-50 transition-all shrink-0"
                         >
                           <Eye className="w-3 h-3 mr-1" />
                           Activity Notes
@@ -663,7 +676,7 @@ export default function EnquiryPage({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded-md hover:bg-blue-50 transition-all"
+                          className="text-xs text-emerald-700 hover:text-emerald-800 px-2 py-1 rounded-md hover:bg-emerald-50 transition-all"
                           onClick={() => handleAppointmentBook(enq as IEnquiry)}
                           disabled={enq.status === "APPOINTMENT_BOOKED"}
                         >
@@ -695,22 +708,22 @@ export default function EnquiryPage({
             </tbody>
           </table>
           {/* Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-linear-to-r from-indigo-50/30 via-purple-50/20 to-pink-50/10 border-t border-indigo-100/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
             {/* Info Text */}
-            <div className="text-xs text-gray-600 font-medium mb-2 sm:mb-0">
+            <div className="text-xs text-slate-600 font-medium mb-2 sm:mb-0">
               Showing{" "}
-              <span className="font-bold text-green-700">
+              <span className="font-bold text-emerald-700">
                 {(currentPage - 1) * pagination.limit + 1}
               </span>{" "}
               to{" "}
-              <span className="font-bold text-green-700">
+              <span className="font-bold text-emerald-700">
                 {Math.min(
                   currentPage * pagination.limit,
                   pagination.totalCount,
                 )}
               </span>{" "}
               of{" "}
-              <span className="font-bold text-green-700">
+              <span className="font-bold text-emerald-700">
                 {pagination.totalCount}
               </span>
             </div>
@@ -721,7 +734,7 @@ export default function EnquiryPage({
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="px-3 py-2 text-xs font-bold  text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+                className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Prev
               </button>
@@ -738,10 +751,10 @@ export default function EnquiryPage({
                     <button
                       key={1}
                       onClick={() => handlePageChange(1)}
-                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                         cp === 1
-                          ? "bg-blue-primary text-white shadow-lg shadow-green-500/30 scale-105"
-                          : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                          ? "bg-[#0D1117] text-white shadow-md"
+                          : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                       }`}
                     >
                       1
@@ -752,7 +765,7 @@ export default function EnquiryPage({
                     nodes.push(
                       <span
                         key="e1"
-                        className="px-1.5 text-green-400 text-xs font-bold"
+                        className="px-1.5 text-emerald-400 text-xs font-bold"
                       >
                         · · ·
                       </span>,
@@ -768,10 +781,10 @@ export default function EnquiryPage({
                       <button
                         key={i}
                         onClick={() => handlePageChange(i)}
-                        className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                        className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                           cp === i
-                            ? "bg-blue-primary text-white shadow-lg shadow-indigo-500/40 scale-105"
-                            : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                            ? "bg-[#0D1117] text-white shadow-md"
+                            : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                         }`}
                       >
                         {i}
@@ -783,7 +796,7 @@ export default function EnquiryPage({
                     nodes.push(
                       <span
                         key="e2"
-                        className="px-1.5 text-green-400 text-xs font-bold"
+                        className="px-1.5 text-emerald-400 text-xs font-bold"
                       >
                         · · ·
                       </span>,
@@ -795,10 +808,10 @@ export default function EnquiryPage({
                       <button
                         key={total}
                         onClick={() => handlePageChange(total)}
-                        className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                        className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                           cp === total
-                            ? "bg-blue-600 text-white shadow-lg shadow-indigo-500/40 scale-105"
-                            : "text-green-700 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 border border-indigo-100"
+                            ? "bg-[#0D1117] text-white shadow-md"
+                            : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                         }`}
                       >
                         {total}
@@ -814,7 +827,7 @@ export default function EnquiryPage({
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= pagination.totalPages}
-                className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+                className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Next
               </button>

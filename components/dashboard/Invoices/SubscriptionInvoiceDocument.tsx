@@ -10,25 +10,16 @@ import {
 } from "@react-pdf/renderer";
 
 // ── Font registration ───────────────────────────────────────────────────
-// Helvetica/Courier (the built-in PDF base fonts) have no ₹ glyph, so we
-// register a font that does and use it everywhere instead.
+// Devanagari font is used ONLY for the ₹ symbol.
+// The rest of the invoice uses built-in Helvetica so that
+// Latin characters such as INV-000011 always render correctly.
+
 Font.register({
-  family: "NotoSans",
-  fonts: [
-    {
-      src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.0/files/noto-sans-latin-400-normal.woff",
-      fontWeight: "normal",
-    },
-    {
-      src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.0/files/noto-sans-latin-700-normal.woff",
-      fontWeight: "bold",
-    },
-  ],
+  family: "NotoSansDevanagari",
+  src: "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-devanagari@5.2.7/devanagari-400-normal.woff",
 });
 
 // ── Palette ──────────────────────────────────────────────────────────────
-// Kept consistent with InvoiceDocument.tsx (indigo accent, neutral ink/slate)
-// so a subscription invoice and a payment invoice feel like the same product.
 
 const COLOR = {
   ink: "#0f172a",
@@ -59,20 +50,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 44,
     paddingBottom: 64,
     fontSize: 9.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     color: COLOR.body,
   },
 
   // ─── Header ───
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 22,
   },
-  logoContainer: { width: 100, marginBottom: 6 },
-  logo: { width: "100%", height: "auto" },
-  brandRow: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
+
+  logoContainer: {
+    width: 100,
+    marginBottom: 6,
+  },
+
+  logo: {
+    width: "100%",
+    height: "auto",
+  },
+
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+
   logoMark: {
     width: 26,
     height: 26,
@@ -82,18 +88,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 8,
   },
+
   logoMarkText: {
     color: "#ffffff",
     fontSize: 12,
-    fontFamily: "NotoSans",
-    fontWeight: "bold",
+    fontFamily: "Helvetica",
   },
+
   brandName: {
     fontSize: 15,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.ink,
   },
+
   brandTagline: {
     fontSize: 7.5,
     color: COLOR.faint,
@@ -101,27 +109,35 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
 
-  invoiceTitleBlock: { alignItems: "flex-end" },
+  invoiceTitleBlock: {
+    alignItems: "flex-end",
+  },
+
   invoiceLabel: {
     fontSize: 8,
     color: COLOR.faint,
     letterSpacing: 2.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     marginBottom: 5,
   },
+
+  // IMPORTANT:
+  // Helvetica supports INV-000011 perfectly.
+  // Do NOT use the Devanagari font here.
   invoiceNumber: {
     fontSize: 15,
-    fontFamily: "NotoSans",
-    fontWeight: "bold",
+    fontFamily: "Helvetica",
     color: COLOR.ink,
     marginBottom: 4,
   },
+
   invoiceDate: {
     fontSize: 9,
     color: COLOR.muted,
     marginBottom: 8,
   },
+
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -129,15 +145,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 10,
   },
+
   statusDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
     marginRight: 5,
   },
+
   statusText: {
     fontSize: 7.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     letterSpacing: 0.6,
   },
@@ -149,31 +167,39 @@ const styles = StyleSheet.create({
   },
 
   // ─── Addresses ───
+
   addresses: {
     flexDirection: "row",
     marginBottom: 20,
   },
-  addressBox: { width: "50%" },
+
+  addressBox: {
+    width: "50%",
+  },
+
   addressDivider: {
     width: 1,
     backgroundColor: COLOR.borderSoft,
     marginHorizontal: 20,
   },
+
   addressLabel: {
     fontSize: 7.5,
     color: COLOR.faint,
     letterSpacing: 1.2,
     marginBottom: 7,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
   },
+
   addressName: {
     fontSize: 11,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.ink,
     marginBottom: 3,
   },
+
   addressLine: {
     fontSize: 9,
     color: COLOR.muted,
@@ -181,7 +207,8 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
 
-  // ─── Info card (subscription details) ───
+  // ─── Info card ───
+
   infoSection: {
     marginBottom: 20,
     backgroundColor: COLOR.bgSoft,
@@ -190,31 +217,56 @@ const styles = StyleSheet.create({
     borderTopColor: COLOR.accent,
     padding: 14,
   },
+
   infoTitle: {
     fontSize: 7.5,
     color: COLOR.faint,
     letterSpacing: 1.2,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     marginBottom: 9,
   },
-  infoGrid: { flexDirection: "row", flexWrap: "wrap" },
-  infoItem: { width: "50%", marginBottom: 8, paddingRight: 10 },
+
+  infoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+
+  infoItem: {
+    width: "50%",
+    marginBottom: 8,
+    paddingRight: 10,
+  },
+
   infoItemLabel: {
     fontSize: 7.5,
     color: COLOR.faint,
     letterSpacing: 0.4,
     marginBottom: 2,
   },
+
   infoItemValue: {
     fontSize: 9.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.ink,
   },
 
+  // ─── Currency ───
+
+  // Only ₹ uses this font.
+  // This prevents the Devanagari font from affecting INV-000011
+  // and other Latin characters.
+  rupeeSymbol: {
+    fontFamily: "NotoSansDevanagari",
+  },
+
   // ─── Table ───
-  table: { marginBottom: 16 },
+
+  table: {
+    marginBottom: 16,
+  },
+
   tableHeader: {
     flexDirection: "row",
     backgroundColor: COLOR.bgSoft,
@@ -222,13 +274,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 5,
   },
+
   tableHeaderText: {
     fontSize: 7.5,
     color: COLOR.faint,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     letterSpacing: 0.8,
   },
+
   tableRow: {
     flexDirection: "row",
     paddingVertical: 11,
@@ -236,42 +290,68 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLOR.borderSoft,
   },
-  colDescription: { width: "65%", paddingRight: 12 },
-  colAmount: { width: "35%", textAlign: "right" },
+
+  colDescription: {
+    width: "65%",
+    paddingRight: 12,
+  },
+
+  colAmount: {
+    width: "35%",
+    textAlign: "right",
+  },
+
   itemTitle: {
     fontSize: 9.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.ink,
     marginBottom: 3,
   },
-  itemSub: { fontSize: 8, color: COLOR.faint, lineHeight: 1.4 },
+
+  itemSub: {
+    fontSize: 8,
+    color: COLOR.faint,
+    lineHeight: 1.4,
+  },
+
   itemAmount: {
     fontSize: 9.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.ink,
   },
 
   // ─── Totals ───
+
   totalsWrapper: {
     flexDirection: "row",
     justifyContent: "flex-end",
     marginBottom: 6,
   },
-  totalsBox: { width: "42%" },
+
+  totalsBox: {
+    width: "42%",
+  },
+
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 5,
   },
-  totalLabel: { fontSize: 9, color: COLOR.muted },
+
+  totalLabel: {
+    fontSize: 9,
+    color: COLOR.muted,
+  },
+
   totalValue: {
     fontSize: 9,
     color: COLOR.ink,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
   },
+
   grandTotalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -281,19 +361,22 @@ const styles = StyleSheet.create({
     borderTopWidth: 1.5,
     borderTopColor: COLOR.ink,
   },
+
   grandTotalLabel: {
     fontSize: 9.5,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.ink,
     letterSpacing: 0.4,
   },
+
   grandTotalValue: {
     fontSize: 14,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
     fontWeight: "bold",
     color: COLOR.accent,
   },
+
   disclosure: {
     fontSize: 7.5,
     color: COLOR.faint,
@@ -305,6 +388,7 @@ const styles = StyleSheet.create({
   },
 
   // ─── Footer ───
+
   footer: {
     position: "absolute",
     bottom: 34,
@@ -317,13 +401,19 @@ const styles = StyleSheet.create({
     borderTopColor: COLOR.border,
     paddingTop: 12,
   },
+
   footerLeft: {
     fontSize: 7.5,
     color: COLOR.faint,
     lineHeight: 1.6,
     width: "75%",
   },
-  footerRight: { fontSize: 7.5, color: COLOR.faint, textAlign: "right" },
+
+  footerRight: {
+    fontSize: 7.5,
+    color: COLOR.faint,
+    textAlign: "right",
+  },
 });
 
 // ── Shared building blocks ──────────────────────────────────────────────
@@ -350,11 +440,13 @@ function BrandBlock({
               {brandName.charAt(0).toUpperCase()}
             </Text>
           </View>
+
           <View>
             <Text style={styles.brandName}>{brandName}</Text>
           </View>
         </View>
       )}
+
       <Text style={styles.brandTagline}>{brandTagline}</Text>
     </View>
   );
@@ -368,10 +460,28 @@ function StatusBadge({
   label: string;
 }) {
   const s = STATUS_STYLES[statusKey] ?? STATUS_STYLES.pending;
+
   return (
     <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
-      <View style={[styles.statusDot, { backgroundColor: s.dot }]} />
-      <Text style={[styles.statusText, { color: s.color }]}>{label}</Text>
+      <View
+        style={[
+          styles.statusDot,
+          {
+            backgroundColor: s.dot,
+          },
+        ]}
+      />
+
+      <Text
+        style={[
+          styles.statusText,
+          {
+            color: s.color,
+          },
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -390,14 +500,23 @@ function InvoiceMeta({
   return (
     <View style={styles.invoiceTitleBlock}>
       <Text style={styles.invoiceLabel}>INVOICE</Text>
+
+      {/* Helvetica handles the entire invoice number */}
       <Text style={styles.invoiceNumber}>#{invoiceNumber}</Text>
+
       <Text style={styles.invoiceDate}>{date}</Text>
+
       <StatusBadge statusKey={statusKey} label={statusLabel} />
     </View>
   );
 }
 
-const fmtINR = (n: number) => `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
+// ── Currency helpers ────────────────────────────────────────────────────
+
+// Formats only the numeric part.
+// Example: 999 -> "999"
+// Example: 10000 -> "10,000"
+const fmtINRNumber = (n: number) => (Number(n) || 0).toLocaleString("en-IN");
 
 // ── Subscription / plan invoice ─────────────────────────────────────────
 
@@ -418,6 +537,7 @@ interface SubscriptionInvoiceProps {
     baseAmount?: number;
     gstAmount?: number;
   };
+
   organization: {
     name: string;
     email?: string;
@@ -425,6 +545,7 @@ interface SubscriptionInvoiceProps {
     address?: string;
     gstin?: string;
   };
+
   logoUrl?: string;
   brandName?: string;
   brandTagline?: string;
@@ -444,10 +565,16 @@ export const SubscriptionInvoiceDocument = ({
   brandTagline = "CLINIC MANAGEMENT PLATFORM",
   supportEmail = "support@clinicly.com",
 }: SubscriptionInvoiceProps) => {
-  const currency = subscription.currency || "INR";
-  const invoiceNumber =
+  // ── Invoice number ───────────────────────────────────────────────────
+
+  const invoiceNumber = String(
     subscription.invoiceNumber ||
-    `INV-${subscription._id?.toString().slice(-8).toUpperCase() || "00000000"}`;
+      `INV-${
+        subscription._id?.toString().slice(-8).toUpperCase() || "00000000"
+      }`,
+  );
+
+  // ── Dates ─────────────────────────────────────────────────────────────
 
   const invoiceDate = new Date(subscription.createdAt).toLocaleDateString(
     "en-IN",
@@ -457,6 +584,7 @@ export const SubscriptionInvoiceDocument = ({
       day: "numeric",
     },
   );
+
   const periodStart = new Date(subscription.startsAt).toLocaleDateString(
     "en-IN",
     {
@@ -465,6 +593,7 @@ export const SubscriptionInvoiceDocument = ({
       day: "numeric",
     },
   );
+
   const periodEnd = new Date(subscription.expiresAt).toLocaleDateString(
     "en-IN",
     {
@@ -474,8 +603,11 @@ export const SubscriptionInvoiceDocument = ({
     },
   );
 
+  // ── Status ────────────────────────────────────────────────────────────
+
   let statusKey = "pending";
   let statusLabel = "Pending";
+
   if (subscription.status === "PAID") {
     statusKey = "paid";
     statusLabel = "Paid";
@@ -487,10 +619,24 @@ export const SubscriptionInvoiceDocument = ({
     statusLabel = "Cancelled";
   }
 
+  // ── Plan ──────────────────────────────────────────────────────────────
+
   const planLabel = PLAN_LABEL[subscription.plan] || subscription.plan;
+
   const cycleLabel =
     subscription.billingCycle === "YEARLY" ? "Yearly" : "Monthly";
+
   const showGst = !!subscription.gstApplicable;
+
+  // ── Amount values ────────────────────────────────────────────────────
+
+  const subtotalAmount = showGst
+    ? (subscription.baseAmount ?? subscription.amount)
+    : subscription.amount;
+
+  const lineItemAmount = showGst
+    ? (subscription.baseAmount ?? subscription.amount)
+    : subscription.amount;
 
   return (
     <Document title={`Invoice ${invoiceNumber}`}>
@@ -502,6 +648,7 @@ export const SubscriptionInvoiceDocument = ({
             brandName={brandName}
             brandTagline={brandTagline}
           />
+
           <InvoiceMeta
             invoiceNumber={invoiceNumber}
             date={invoiceDate}
@@ -509,32 +656,42 @@ export const SubscriptionInvoiceDocument = ({
             statusLabel={statusLabel}
           />
         </View>
+
         <View style={styles.headerDivider} />
 
         {/* Addresses */}
         <View style={styles.addresses}>
           <View style={styles.addressBox}>
             <Text style={styles.addressLabel}>BILLED TO</Text>
+
             <Text style={styles.addressName}>{organization.name}</Text>
+
             {organization.email && (
               <Text style={styles.addressLine}>{organization.email}</Text>
             )}
+
             {organization.phone && (
               <Text style={styles.addressLine}>{organization.phone}</Text>
             )}
+
             {organization.address && (
               <Text style={styles.addressLine}>{organization.address}</Text>
             )}
+
             {organization.gstin && (
               <Text style={styles.addressLine}>
                 GSTIN: {organization.gstin}
               </Text>
             )}
           </View>
+
           <View style={styles.addressDivider} />
+
           <View style={styles.addressBox}>
             <Text style={styles.addressLabel}>FROM</Text>
+
             <Text style={styles.addressName}>{brandName} Technologies</Text>
+
             <Text style={styles.addressLine}>{supportEmail}</Text>
           </View>
         </View>
@@ -542,26 +699,39 @@ export const SubscriptionInvoiceDocument = ({
         {/* Subscription Info */}
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>SUBSCRIPTION DETAILS</Text>
+
           <View style={styles.infoGrid}>
+            {/* Plan */}
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Plan</Text>
+
               <Text style={styles.infoItemValue}>
-                {planLabel} · {fmtINR(subscription.amount)}/
+                {planLabel} · <Text style={styles.rupeeSymbol}>₹</Text>
+                {fmtINRNumber(subscription.amount)}/
                 {subscription.billingCycle === "YEARLY" ? "yr" : "mo"}
               </Text>
             </View>
+
+            {/* Billing Cycle */}
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Billing Cycle</Text>
+
               <Text style={styles.infoItemValue}>{cycleLabel}</Text>
             </View>
+
+            {/* Billing Period */}
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Billing Period</Text>
+
               <Text style={styles.infoItemValue}>
                 {periodStart} – {periodEnd}
               </Text>
             </View>
+
+            {/* Payment Method */}
             <View style={styles.infoItem}>
               <Text style={styles.infoItemLabel}>Payment Method</Text>
+
               <Text style={styles.infoItemValue}>
                 {subscription.paymentMethod || "—"}
               </Text>
@@ -571,33 +741,45 @@ export const SubscriptionInvoiceDocument = ({
 
         {/* Line Items */}
         <View style={styles.table}>
+          {/* Table Header */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, { width: "65%" }]}>
-              DESCRIPTION
-            </Text>
             <Text
               style={[
                 styles.tableHeaderText,
-                { width: "35%", textAlign: "right" },
+                {
+                  width: "65%",
+                },
+              ]}
+            >
+              DESCRIPTION
+            </Text>
+
+            <Text
+              style={[
+                styles.tableHeaderText,
+                {
+                  width: "35%",
+                  textAlign: "right",
+                },
               ]}
             >
               AMOUNT
             </Text>
           </View>
 
+          {/* Table Row */}
           <View style={styles.tableRow}>
             <View style={styles.colDescription}>
               <Text style={styles.itemTitle}>{planLabel} Subscription</Text>
+
               <Text style={styles.itemSub}>
                 {cycleLabel} billing · {periodStart} – {periodEnd}
               </Text>
             </View>
+
             <Text style={[styles.itemAmount, styles.colAmount]}>
-              {fmtINR(
-                showGst
-                  ? (subscription.baseAmount ?? subscription.amount)
-                  : subscription.amount,
-              )}
+              <Text style={styles.rupeeSymbol}>₹</Text>
+              {fmtINRNumber(lineItemAmount)}
             </Text>
           </View>
         </View>
@@ -605,34 +787,43 @@ export const SubscriptionInvoiceDocument = ({
         {/* Totals */}
         <View style={styles.totalsWrapper}>
           <View style={styles.totalsBox}>
+            {/* Subtotal */}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Subtotal</Text>
+
               <Text style={styles.totalValue}>
-                {fmtINR(
-                  showGst
-                    ? (subscription.baseAmount ?? subscription.amount)
-                    : subscription.amount,
-                )}
+                <Text style={styles.rupeeSymbol}>₹</Text>
+                {fmtINRNumber(subtotalAmount)}
               </Text>
             </View>
+
+            {/* GST */}
             {showGst && (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>GST (18%)</Text>
+
                 <Text style={styles.totalValue}>
-                  {fmtINR(subscription.gstAmount ?? 0)}
+                  <Text style={styles.rupeeSymbol}>₹</Text>
+                  {fmtINRNumber(subscription.gstAmount ?? 0)}
                 </Text>
               </View>
             )}
+
+            {/* Grand Total */}
             <View style={styles.grandTotalRow}>
               <Text style={styles.grandTotalLabel}>
                 {subscription.status === "PAID" ? "AMOUNT PAID" : "AMOUNT DUE"}
               </Text>
+
               <Text style={styles.grandTotalValue}>
-                {fmtINR(subscription.amount)}
+                <Text style={styles.rupeeSymbol}>₹</Text>
+                {fmtINRNumber(subscription.amount)}
               </Text>
             </View>
           </View>
         </View>
+
+        {/* GST Disclosure */}
         {showGst && (
           <Text style={styles.disclosure}>
             Amount is inclusive of 18% GST, as applicable for customers in
@@ -646,6 +837,7 @@ export const SubscriptionInvoiceDocument = ({
             This invoice was generated automatically via {brandName}. For
             billing questions, contact our support team.
           </Text>
+
           <Text style={styles.footerRight}>{supportEmail}</Text>
         </View>
       </Page>

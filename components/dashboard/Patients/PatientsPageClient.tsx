@@ -82,7 +82,9 @@ export default function PatientsPageClient({
 
     const rows = patients.map((patient) => {
       const name = `${patient.firstName} ${patient.lastName}`;
-      const joinedDate = new Date(patient.createdAt).toLocaleDateString("en-US");
+      const joinedDate = new Date(patient.createdAt).toLocaleDateString(
+        "en-US",
+      );
       return [
         `"${name}"`,
         `"${patient.phone || ""}"`,
@@ -124,11 +126,11 @@ export default function PatientsPageClient({
             onClick={() => router.push("/enquiries/add-enquiry")}
             className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all rounded-full px-5"
           >
-            <UserPlus className="w-4 h-4 mr-2 text-indigo-500" /> New Enquiry
+            <UserPlus className="w-4 h-4 mr-2 text-emerald-600" /> New Enquiry
           </Button>
           <Button
             onClick={() => router.push("/appointments/create-appointment")}
-            className="bg-blue-primary hover:bg-blue-600 text-white shadow-sm transition-all shadow-blue-500/20 rounded-full px-5"
+            className="bg-[#0D1117] hover:bg-[#141A21] text-white shadow-sm transition-all shadow-black/10 rounded-full px-5"
           >
             <Calendar className="w-4 h-4 mr-2" /> Book Appointment
           </Button>
@@ -147,7 +149,7 @@ export default function PatientsPageClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center text-xs text-neon-accent font-semibold bg-neon-accent/10 w-fit px-2 py-1 rounded-full">
+            <div className="flex items-center text-xs text-emerald-600 font-semibold bg-emerald-50 w-fit px-2 py-1 rounded-full">
               +12% this month
             </div>
           </CardContent>
@@ -167,9 +169,9 @@ export default function PatientsPageClient({
             </div>
           </CardContent>
         </Card>
-        <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl bg-linear-to-br from-blue-primary to-blue-600 text-white">
+        <Card className="border-slate-100 shadow-sm shadow-slate-200/40 rounded-2xl bg-linear-to-br from-[#0D1117] to-emerald-800 text-white">
           <CardHeader className="pb-2">
-            <CardDescription className="text-blue-800 font-medium">
+            <CardDescription className="text-slate-300 font-medium">
               Messages Sent
             </CardDescription>
             <CardTitle className="text-3xl text-white">
@@ -177,7 +179,7 @@ export default function PatientsPageClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center text-xs text-blue-200 font-semibold">
+            <div className="flex items-center text-xs text-emerald-300 font-semibold">
               <Activity className="w-3 h-3 mr-1" /> WhatsApp API Active
             </div>
           </CardContent>
@@ -190,14 +192,14 @@ export default function PatientsPageClient({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               placeholder="Search by name, phone, email..."
-              className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-blue-100 rounded-xl"
+              className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-emerald-100 rounded-xl"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <Button
             variant="outline"
-            className="rounded-xl border-slate-200 text-slate-600 hover:text-blue-primary hover:bg-blue-50"
+            className="rounded-xl border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
             onClick={handleExportCSV}
             disabled={patients.length === 0}
           >
@@ -268,11 +270,14 @@ export default function PatientsPageClient({
                     <TableCell>
                       {patient.dateOfBirth ? (
                         <span className="text-slate-600 text-sm font-medium">
-                          {new Date(patient.dateOfBirth).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {new Date(patient.dateOfBirth).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
                         </span>
                       ) : (
                         <span className="text-slate-400 text-sm">-</span>
@@ -289,7 +294,7 @@ export default function PatientsPageClient({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-blue-primary hover:bg-blue-50 hover:text-blue-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/patients/${patient._id}`);
@@ -332,7 +337,8 @@ export default function PatientsPageClient({
               size="sm"
               className="rounded-lg border-slate-200"
               disabled={
-                currentPage === pagination.totalPages || pagination.totalPages === 0
+                currentPage === pagination.totalPages ||
+                pagination.totalPages === 0
               }
               onClick={() => handlePageChange(currentPage + 1)}
             >

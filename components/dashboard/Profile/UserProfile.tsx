@@ -55,11 +55,11 @@ const UserAvatar = ({ firstName }: { firstName: string }) => {
   const initials = firstName ? firstName.charAt(0).toUpperCase() : "?";
   return (
     <div className="relative shrink-0">
-      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#00236F] text-3xl font-semibold text-[#E8C468] ring-4 ring-white shadow-lg shadow-[#00236F]/20">
+      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#0D1117] text-3xl font-semibold text-emerald-400 ring-4 ring-white shadow-lg shadow-black/10">
         {initials}
       </div>
       <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md ring-2 ring-white">
-        <Briefcase className="h-3.5 w-3.5 text-[#00236F]" />
+        <Briefcase className="h-3.5 w-3.5 text-[#0D1117]" />
       </div>
     </div>
   );
@@ -75,12 +75,12 @@ const FieldDisplay = ({
   icon: React.ElementType;
 }) => (
   <div className="flex items-start gap-3">
-    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#00236F]/8 text-[#00236F]">
+    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
       <Icon className="h-4 w-4" />
     </div>
     <div className="min-w-0">
       <p className="text-[13px] text-gray-500">{label}</p>
-      <p className="truncate text-sm font-medium text-[#14172B]">{value}</p>
+      <p className="truncate text-sm font-medium text-slate-900">{value}</p>
     </div>
   </div>
 );
@@ -126,8 +126,8 @@ const ProfilePage = () => {
   // Handle loading state if user is null (not authenticated or still loading)
   if (!loggedInUser || !profile) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#F6F7FB]">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#00236F]/15 border-t-[#00236F]"></div>
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600"></div>
         <p className="ml-4 text-gray-700">Loading user profile...</p>
       </div>
     );
@@ -265,7 +265,7 @@ const ProfilePage = () => {
             variant="ghost"
             size="sm"
             onClick={() => router.back()}
-            className="gap-2 rounded-lg px-2.5 font-medium text-slate-600 transition-all duration-150 hover:bg-[#00236F] hover:text-white"
+            className="gap-2 rounded-lg px-2.5 font-medium text-slate-600 transition-all duration-150 hover:bg-[#0D1117] hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -282,18 +282,18 @@ const ProfilePage = () => {
 
         <div className="space-y-6">
           {/* Identity header */}
-          <div className="overflow-hidden rounded-2xl border border-[#E7E9F0] bg-white shadow-sm">
-            <div className="h-20 bg-[#00236F] sm:h-24" />
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="h-20 bg-[#0D1117] sm:h-24" />
             <div className="px-5 pb-6 sm:px-8">
               <div className="-mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
                   <UserAvatar firstName={profile.firstName} />
                   <div className="text-center sm:pb-4 sm:text-left">
-                    <h1 className="text-2xl font-semibold tracking-tight text-[#E8C468] sm:text-[28px]">
+                    <h1 className="text-2xl font-semibold tracking-tight text-emerald-400 sm:text-[28px]">
                       {profile.firstName} {profile.lastName}
                     </h1>
                     <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                      <span className="text-sm font-medium text-[#00236F]">
+                      <span className="text-sm font-medium text-emerald-700">
                         {formatRole(profile.role)}
                       </span>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
@@ -311,7 +311,7 @@ const ProfilePage = () => {
                     className={`transition-colors ${
                       isEditing
                         ? "border-gray-300 text-gray-700 hover:bg-gray-100"
-                        : "bg-[#00236F] text-white hover:bg-[#001a52]"
+                        : "bg-[#0D1117] text-white hover:bg-[#141A21]"
                     }`}
                   >
                     <Edit className="mr-2 h-4 w-4" />
@@ -322,7 +322,7 @@ const ProfilePage = () => {
                     <Button
                       onClick={handleSaveChanges}
                       disabled={isLoading}
-                      className="bg-[#00236F] text-white hover:bg-[#001a52]"
+                      className="bg-emerald-600 text-white hover:bg-emerald-700"
                     >
                       <Save className="mr-2 h-4 w-4" />
                       {isLoading ? "Saving..." : "Save Changes"}
@@ -331,7 +331,7 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 border-t border-[#E7E9F0] pt-6 sm:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2">
                 <FieldDisplay
                   label="Email address"
                   value={profile.email}
@@ -356,8 +356,8 @@ const ProfilePage = () => {
                   onClick={() => setActiveSection(section.id)}
                   className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors lg:w-full ${
                     activeSection === section.id
-                      ? "bg-[#00236F] text-white"
-                      : "text-gray-600 hover:bg-[#00236F]/5 hover:text-[#00236F]"
+                      ? "bg-[#0D1117] text-white"
+                      : "text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
                   }`}
                 >
                   <section.icon className="h-4 w-4" />
@@ -368,13 +368,13 @@ const ProfilePage = () => {
 
             <div
               key={activeSection}
-              className="animate-in fade-in duration-300 rounded-2xl border border-[#E7E9F0] bg-white p-6 shadow-sm"
+              className="animate-in fade-in duration-300 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
             >
               {/* PERSONAL: First Name, Last Name, Email (non-editable) */}
               {activeSection === "personal" && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#14172B]">
+                    <h2 className="text-lg font-semibold text-slate-900">
                       Basic details
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
@@ -431,7 +431,7 @@ const ProfilePage = () => {
                     <Button
                       onClick={handleSaveChanges}
                       disabled={isLoading}
-                      className="h-11 w-full bg-[#00236F] text-base hover:bg-[#001a52]"
+                      className="h-11 w-full bg-emerald-600 text-base hover:bg-emerald-700"
                     >
                       <Save className="mr-2 h-4 w-4" />
                       {isLoading
@@ -446,7 +446,7 @@ const ProfilePage = () => {
               {activeSection === "security" && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#14172B]">
+                    <h2 className="text-lg font-semibold text-slate-900">
                       Account security
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
@@ -479,7 +479,7 @@ const ProfilePage = () => {
                               current: !showPassword.current,
                             })
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00236F]"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600"
                         >
                           {showPassword.current ? (
                             <EyeOff className="h-4.5 w-4.5" />
@@ -519,7 +519,7 @@ const ProfilePage = () => {
                               new: !showPassword.new,
                             })
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00236F]"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600"
                         >
                           {showPassword.new ? (
                             <EyeOff className="h-4.5 w-4.5" />
@@ -559,7 +559,7 @@ const ProfilePage = () => {
                               confirm: !showPassword.confirm,
                             })
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00236F]"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600"
                         >
                           {showPassword.confirm ? (
                             <EyeOff className="h-4.5 w-4.5" />
@@ -580,7 +580,7 @@ const ProfilePage = () => {
                     <Button
                       onClick={handlePasswordSubmit}
                       disabled={passwordLoading || !passwordForm.newPassword}
-                      className="h-11 w-full bg-[#00236F] text-base text-white hover:bg-[#001a52]"
+                      className="h-11 w-full bg-emerald-600 text-base text-white hover:bg-emerald-700"
                     >
                       {passwordLoading
                         ? "Updating password..."
@@ -598,7 +598,7 @@ const ProfilePage = () => {
               {activeSection === "settings" && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#14172B]">
+                    <h2 className="text-lg font-semibold text-slate-900">
                       Account metadata
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
