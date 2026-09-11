@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -65,6 +65,8 @@ export default function DoctorsPage({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
+  const slug = params.slug as string;
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const clinic = useAuthStore((state) => state.clinic);
   const categories = clinic?.departments || [];
@@ -73,7 +75,7 @@ export default function DoctorsPage({
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams);
       search ? params.set("search", search) : params.delete("search");
-      router.push(`/doctors?${params.toString()}`);
+      router.push(`/${slug}/doctors?${params.toString()}`);
     }, 300);
     return () => clearTimeout(timeout);
   }, [search]);
@@ -84,7 +86,7 @@ export default function DoctorsPage({
     const params = new URLSearchParams(searchParams);
     if (value === "ALL" || !value) params.delete(key);
     else params.set(key, value);
-    router.push(`/doctors?${params.toString()}`);
+    router.push(`/${slug}/doctors?${params.toString()}`);
   };
 
   const handlePageChange = (page: number) => {
@@ -93,9 +95,9 @@ export default function DoctorsPage({
   };
 
   const handleEdit = (id: string) =>
-    router.push(`/doctors/edit-doctor?id=${id}`);
+    router.push(`/${slug}/doctors/edit-doctor?id=${id}`);
 
-  const handleView = (id: string) => router.push(`/doctors/${id}`);
+  const handleView = (id: string) => router.push(`/${slug}/doctors/${id}`);
 
   const handleDelete = async (id: string) => {
     const res = await axios.delete(`/api/doctor?id=${id}`);
@@ -149,7 +151,7 @@ export default function DoctorsPage({
           </div>
 
           <Button
-            onClick={() => router.push("/doctors/add-doctor")}
+            onClick={() => router.push(`/${slug}/doctors/add-doctor`)}
             className="h-11 px-4 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4 " />

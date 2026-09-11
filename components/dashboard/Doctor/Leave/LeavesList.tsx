@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import axios from "axios";
 import Breadcrumb from "@/components/shared/Breadcrumb";
@@ -66,6 +66,7 @@ export default function DoctorLeaveList({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { slug } = useParams<{ slug: string }>();
 
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -78,7 +79,7 @@ export default function DoctorLeaveList({
     const params = new URLSearchParams(searchParams);
     if (value === "ALL" || !value) params.delete(key);
     else params.set(key, value);
-    router.push(`/doctors/leave/leaves-list?${params.toString()}`);
+    router.push(`/${slug}/doctors/leave/leaves-list?${params.toString()}`);
   };
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export default function DoctorLeaveList({
       const params = new URLSearchParams(searchParams);
       if (search) params.set("search", search);
       else params.delete("search");
-      router.push(`/doctors/leave/leaves-list?${params.toString()}`);
+      router.push(`/${slug}/doctors/leave/leaves-list?${params.toString()}`);
     }, 300);
 
     return () => clearTimeout(timeout);
@@ -103,7 +104,7 @@ export default function DoctorLeaveList({
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/doctors/leave/edit-leave?id=${id}`);
+    router.push(`/${slug}/doctors/leave/edit-leave?id=${id}`);
   };
 
   const formatDate = (date: string) =>
@@ -157,7 +158,7 @@ export default function DoctorLeaveList({
           </div>
 
           <Button
-            onClick={() => router.push("/doctors/leave/create-leave")}
+            onClick={() => router.push(`/${slug}/doctors/leave/create-leave`)}
             className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900"
           >
             <Plus className="w-4 h-4" />

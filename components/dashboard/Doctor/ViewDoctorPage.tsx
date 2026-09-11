@@ -18,7 +18,7 @@ import {
   Activity,
   ArrowLeft,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 
 interface DoctorViewProps {
@@ -42,6 +42,7 @@ interface DoctorViewProps {
 export default function ViewDoctorPage({ doctor }: DoctorViewProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { slug } = useParams<{ slug: string }>();
   const fullName = `${doctor.prefix ?? ""} ${doctor.firstName ?? ""} ${
     doctor.lastName ?? ""
   }`.trim();
@@ -51,7 +52,7 @@ export default function ViewDoctorPage({ doctor }: DoctorViewProps) {
   const handleEdit = (id: string) => {
     const params = new URLSearchParams(searchParams);
     if (id) params.set("id", id);
-    router.push(`/doctors/edit-doctor?${params.toString()}`);
+    router.push(`/${slug}/doctors/edit-doctor?${params.toString()}`);
   };
 
   //delete
