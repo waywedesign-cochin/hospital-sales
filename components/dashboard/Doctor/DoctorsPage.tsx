@@ -39,13 +39,13 @@ import { useAuthStore } from "@/providers/AuthStoreProvider";
 const getStatusBadge = (status: string) => {
   if (status === "ACTIVE")
     return (
-      <span className="px-3 py-1.5 text-xs font-semibold bg-linear-to-r from-emerald-50 to-green-50 text-emerald-700 rounded-full border border-emerald-200 shadow-sm">
+      <span className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 shadow-sm">
         Active
       </span>
     );
 
   return (
-    <span className="px-3 py-1.5 text-xs font-semibold bg-linear-to-r from-amber-50 to-yellow-50 text-amber-700 rounded-full border border-amber-200 shadow-sm">
+    <span className="px-3 py-1.5 text-xs font-semibold bg-amber-50 text-amber-700 rounded-full border border-amber-200 shadow-sm">
       On Leave
     </span>
   );
@@ -110,15 +110,13 @@ export default function DoctorsPage({
   };
 
   return (
-    <div className="min-h-screen p-2 space-y-6">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none"></div>
+    <div className="min-h-screen space-y-6">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -133,18 +131,17 @@ export default function DoctorsPage({
         />
       </div>
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <StethoscopeIcon className="w-8 h-8 text-white" />
+            <div className="bg-[#0D1117] p-4 rounded-xl">
+              <StethoscopeIcon className="w-8 h-8 text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 Doctors Management
               </h1>
-              <p className="text-slate-600 font-medium text-sm mt-1">
+              <p className="text-slate-500 font-medium text-sm mt-1">
                 Manage your medical team and their specializations
               </p>
             </div>
@@ -152,7 +149,7 @@ export default function DoctorsPage({
 
           <Button
             onClick={() => router.push(`/${slug}/doctors/add-doctor`)}
-            className="h-11 px-4 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center gap-2"
+            className="h-11 px-4 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4 " />
             Add Doctor
@@ -161,14 +158,14 @@ export default function DoctorsPage({
       </div>
 
       {/* Search + Filter */}
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between p-5 bg-white backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-200">
         <div className="relative w-full">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, or role..."
-            className="pl-12 h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl"
+            className="pl-12 h-11 w-full bg-slate-50 border-slate-200 rounded-xl"
           />
         </div>
 
@@ -176,7 +173,7 @@ export default function DoctorsPage({
           value={searchParams.get("specialization") ?? ""}
           onValueChange={(v) => updateQuery("specialization", v)}
         >
-          <SelectTrigger className="h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+          <SelectTrigger className="h-11 w-full bg-slate-50 border-slate-200 rounded-xl font-medium">
             <SelectValue placeholder="Specialization" />
           </SelectTrigger>
           <SelectContent>
@@ -191,10 +188,10 @@ export default function DoctorsPage({
       </div>
 
       {/* Table */}
-      <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-blue-primary">
+            <thead className="bg-[#0D1117]">
               <tr>
                 {[
                   "Doctor",
@@ -206,7 +203,7 @@ export default function DoctorsPage({
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-6 py-3 text-xs font-bold text-white uppercase tracking-wider text-left"
+                    className="px-6 py-3 text-xs font-bold text-slate-200 uppercase tracking-wider text-left"
                   >
                     {h}
                   </th>
@@ -214,7 +211,7 @@ export default function DoctorsPage({
               </tr>
             </thead>
 
-            <tbody className="bg-white/10 divide-y divide-gray-100">
+            <tbody className="bg-white divide-y divide-slate-100">
               {doctors.length === 0 ? (
                 <tr>
                   <td
@@ -228,11 +225,11 @@ export default function DoctorsPage({
                 doctors.map((doc) => (
                   <tr
                     key={doc._id}
-                    className="hover:bg-gray-50 bg-linear-to-br from-blue-500/5 via-purple-100/5 to-pink-500/5 transition-colors"
+                    className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 bg-blue-primary rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                        <div className="h-9 w-9 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                           {doc.firstName[0]}
                         </div>
                         <div>
@@ -251,7 +248,7 @@ export default function DoctorsPage({
                         {doc.specialization.slice(0, 2).map((s, i) => (
                           <span
                             key={i}
-                            className="px-2 py-1 text-xs bg-linear-to-r from-purple-50 to-pink-50 text-purple-700 rounded-lg border"
+                            className="px-2 py-1 text-xs bg-sky-50 text-sky-700 rounded-lg border border-sky-100"
                           >
                             {s.charAt(0).toUpperCase() + s.slice(1)}
                           </span>
@@ -302,7 +299,7 @@ export default function DoctorsPage({
                           onClick={() => handleView(doc._id as string)}
                           className="shrink-0"
                         >
-                          <Eye className="w-4 h-4 text-blue-600" />
+                          <Eye className="w-4 h-4 text-emerald-600" />
                         </Button>
 
                         <Button
@@ -333,19 +330,19 @@ export default function DoctorsPage({
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-linear-to-r from-indigo-50/30 via-purple-50/20 to-pink-50/10 border-t border-indigo-100/50">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
           {/* Info */}
           <div className="text-xs text-gray-600 font-medium mb-2 sm:mb-0">
             Showing{" "}
-            <span className="font-bold text-indigo-700">
+            <span className="font-bold text-emerald-700">
               {(currentPage - 1) * pagination.limit + 1}
             </span>{" "}
             to{" "}
-            <span className="font-bold text-indigo-700">
+            <span className="font-bold text-emerald-700">
               {Math.min(currentPage * pagination.limit, pagination.totalCount)}
             </span>{" "}
             of{" "}
-            <span className="font-bold text-indigo-700">
+            <span className="font-bold text-emerald-700">
               {pagination.totalCount}
             </span>
           </div>
@@ -356,7 +353,7 @@ export default function DoctorsPage({
             <button
               onClick={() => updateQuery("page", String(currentPage - 1))}
               disabled={currentPage <= 1}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Prev
             </button>
@@ -369,10 +366,10 @@ export default function DoctorsPage({
                   <button
                     key={page}
                     onClick={() => updateQuery("page", String(page))}
-                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                       currentPage === page
-                        ? "bg-blue-primary text-white shadow-lg scale-105"
-                        : "text-green-700 hover:bg-green-50 border border-green-100"
+                        ? "bg-[#0D1117] text-white shadow-md"
+                        : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                     }`}
                   >
                     {page}
@@ -385,7 +382,7 @@ export default function DoctorsPage({
             <button
               onClick={() => updateQuery("page", String(currentPage + 1))}
               disabled={currentPage >= pagination.totalPages}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next
             </button>

@@ -257,7 +257,7 @@ export default function MessagingPageClient({
   }
 
   return (
-    <div className="mx-auto p-6 space-y-8">
+    <div className="mx-auto  space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
           <Send className="text-[#0D1117]" />

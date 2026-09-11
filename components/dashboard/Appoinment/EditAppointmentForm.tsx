@@ -232,7 +232,7 @@ export default function EditAppointmentForm({
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="min-h-screen p-2 space-y-6 relative">
+    <div className="min-h-screen space-y-6 relative">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"

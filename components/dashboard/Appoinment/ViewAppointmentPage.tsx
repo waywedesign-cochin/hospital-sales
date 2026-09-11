@@ -54,7 +54,7 @@ export default function ViewAppointmentPage({
   };
 
   return (
-    <div className="min-h-screen p-2 relative">
+    <div className="min-h-screen relative">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"

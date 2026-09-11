@@ -255,13 +255,13 @@ const UserManagementPage = ({
   };
 
   return (
-    <div className="space-y-6 p-2">
+    <div className="space-y-6">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2 hover:bg-blue-500 hover:text-white transition-all"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -276,14 +276,14 @@ const UserManagementPage = ({
         />
       </div>
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl  backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="flex flex-col md:flex-row justify-between items-center   gap-4  backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-green-100/50">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <Users className="w-8 h-8 max-md:size-5 text-white" />
+            <div className="bg-[#0D1117] p-4 rounded-xl">
+              <Users className="w-8 h-8 max-md:size-5 text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold text-blue-primary tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold text-slate-900 tracking-tight">
                 Users Management
               </h1>
               <p className="text-slate-500 font-medium text-sm mt-1">
@@ -316,22 +316,22 @@ const UserManagementPage = ({
             }}
           >
             <DialogTrigger asChild>
-              <Button className="h-11 px-6 gap-2 rounded-xl bg-[#00236F] text-white shadow-md hover:bg-[#001a52] transition-all flex items-center">
+              <Button className="h-11 px-6 gap-2 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 transition-all flex items-center">
                 <UserPlus className="w-4 h-4" />
                 Add User
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md rounded-2xl border-0 p-0 overflow-hidden gap-0">
-              <div className="bg-indigo-600 px-6 py-5">
+              <div className="bg-[#0D1117] px-6 py-5">
                 <div className="flex items-center gap-3">
-                  <div className="bg-white/15 p-2.5 rounded-xl backdrop-blur-sm">
-                    <UserPlus className="w-5 h-5 text-white" />
+                  <div className="bg-white/10 p-2.5 rounded-xl">
+                    <UserPlus className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <DialogTitle className="text-white text-lg font-semibold">
                       Add a new user
                     </DialogTitle>
-                    <p className="text-blue-100 text-xs mt-0.5">
+                    <p className="text-slate-300 text-xs mt-0.5">
                       Create an account and set a password for them
                     </p>
                   </div>
@@ -365,7 +365,7 @@ const UserManagementPage = ({
                             firstName: e.target.value,
                           })
                         }
-                        className="pl-9 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                        className="pl-9 h-10 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                         required
                       />
                     </div>
@@ -389,7 +389,7 @@ const UserManagementPage = ({
                           lastName: e.target.value,
                         })
                       }
-                      className="h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                      className="h-10 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     />
                   </div>
                 </div>
@@ -416,7 +416,7 @@ const UserManagementPage = ({
                           email: e.target.value,
                         })
                       }
-                      className="pl-9 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                      className="pl-9 h-10 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                       required
                     />
                   </div>
@@ -433,7 +433,7 @@ const UserManagementPage = ({
                     <button
                       type="button"
                       onClick={generateRandomPassword}
-                      className="flex items-center gap-1 text-xs font-semibold text-blue-primary hover:text-indigo-700"
+                      className="flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Generate
@@ -454,7 +454,7 @@ const UserManagementPage = ({
                           password: e.target.value,
                         })
                       }
-                      className="pl-9 pr-20 h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20"
+                      className="pl-9 pr-20 h-10 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                       required
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -462,11 +462,11 @@ const UserManagementPage = ({
                         <button
                           type="button"
                           onClick={handleCopyPassword}
-                          className="p-1.5 text-gray-400 hover:text-blue-primary rounded-lg hover:bg-blue-50"
+                          className="p-1.5 text-gray-400 hover:text-emerald-700 rounded-lg hover:bg-emerald-50"
                           title="Copy password"
                         >
                           {passwordCopied ? (
-                            <Check className="w-4 h-4 text-green-600" />
+                            <Check className="w-4 h-4 text-emerald-600" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -475,7 +475,7 @@ const UserManagementPage = ({
                       <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="p-1.5 text-gray-400 hover:text-blue-primary rounded-lg hover:bg-blue-50"
+                        className="p-1.5 text-gray-400 hover:text-emerald-700 rounded-lg hover:bg-emerald-50"
                         title={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? (
@@ -508,7 +508,7 @@ const UserManagementPage = ({
                       setLinkStaffToDoctor(false);
                     }}
                   >
-                    <SelectTrigger className="h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20">
+                    <SelectTrigger className="h-10 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20">
                       <SelectValue placeholder="Select Role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -547,7 +547,7 @@ const UserManagementPage = ({
                           }
                         }}
                         className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                          linkStaffToDoctor ? "bg-blue-primary" : "bg-gray-200"
+                          linkStaffToDoctor ? "bg-emerald-600" : "bg-gray-200"
                         }`}
                       >
                         <span
@@ -574,7 +574,7 @@ const UserManagementPage = ({
                           doctorOptions.map((doc) => (
                             <label
                               key={doc._id}
-                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50/50 cursor-pointer"
+                              className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-emerald-50/50 cursor-pointer"
                             >
                               <input
                                 type="checkbox"
@@ -582,7 +582,7 @@ const UserManagementPage = ({
                                   doc._id,
                                 )}
                                 onChange={() => toggleAssignedDoctor(doc._id)}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-primary focus:ring-blue-400/30"
+                                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400/30"
                               />
                               <span className="flex-1">{doc.name}</span>
                               {doc.specialization.length > 0 && (
@@ -613,7 +613,7 @@ const UserManagementPage = ({
                         setAddUserForm({ ...addUserForm, doctorProfileId: val })
                       }
                     >
-                      <SelectTrigger className="h-10 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400/20">
+                      <SelectTrigger className="h-10 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20">
                         <SelectValue
                           placeholder={
                             doctorsLoading
@@ -642,7 +642,7 @@ const UserManagementPage = ({
                 <Button
                   type="submit"
                   disabled={isAddingUser}
-                  className="w-full h-11 rounded-xl bg-linear-to-r from-blue-primary to-indigo-600 text-white font-semibold shadow-md shadow-blue-500/20 hover:opacity-90 transition-opacity"
+                  className="w-full h-11 rounded-xl bg-emerald-600 text-white font-semibold shadow-md hover:bg-emerald-700 transition-colors"
                 >
                   {isAddingUser ? "Adding User..." : "Add User"}
                 </Button>
@@ -653,15 +653,15 @@ const UserManagementPage = ({
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between p-5 bg-white backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-200">
         {/* Search Input */}
         <div className="relative w-full ">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400" />
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, or role..."
-            className="pl-12 h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl"
+            className="pl-12 h-11 w-full bg-slate-50 border-slate-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl"
           />
         </div>
 
@@ -670,7 +670,7 @@ const UserManagementPage = ({
           value={searchParams.get("role") ?? ""}
           onValueChange={(val) => updateQueryParam("role", val)}
         >
-          <SelectTrigger className="w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+          <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-xl font-medium">
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
 
@@ -685,9 +685,9 @@ const UserManagementPage = ({
       </div>
 
       {/* Table */}
-      <div className="bg-white backdrop-blur-sm z-10 rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      <div className="bg-white z-10 rounded-xl shadow-sm overflow-hidden border border-slate-200">
         <Table>
-          <TableHeader className="bg-blue-primary text-white">
+          <TableHeader className="bg-[#0D1117] text-white">
             <TableRow>
               <TableHead className="text-white!">Name & Email</TableHead>
               <TableHead className="text-white!">Role</TableHead>
@@ -706,12 +706,12 @@ const UserManagementPage = ({
               users.map((user) => (
                 <TableRow
                   key={user._id}
-                  className="hover:bg-gray-50 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 transition-colors border-b duration-150"
+                  className="hover:bg-slate-50 transition-colors border-b duration-150"
                 >
                   {/* Name & Email */}
                   <TableCell>
                     <div className="flex items-center">
-                      <div className="h-10 w-10 bg-blue-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      <div className="h-10 w-10 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {user.firstName[0].toUpperCase()}
                       </div>
 
@@ -738,13 +738,9 @@ const UserManagementPage = ({
                   {/* Actions */}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-3">
-                      {/* <button className="text-blue-500 hover:bg-blue-50 p-1 rounded-full">
-                        <Eye className="w-4 h-4" />
-                      </button> */}
-
                       <Link
                         href={`/users/edit-user?id=${user._id}`}
-                        className="text-yellow-600 hover:bg-yellow-50 p-1 rounded-full"
+                        className="text-amber-600 hover:bg-amber-50 p-1 rounded-full"
                       >
                         <Edit className="w-4 h-4" />
                       </Link>
@@ -770,19 +766,19 @@ const UserManagementPage = ({
           </TableBody>
         </Table>
         {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-linear-to-r from-indigo-50/30 via-purple-50/20 to-pink-50/10 border-t border-indigo-100/50">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
           {/* Info Text */}
           <div className="text-xs text-gray-600 font-medium mb-2 sm:mb-0">
             Showing{" "}
-            <span className="font-bold text-indigo-700">
+            <span className="font-bold text-emerald-700">
               {(currentPage - 1) * pagination.limit + 1}
             </span>{" "}
             to{" "}
-            <span className="font-bold text-indigo-700">
+            <span className="font-bold text-emerald-700">
               {Math.min(currentPage * pagination.limit, pagination.totalCount)}
             </span>{" "}
             of{" "}
-            <span className="font-bold text-indigo-700">
+            <span className="font-bold text-emerald-700">
               {pagination.totalCount}
             </span>
           </div>
@@ -793,7 +789,7 @@ const UserManagementPage = ({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Prev
             </button>
@@ -810,10 +806,10 @@ const UserManagementPage = ({
                   <button
                     key={1}
                     onClick={() => handlePageChange(1)}
-                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                       cp === 1
-                        ? "bg-blue-primary text-white shadow-md shadow-green-500/40 scale-105"
-                        : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                        ? "bg-[#0D1117] text-white shadow-md"
+                        : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                     }`}
                   >
                     1
@@ -824,7 +820,7 @@ const UserManagementPage = ({
                   nodes.push(
                     <span
                       key="e1"
-                      className="px-1.5 text-indigo-400 text-xs font-bold"
+                      className="px-1.5 text-emerald-400 text-xs font-bold"
                     >
                       · · ·
                     </span>,
@@ -840,10 +836,10 @@ const UserManagementPage = ({
                     <button
                       key={i}
                       onClick={() => handlePageChange(i)}
-                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                         cp === i
-                          ? "bg-blue-primary text-white shadow-lg shadow-green-500/40 scale-105"
-                          : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                          ? "bg-[#0D1117] text-white shadow-md"
+                          : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                       }`}
                     >
                       {i}
@@ -855,7 +851,7 @@ const UserManagementPage = ({
                   nodes.push(
                     <span
                       key="e2"
-                      className="px-1.5 text-green-400 text-xs font-bold"
+                      className="px-1.5 text-emerald-400 text-xs font-bold"
                     >
                       · · ·
                     </span>,
@@ -867,10 +863,10 @@ const UserManagementPage = ({
                     <button
                       key={total}
                       onClick={() => handlePageChange(total)}
-                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                      className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                         cp === total
-                          ? "bg-blue-primary text-white shadow-lg shadow-indigo-500/40 scale-105"
-                          : "text-green-700 hover:bg-linear-to-r hover:from-green-50 hover:to-green-50 border border-green-100"
+                          ? "bg-[#0D1117] text-white shadow-md"
+                          : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                       }`}
                     >
                       {total}
@@ -886,7 +882,7 @@ const UserManagementPage = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= pagination.totalPages}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next
             </button>

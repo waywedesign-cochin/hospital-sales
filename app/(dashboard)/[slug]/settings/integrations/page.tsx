@@ -12,6 +12,10 @@ import {
   AlertCircle,
   AlertTriangle,
   Plug,
+<<<<<<< HEAD
+=======
+  ArrowLeft,
+>>>>>>> 7f5f68e (ui changes 3)
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +28,9 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppIntegration from "./WhatsAppIntegration";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Breadcrumb from "@/components/shared/Breadcrumb";
 
 type Tab = "curl" | "javascript" | "html";
 type Category = { _id: string; name: string };
@@ -33,7 +38,7 @@ type Category = { _id: string; name: string };
 export default function IntegrationsPage() {
   const params = useParams();
   const slug = params.slug as string;
-
+  const router = useRouter();
   const [apiKey, setApiKey] = useState("");
   const [allowedOrigins, setAllowedOrigins] = useState<string[]>([]);
   const [originInput, setOriginInput] = useState("");
@@ -241,7 +246,31 @@ document.getElementById("enquiry-form").addEventListener("submit", async (e) => 
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen p-2 space-y-6 relative">
+=======
+    <div className="min-h-screen space-y-6 relative">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <div className="h-4 w-px bg-slate-300" />
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", href: `/${slug}/dashboard` },
+            { label: "Settings", href: `/${slug}/settings` },
+            { label: "Integrations", current: true },
+          ]}
+        />
+      </div>
+>>>>>>> 7f5f68e (ui changes 3)
       {/* Header */}
       <div className="relative z-10 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-6 rounded-2xl">

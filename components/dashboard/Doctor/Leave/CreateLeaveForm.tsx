@@ -81,7 +81,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
   };
 
   return (
-    <div className="min-h-screen p-2 space-y-6">
+    <div className="min-h-screen space-y-6">
       {/* Breadcrumb */}
       <div className="mb-4">
         <div className="overflow-x-auto sm:overflow-visible">
@@ -91,7 +91,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.back()}
-                className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+                className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
@@ -112,16 +112,16 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
       </div>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="relative flex flex-col sm:flex-row text-center sm:text-left items-center gap-4 p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
-          <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-            <StethoscopeIcon className="w-8 h-8 text-white" />
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="relative flex flex-col sm:flex-row text-center sm:text-left items-center gap-4 p-6 rounded-2xl">
+          <div className="bg-[#0D1117] p-4 rounded-xl">
+            <StethoscopeIcon className="w-8 h-8 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
               Manage Doctor Leave
             </h1>
-            <p className="text-slate-600 font-medium text-sm mt-1">
+            <p className="text-slate-500 font-medium text-sm mt-1">
               Manage doctor leave information and availability
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
       </div>
 
       {/* Form Card */}
-      <Card className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-xl border border-blue-100/50">
+      <Card className="bg-white rounded-2xl shadow-sm border border-slate-200">
         <CardContent className="p-6 space-y-6">
           {/* Doctor */}
           <div className="space-y-1">
@@ -138,7 +138,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
               value={form.doctor}
               onValueChange={(val) => updateField("doctor", val)}
             >
-              <SelectTrigger className="h-11 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl w-full">
+              <SelectTrigger className="h-11 bg-slate-50 border-slate-200 rounded-xl w-full">
                 <SelectValue placeholder="Select Doctor" />
               </SelectTrigger>
               <SelectContent>
@@ -190,7 +190,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
               value={form.type}
               onValueChange={(val) => updateField("type", val)}
             >
-              <SelectTrigger className="h-11 bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl">
+              <SelectTrigger className="h-11 bg-slate-50 border-slate-200 rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -216,8 +216,8 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
                     className={`px-2 py-1 rounded-lg text-xs font-medium transition
                       ${
                         form.slots.includes(slot)
-                          ? "bg-blue-600 text-white shadow"
-                          : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                          ? "bg-[#0D1117] text-white shadow"
+                          : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                       }
                     `}
                   >
@@ -265,7 +265,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
 
           {/* Submit */}
           <Button
-            className="w-full h-11 bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl shadow-md hover:shadow-lg"
+            className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm hover:shadow-md"
             onClick={submitLeave}
             disabled={loading || !form.doctor || !form.type}
           >

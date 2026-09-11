@@ -115,14 +115,13 @@ export default function DoctorLeaveList({
     });
 
   return (
-    <div className="min-h-screen p-2 space-y-6">
-      {/* Animated Background */}
+    <div className="min-h-screen space-y-6">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -140,18 +139,17 @@ export default function DoctorLeaveList({
       </div>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 backdrop-blur-sm p-6 rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl">
           <div className="flex flex-col sm:flex-row text-center sm:text-left items-center gap-4">
-            <div className="bg-blue-primary p-4 rounded-xl shadow-lg shadow-blue-500/30">
-              <CalendarX className="w-8 h-8 text-white" />
+            <div className="bg-[#0D1117] p-4 rounded-xl">
+              <CalendarX className="w-8 h-8 text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 Doctor Leave Management
               </h1>
-              <p className="text-slate-600 font-medium text-sm mt-1">
+              <p className="text-slate-500 font-medium text-sm mt-1">
                 View, edit, and manage doctor leave schedules
               </p>
             </div>
@@ -159,7 +157,7 @@ export default function DoctorLeaveList({
 
           <Button
             onClick={() => router.push(`/${slug}/doctors/leave/create-leave`)}
-            className="h-11 px-4 rounded-xl bg-green-800 text-white shadow-md hover:bg-green-900"
+            className="h-11 px-4 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700"
           >
             <Plus className="w-4 h-4" />
             Add Leave
@@ -168,15 +166,15 @@ export default function DoctorLeaveList({
       </div>
 
       {/* Search + Filters */}
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between p-5 bg-white backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-200">
         {/* Search */}
         <div className="relative w-full xl:w-96">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by doctor / reason / type..."
-            className="pl-12 h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl"
+            className="pl-12 h-11 w-full bg-slate-50 border-slate-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl"
           />
         </div>
 
@@ -186,7 +184,7 @@ export default function DoctorLeaveList({
             value={searchParams.get("doctor") ?? ""}
             onValueChange={(v) => updateQuery("doctor", v)}
           >
-            <SelectTrigger className="h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+            <SelectTrigger className="h-11 w-full bg-slate-50 border-slate-200 rounded-xl font-medium">
               <SelectValue placeholder="Doctor" />
             </SelectTrigger>
             <SelectContent>
@@ -203,7 +201,7 @@ export default function DoctorLeaveList({
             value={searchParams.get("type") ?? ""}
             onValueChange={(v) => updateQuery("type", v)}
           >
-            <SelectTrigger className="h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+            <SelectTrigger className="h-11 w-full bg-slate-50 border-slate-200 rounded-xl font-medium">
               <SelectValue placeholder="Leave Type" />
             </SelectTrigger>
             <SelectContent>
@@ -218,7 +216,7 @@ export default function DoctorLeaveList({
             value={searchParams.get("month") ?? ""}
             onValueChange={(v) => updateQuery("month", v)}
           >
-            <SelectTrigger className="h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+            <SelectTrigger className="h-11 w-full bg-slate-50 border-slate-200 rounded-xl font-medium">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
             <SelectContent>
@@ -234,7 +232,7 @@ export default function DoctorLeaveList({
             value={searchParams.get("year") ?? ""}
             onValueChange={(v) => updateQuery("year", v)}
           >
-            <SelectTrigger className="h-11 w-full bg-linear-to-r from-blue-50/50 to-indigo-50/50 border-blue-200/50 rounded-xl font-medium">
+            <SelectTrigger className="h-11 w-full bg-slate-50 border-slate-200 rounded-xl font-medium">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
@@ -249,10 +247,10 @@ export default function DoctorLeaveList({
       </div>
 
       {/* Table */}
-      <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
         <div className="overflow-x-auto">
           <Table className="min-w-full">
-            <TableHeader className="bg-blue-primary">
+            <TableHeader className="bg-[#0D1117]">
               <TableRow>
                 {[
                   "Doctor",
@@ -264,7 +262,7 @@ export default function DoctorLeaveList({
                 ].map((h) => (
                   <TableHead
                     key={h}
-                    className="px-4 py-3 text-xs font-bold text-white uppercase tracking-wider"
+                    className="px-4 py-3 text-xs font-bold text-slate-200 uppercase tracking-wider"
                   >
                     {h}
                   </TableHead>
@@ -272,7 +270,7 @@ export default function DoctorLeaveList({
               </TableRow>
             </TableHeader>
 
-            <TableBody className="bg-white/10 divide-y divide-gray-100">
+            <TableBody className="bg-white divide-y divide-slate-100">
               {leaves.length === 0 ? (
                 <TableRow>
                   <TableCell
@@ -286,15 +284,15 @@ export default function DoctorLeaveList({
                 leaves.map((leave) => (
                   <TableRow
                     key={leave._id}
-                    className="hover:bg-gray-50 bg-linear-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 transition-colors duration-150"
+                    className="hover:bg-slate-50 transition-colors duration-150"
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 bg-blue-primary rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm hover:shadow-md transition-shadow">
+                        <div className="h-8 w-8 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                           {leave.doctor.firstName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                          <div className="text-sm font-semibold text-gray-900 hover:text-emerald-700 transition-colors">
                             {leave.doctor.firstName} {leave.doctor.lastName}
                           </div>
                           <div className="text-xs text-gray-500">
@@ -329,7 +327,7 @@ export default function DoctorLeaveList({
                         variant="ghost"
                         onClick={() => handleEdit(leave._id)}
                       >
-                        <Edit className="w-4 h-4 text-blue-600" />
+                        <Edit className="w-4 h-4 text-amber-600" />
                       </Button>
 
                       <DeleteDialog
@@ -350,19 +348,19 @@ export default function DoctorLeaveList({
           </Table>
         </div>
         {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-linear-to-r from-indigo-50/30 via-purple-50/20 to-pink-50/10 border-t border-indigo-100/50">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
           {/* Info */}
           <div className="text-xs text-gray-600 font-medium mb-2 sm:mb-0">
             Showing{" "}
-            <span className="font-bold text-green-700">
+            <span className="font-bold text-emerald-700">
               {(currentPage - 1) * pagination.limit + 1}
             </span>{" "}
             to{" "}
-            <span className="font-bold text-green-700">
+            <span className="font-bold text-emerald-700">
               {Math.min(currentPage * pagination.limit, pagination.totalCount)}
             </span>{" "}
             of{" "}
-            <span className="font-bold text-green-700">
+            <span className="font-bold text-emerald-700">
               {pagination.totalCount}
             </span>
           </div>
@@ -373,7 +371,7 @@ export default function DoctorLeaveList({
             <button
               onClick={() => updateQuery("page", String(currentPage - 1))}
               disabled={currentPage <= 1}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Prev
             </button>
@@ -386,10 +384,10 @@ export default function DoctorLeaveList({
                   <button
                     key={page}
                     onClick={() => updateQuery("page", String(page))}
-                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all hover:shadow-md ${
+                    className={`min-w-9 h-9 px-2 text-xs font-bold rounded-xl transition-all ${
                       currentPage === page
-                        ? "bg-blue-primary text-white shadow-lg scale-105"
-                        : "text-green-700 hover:bg-green-50 border border-green-100"
+                        ? "bg-[#0D1117] text-white shadow-md"
+                        : "text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
                     }`}
                   >
                     {page}
@@ -402,7 +400,7 @@ export default function DoctorLeaveList({
             <button
               onClick={() => updateQuery("page", String(currentPage + 1))}
               disabled={currentPage >= pagination.totalPages}
-              className="px-3 py-2 text-xs font-bold text-green-700 bg-white border-2 border-green-200 rounded-xl hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-md"
+              className="px-3 py-2 text-xs font-bold text-emerald-700 bg-white border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next
             </button>

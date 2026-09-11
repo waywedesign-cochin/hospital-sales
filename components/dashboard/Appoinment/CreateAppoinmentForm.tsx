@@ -303,7 +303,7 @@ export default function AppointmentForm({
     }
   };
   return (
-    <div className="min-h-screen p-2 space-y-6 relative">
+    <div className="min-h-screen space-y-6 relative">
       <div className="mb-4">
         <div className="overflow-x-auto sm:overflow-visible">
           <div className="min-w-0 whitespace-nowrap sm:whitespace-normal">

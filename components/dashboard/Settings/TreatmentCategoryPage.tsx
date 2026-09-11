@@ -129,7 +129,7 @@ export default function TreatmentCategoryPage({
   };
 
   return (
-    <div className="min-h-screen p-2 space-y-6 relative">
+    <div className="min-h-screen space-y-6 relative">
       <Breadcrumb
         items={[
           { label: "Dashboard", href: "/dashboard" },

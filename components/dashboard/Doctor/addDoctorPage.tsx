@@ -28,7 +28,11 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ fieldName, errors }) => {
 };
 
 /* ---------------- Page ---------------- */
-export default function AddDoctorPage({ initialCategories = [] }: { initialCategories?: string[] }) {
+export default function AddDoctorPage({
+  initialCategories = [],
+}: {
+  initialCategories?: string[];
+}) {
   const router = useRouter();
   const { slug } = useParams<{ slug: string }>();
 
@@ -92,24 +96,23 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
   const getErrorClass = (fieldName: keyof DoctorFormData) =>
     errors[fieldName]
       ? "border-red-500 focus:ring-red-500"
-      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500";
+      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-500";
 
-  const specializationOptions = initialCategories.map(dept => ({
+  const specializationOptions = initialCategories.map((dept) => ({
     value: dept,
-    label: dept
+    label: dept,
   }));
 
   type Option = { value: string; label: string };
 
   return (
-    <div className="min-h-screen p-2 space-y-4 relative">
-      {/* Background blobs */}
+    <div className="min-h-screen  space-y-4 relative">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -125,25 +128,24 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
         />
       </div>
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl backdrop-blur-xl border border-white/50 shadow-2xl shadow-blue-500/10 bg-blue-50">
-        <div className="flex items-center gap-4 p-6 rounded-2xl border border-blue-100/50 ">
-          <div className="bg-blue-primary p-4 rounded-xl shadow-lg">
-            <StethoscopeIcon className="w-8 h-8 text-white" />
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-4 p-6 rounded-2xl">
+          <div className="bg-[#0D1117] p-4 rounded-xl">
+            <StethoscopeIcon className="w-8 h-8 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-blue-primary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
               Add Doctor
             </h1>
-            <p className="text-slate-600 text-sm mt-1">Register a new doctor</p>
+            <p className="text-slate-500 text-sm mt-1">Register a new doctor</p>
           </div>
         </div>
       </div>
 
-
       {/* Form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 p-5 grid grid-cols-12 gap-4"
+        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 grid grid-cols-12 gap-4"
       >
         {/* Prefix */}
         <div className="col-span-12 md:col-span-2">
@@ -374,9 +376,7 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
             type="submit"
             disabled={isSaving}
             className={`w-full flex justify-center items-center py-3.5 rounded-xl text-sm font-semibold text-white ${
-              isSaving
-                ? "bg-gray-300"
-                : "bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              isSaving ? "bg-gray-300" : "bg-emerald-600 hover:bg-emerald-700"
             }`}
           >
             {isSaving ? (

@@ -130,7 +130,7 @@ const CustomTooltip = ({ active, payload }: any) => {
         {payload[0].payload.monthName}
       </p>
       <p className="text-sm text-gray-600">
-        <span className="font-bold text-blue-600">{payload[0].value}</span>{" "}
+        <span className="font-bold text-sky-600">{payload[0].value}</span>{" "}
         appointments
       </p>
     </div>
@@ -326,7 +326,7 @@ const DashboardHome = ({
 
   const allAppointments = [...normalizedAgenda, ...normalizedRecent];
   const uniqueAppointments = allAppointments.filter(
-    (a, i, self) => i === self.findIndex((t) => t._id === a._id)
+    (a, i, self) => i === self.findIndex((t) => t._id === a._id),
   );
 
   const upcomingList = uniqueAppointments
@@ -364,17 +364,17 @@ const DashboardHome = ({
   if (initializing) {
     return (
       <div className="flex items-center justify-center h-[70vh]">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 space-y-8">
+    <div className="min-h-screen space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black text-[#00236F] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Welcome back, {user?.firstName}
           </h1>
           <p className="text-slate-500 font-medium text-sm mt-2">
@@ -461,13 +461,13 @@ const DashboardHome = ({
       {setupStatus &&
         (!setupStatus.hasTreatmentCategories || !setupStatus.hasDoctors) &&
         user?.role === "ADMIN" && (
-          <div className="bg-linear-to-r from-indigo-600 to-blue-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-500/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="bg-linear-to-r from-[#0D1117] to-emerald-800 rounded-3xl p-6 md:p-8 text-white shadow-xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-3">
-                <ClipboardList className="w-7 h-7 text-indigo-200" />
+                <ClipboardList className="w-7 h-7 text-emerald-300" />
                 Welcome to your Workspace! Let's get you set up.
               </h2>
-              <p className="text-indigo-100 mt-2 font-medium">
+              <p className="text-slate-300 mt-2 font-medium">
                 {!setupStatus.hasTreatmentCategories
                   ? "You must create at least one Treatment Category before you can add Patients or Enquiries."
                   : "You should add your first Doctor to start scheduling appointments."}
@@ -477,14 +477,14 @@ const DashboardHome = ({
               {!setupStatus.hasTreatmentCategories ? (
                 <button
                   onClick={() => router.push("/settings/treatment-category")}
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+                  className="bg-emerald-400 text-[#0D1117] px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-emerald-300 transition-all shadow-sm flex items-center gap-2"
                 >
                   Create Category <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
                 <button
                   onClick={() => router.push("/doctors")}
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-indigo-50 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+                  className="bg-emerald-400 text-[#0D1117] px-6 py-3 rounded-xl font-bold whitespace-nowrap hover:bg-emerald-300 transition-all shadow-sm flex items-center gap-2"
                 >
                   Add Doctor <ArrowRight className="w-4 h-4" />
                 </button>
@@ -496,7 +496,7 @@ const DashboardHome = ({
       {/* Today's Overview: headline stat cards + calendar, at-a-glance */}
       <section className="space-y-4">
         <h2 className="text-lg font-bold text-[#00236F]">Today's Overview</h2>
-        
+
         {logginedDoctor ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -530,7 +530,15 @@ const DashboardHome = ({
               <TodayOverviewCard
                 title="Today's Appointments"
                 value={quickOverview.todayAppointments.total}
-                percent={quickOverview.todayAppointments.total > 0 ? Math.round((quickOverview.todayAppointments.completed / quickOverview.todayAppointments.total) * 100) : 0}
+                percent={
+                  quickOverview.todayAppointments.total > 0
+                    ? Math.round(
+                        (quickOverview.todayAppointments.completed /
+                          quickOverview.todayAppointments.total) *
+                          100,
+                      )
+                    : 0
+                }
                 color="#0EA5E9"
                 icon={<CalendarDays className="w-5 h-5" />}
                 footer={
@@ -538,14 +546,25 @@ const DashboardHome = ({
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                       Tomorrow's Outlook
                     </p>
-                    <p className="text-xs font-bold text-[#00236F]">{quickOverview.tomorrowAppointments} appointments scheduled</p>
+                    <p className="text-xs font-bold text-[#00236F]">
+                      {quickOverview.tomorrowAppointments} appointments
+                      scheduled
+                    </p>
                   </div>
                 }
               />
               <TodayOverviewCard
                 title="Completed Today"
                 value={quickOverview.todayAppointments.completed}
-                percent={quickOverview.todayAppointments.total > 0 ? Math.round((quickOverview.todayAppointments.completed / quickOverview.todayAppointments.total) * 100) : 0}
+                percent={
+                  quickOverview.todayAppointments.total > 0
+                    ? Math.round(
+                        (quickOverview.todayAppointments.completed /
+                          quickOverview.todayAppointments.total) *
+                          100,
+                      )
+                    : 0
+                }
                 color="#22C55E"
                 icon={<CheckCircle2 className="w-5 h-5" />}
                 footer={
@@ -553,7 +572,9 @@ const DashboardHome = ({
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                       Pending Today
                     </p>
-                    <p className="text-xs font-bold text-[#F59E0B]">{quickOverview.todayAppointments.pending} remaining</p>
+                    <p className="text-xs font-bold text-[#F59E0B]">
+                      {quickOverview.todayAppointments.pending} remaining
+                    </p>
                   </div>
                 }
               />
@@ -565,114 +586,124 @@ const DashboardHome = ({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
             <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <TodayOverviewCard
-              title="Total Patients"
-              value={totalPatients}
-              percent={100}
-              color="#2DD4BF"
-              icon={<Users className="w-5 h-5" />}
-              footer={
-                recentPatients.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Recently Added
-                    </p>
-                    {recentPatients.slice(0, 3).map((p) => (
-                      <div key={p._id} className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-[#2DD4BF]/10 text-[#0F9C8A] text-[10px] font-bold flex items-center justify-center shrink-0">
-                          {p.firstName?.[0]}
-                          {p.lastName?.[0] ?? ""}
-                        </span>
-                        <span className="text-xs font-medium text-[#00236F] truncate">
-                          {p.firstName} {p.lastName}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : undefined
-              }
-            />
-            <TodayOverviewCard
-              title="Appointments"
-              value={totalSummary.totalAppointments}
-              percent={completionRate}
-              color="#0EA5E9"
-              icon={<CalendarDays className="w-5 h-5" />}
-              footer={
-                upcomingList.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Up Next
-                    </p>
-                    {upcomingList.map((a) => (
-                      <div key={a._id} className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-6 h-6 rounded-full bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] font-bold flex items-center justify-center shrink-0">
-                            {a.firstName?.[0]}
-                            {a.lastName?.[0] ?? ""}
+              <TodayOverviewCard
+                title="Total Patients"
+                value={totalPatients}
+                percent={100}
+                color="#10B981"
+                icon={<Users className="w-5 h-5" />}
+                footer={
+                  recentPatients.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Recently Added
+                      </p>
+                      {recentPatients.slice(0, 3).map((p) => (
+                        <div key={p._id} className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {p.firstName?.[0]}
+                            {p.lastName?.[0] ?? ""}
                           </span>
-                          <span className="text-xs font-medium text-[#00236F] truncate">
-                            {a.firstName} {a.lastName}
+                          <span className="text-xs font-medium text-slate-900 truncate">
+                            {p.firstName} {p.lastName}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 shrink-0">
-                          {String(a.startTime)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Up Next
-                    </p>
-                    <p className="text-xs font-medium text-slate-500">No upcoming appointments</p>
-                  </div>
-                )
-              }
-            />
-            <TodayOverviewCard
-              title="Completed"
-              value={totalSummary.completedAppointments}
-              percent={completionRate}
-              color="#22C55E"
-              icon={<CheckCircle2 className="w-5 h-5" />}
-              footer={
-                completedList.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Recently Completed
-                    </p>
-                    {completedList.map((a) => (
-                      <div key={a._id} className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-6 h-6 rounded-full bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-bold flex items-center justify-center shrink-0">
-                            {a.firstName?.[0]}
-                            {a.lastName?.[0] ?? ""}
-                          </span>
-                          <span className="text-xs font-medium text-[#00236F] truncate">
-                            {a.firstName} {a.lastName}
+                      ))}
+                    </div>
+                  ) : undefined
+                }
+              />
+              <TodayOverviewCard
+                title="Appointments"
+                value={totalSummary.totalAppointments}
+                percent={completionRate}
+                color="#0EA5E9"
+                icon={<CalendarDays className="w-5 h-5" />}
+                footer={
+                  upcomingList.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Up Next
+                      </p>
+                      {upcomingList.map((a) => (
+                        <div
+                          key={a._id}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-6 h-6 rounded-full bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {a.firstName?.[0]}
+                              {a.lastName?.[0] ?? ""}
+                            </span>
+                            <span className="text-xs font-medium text-slate-900 truncate">
+                              {a.firstName} {a.lastName}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                            {String(a.startTime)}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 shrink-0">
-                          {String(a.startTime)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Recently Completed
-                    </p>
-                    <p className="text-xs font-medium text-slate-500">No recent completions</p>
-                  </div>
-                )
-              }
-            />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Up Next
+                      </p>
+                      <p className="text-xs font-medium text-slate-500">
+                        No upcoming appointments
+                      </p>
+                    </div>
+                  )
+                }
+              />
+              <TodayOverviewCard
+                title="Completed"
+                value={totalSummary.completedAppointments}
+                percent={completionRate}
+                color="#22C55E"
+                icon={<CheckCircle2 className="w-5 h-5" />}
+                footer={
+                  completedList.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Recently Completed
+                      </p>
+                      {completedList.map((a) => (
+                        <div
+                          key={a._id}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-6 h-6 rounded-full bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {a.firstName?.[0]}
+                              {a.lastName?.[0] ?? ""}
+                            </span>
+                            <span className="text-xs font-medium text-slate-900 truncate">
+                              {a.firstName} {a.lastName}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                            {String(a.startTime)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Recently Completed
+                      </p>
+                      <p className="text-xs font-medium text-slate-500">
+                        No recent completions
+                      </p>
+                    </div>
+                  )
+                }
+              />
+            </div>
+            <MiniCalendar />
           </div>
-          <MiniCalendar />
-        </div>
         )}
       </section>
 
@@ -701,7 +732,10 @@ const DashboardHome = ({
       {/* New Enquiries + Recent Appointments, mirroring the requests/patient-list pairing */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AppointmentRequests enquiries={newEnquiries} slug={slug} />
-        <RecentAppointmentsTable appointments={recentAppointments} slug={slug} />
+        <RecentAppointmentsTable
+          appointments={recentAppointments}
+          slug={slug}
+        />
       </section>
 
       {!logginedDoctor && (
@@ -721,14 +755,14 @@ const DashboardHome = ({
       {!logginedDoctor && !hideEnquiryData && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#00236F]">
+            <h2 className="text-lg font-bold text-slate-900">
               Enquiry Analytics
             </h2>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border-t-4 border-t-[#2DD4BF] border-x border-b border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
+          <div className="bg-white rounded-3xl border-t-4 border-t-emerald-500 border-x border-b border-slate-200 shadow-sm p-5 transition-all duration-300 hover:shadow-md">
             <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-sm md:text-lg text-nowrap font-semibold text-[#00236F]">
+              <h3 className="text-sm md:text-lg text-nowrap font-semibold text-slate-900">
                 Enquiries vs Appointments
               </h3>
             </div>
@@ -740,12 +774,28 @@ const DashboardHome = ({
                   margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
                 >
                   <defs>
-                    <linearGradient id="colorEnquiries" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient
+                      id="colorEnquiries"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
                       <stop offset="5%" stopColor="#64748B" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="#64748B" stopOpacity={0} />
                     </linearGradient>
-                    <linearGradient id="colorAppointments" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.35} />
+                    <linearGradient
+                      id="colorAppointments"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#0EA5E9"
+                        stopOpacity={0.35}
+                      />
                       <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -819,14 +869,14 @@ const DashboardHome = ({
 
       {/* Appointment Analytics */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold text-[#00236F]">
+        <h2 className="text-lg font-bold text-slate-900">
           Appointment Analytics
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Appointment chart */}
-          <div className="lg:col-span-2 bg-white/70 backdrop-blur-2xl rounded-3xl border-t-4 border-t-[#0EA5E9] border-x border-b border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
-            <p className="font-semibold mb-4 text-[#00236F]">
+          <div className="lg:col-span-2 bg-white rounded-3xl border-t-4 border-t-[#0EA5E9] border-x border-b border-slate-200 shadow-sm p-5 transition-all duration-300 hover:shadow-md">
+            <p className="font-semibold mb-4 text-slate-900">
               Monthly Appointments
             </p>
             <div className="h-[340px]">
@@ -873,7 +923,7 @@ const DashboardHome = ({
                     <LabelList
                       dataKey="totalAppointments"
                       position="center"
-                      fill="#00236F"
+                      fill="#0D1117"
                       fontSize={13}
                       fontWeight={600}
                     />
@@ -884,8 +934,8 @@ const DashboardHome = ({
           </div>
 
           {/* Pie chart */}
-          <div className="bg-white/70 backdrop-blur-2xl rounded-3xl border-t-4 border-t-[#A78BFA] border-x border-b border-white/60 shadow-[0_8px_30px_rgba(0,35,111,0.04)] p-5 flex flex-col items-center transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,35,111,0.08)]">
-            <p className="font-semibold text-[#00236F]">Status Distribution</p>
+          <div className="bg-white rounded-3xl border-t-4 border-t-[#A78BFA] border-x border-b border-slate-200 shadow-sm p-5 flex flex-col items-center transition-all duration-300 hover:shadow-md">
+            <p className="font-semibold text-slate-900">Status Distribution</p>
             <div className="w-full h-full">
               <EnhancedPieChart pieData={pieData} />
             </div>

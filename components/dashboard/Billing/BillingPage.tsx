@@ -151,7 +151,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
   };
 
   return (
-    <div className="space-y-6 p-2">
+    <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-3">
         <Button
@@ -167,6 +167,7 @@ export default function BillingPage({ data }: { data: BillingData | null }) {
         <Breadcrumb
           items={[
             { label: "Dashboard", href: `/${slug}/dashboard` },
+            { label: "Settings", href: `/${slug}/settings` },
             { label: "Billing & Plans", current: true },
           ]}
         />

@@ -67,13 +67,13 @@ export default function ViewDoctorPage({ doctor }: DoctorViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-slate-100 p-2">
+    <div className="min-h-screen">
       <div className="relative z-10 mb-6 flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 px-2.5 rounded-lg hover:bg-[#00236F] hover:text-white transition-all duration-150 font-medium text-slate-600"
+          className="gap-2 px-2.5 rounded-lg hover:bg-[#0D1117] hover:text-white transition-all duration-150 font-medium text-slate-600"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -90,23 +90,25 @@ export default function ViewDoctorPage({ doctor }: DoctorViewProps) {
         />
       </div>
       {/* Main Card */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
-        {/* Header Section with Gradient */}
-        <div className="bg-blue-primary p-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        {/* Header Section */}
+        <div className="bg-[#0D1117] p-8 text-white relative overflow-hidden">
           <div className="relative flex flex-col sm:flex-row text-center sm:text-left items-center gap-6">
-            <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl">
-              <UserCircle className="w-20 h-20" strokeWidth={1.5} />
+            <div className="bg-white/10 p-4 rounded-2xl">
+              <UserCircle
+                className="w-20 h-20 text-emerald-400"
+                strokeWidth={1.5}
+              />
             </div>
             <div>
               <h1 className="text-3xl font-bold mb-1">{fullName}</h1>
-              <p className="text-blue-100 text-lg">{doctor.qualification}</p>
+              <p className="text-slate-300 text-lg">{doctor.qualification}</p>
               <div className="flex justify-center sm:justify-start items-center gap-2 mt-3">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     isActive
-                      ? "bg-green-400/80 text-green-100"
-                      : "bg-yellow-400/30 text-yellow-100"
+                      ? "bg-emerald-400/20 text-emerald-300"
+                      : "bg-amber-400/20 text-amber-300"
                   }`}
                 >
                   {doctor.status ?? "-"}
@@ -164,13 +166,13 @@ export default function ViewDoctorPage({ doctor }: DoctorViewProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-8 pb-8">
           <Button
             onClick={() => handleEdit(doctor._id ?? "")}
-            className="flex-1 sm:flex-none px-6 py-3 w-full bg-linear-to-r from-green-700 to-green-800 text-white rounded-xl flex items-center justify-center gap-2 hover:from-green-700 hover:to-green-800 transition-all shadow-lg shadow-green-600/30 hover:shadow-xl hover:shadow-green-600/40 hover:-translate-y-0.5"
+            className="flex-1 sm:flex-none px-6 py-3 w-full bg-emerald-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md"
           >
             <Edit className="w-4 h-4" /> Edit Details
           </Button>
           <DeleteDialog
             trigger={
-              <Button className="flex-1 sm:flex-none w-full px-6 py-3 bg-linear-to-r from-red-600 to-red-700 text-white rounded-xl flex items-center justify-center gap-2 hover:from-red-700 hover:to-red-800 transition-all shadow-lg shadow-red-600/30 hover:shadow-xl hover:shadow-red-600/40 hover:-translate-y-0.5">
+              <Button className="flex-1 sm:flex-none w-full px-6 py-3 bg-red-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-sm hover:shadow-md">
                 <Trash2 className="w-4 h-4" /> Delete
               </Button>
             }
@@ -198,10 +200,10 @@ function InfoCard({
 }) {
   return (
     <div
-      className={`group bg-linear-to-br from-slate-50 to-slate-100/50 p-5 rounded-xl border border-slate-200/60 hover:border-blue-300 hover:shadow-md transition-all ${className}`}
+      className={`group bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all ${className}`}
     >
       <div className="flex items-start gap-3">
-        <div className="text-green-600 group-hover:text-green-700 transition-colors mt-0.5">
+        <div className="text-emerald-600 group-hover:text-emerald-700 transition-colors mt-0.5">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
