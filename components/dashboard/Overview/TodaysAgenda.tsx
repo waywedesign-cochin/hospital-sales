@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CalendarCheck2, Clock, CheckCircle2 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { CalendarCheck2, Clock, CheckCircle2, Play, Check } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { updateAppointmentStatusAction } from "@/app/actions/appointmentsActions";
 
 export interface AgendaAppointment {
   _id: string;
@@ -9,6 +12,7 @@ export interface AgendaAppointment {
   firstName: string;
   lastName?: string;
   treatmentCategory?: string;
+  patientId?: string | null;
   startTime: number; // minutes since midnight
   startTimeLabel: string;
   status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
@@ -34,11 +38,22 @@ export default function TodaysAgenda({
   appointments: AgendaAppointment[];
 }) {
   const [now, setNow] = useState(() => new Date());
+  const params = useParams();
+  const slug = params.slug as string;
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), TICK_MS);
     return () => clearInterval(id);
   }, []);
+
+  const handleUpdateStatus = (id: string, status: "IN_PROGRESS" | "COMPLETED") => {
+    startTransition(async () => {
+      await updateAppointmentStatusAction(id, status);
+      router.refresh();
+    });
+  };
 
   const nowMinutes = minutesSinceMidnightNow(now);
   const upcoming = appointments.filter(
@@ -95,29 +110,62 @@ export default function TodaysAgenda({
                   {apt.startTimeLabel}
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#00236F] truncate">
-                    {apt.firstName} {apt.lastName}
-                  </p>
+                <div className="flex-1 min-w-0 flex flex-col">
+                  {apt.patientId ? (
+                    <Link
+                      href={`/${slug}/patients/${apt.patientId}`}
+                      className="text-sm font-semibold text-[#00236F] truncate hover:underline"
+                    >
+                      {apt.firstName} {apt.lastName}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold text-[#00236F] truncate">
+                      {apt.firstName} {apt.lastName}
+                    </p>
+                  )}
                   <p className="text-[11px] text-slate-500 truncate">
                     {apt.treatmentCategory || "General consultation"}
                   </p>
                 </div>
 
-                {isDone ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                ) : isNext ? (
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-[#00236F] bg-white px-2 py-1 rounded-full border border-[#2DD4BF]/40 shrink-0 whitespace-nowrap">
-                    <Clock className="w-3 h-3 text-[#2DD4BF]" />
-                    {apt.status === "IN_PROGRESS"
-                      ? "In Progress"
-                      : formatCountdown(minutesUntil)}
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-semibold text-slate-400 shrink-0 whitespace-nowrap">
-                    {formatCountdown(minutesUntil)}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Quick Actions for Next/In Progress */}
+                  {!isDone && apt.status === "SCHEDULED" && (
+                    <button
+                      disabled={isPending}
+                      onClick={() => handleUpdateStatus(apt._id, "IN_PROGRESS")}
+                      className="hidden sm:flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-[10px] font-bold transition-colors disabled:opacity-50"
+                    >
+                      <Play className="w-3 h-3" />
+                      Start
+                    </button>
+                  )}
+                  {!isDone && apt.status === "IN_PROGRESS" && (
+                    <button
+                      disabled={isPending}
+                      onClick={() => handleUpdateStatus(apt._id, "COMPLETED")}
+                      className="hidden sm:flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-[10px] font-bold transition-colors disabled:opacity-50"
+                    >
+                      <Check className="w-3 h-3" />
+                      Complete
+                    </button>
+                  )}
+
+                  {isDone ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : isNext ? (
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-[#00236F] bg-white px-2 py-1 rounded-full border border-[#2DD4BF]/40 shrink-0 whitespace-nowrap">
+                      <Clock className="w-3 h-3 text-[#2DD4BF]" />
+                      {apt.status === "IN_PROGRESS"
+                        ? "In Progress"
+                        : formatCountdown(minutesUntil)}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-slate-400 shrink-0 whitespace-nowrap">
+                      {formatCountdown(minutesUntil)}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}

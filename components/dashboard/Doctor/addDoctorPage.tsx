@@ -9,7 +9,7 @@ import Select, { MultiValue } from "react-select";
 import axios from "axios";
 import { ArrowLeft, Loader2, StethoscopeIcon } from "lucide-react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
@@ -30,6 +30,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ fieldName, errors }) => {
 /* ---------------- Page ---------------- */
 export default function AddDoctorPage({ initialCategories = [] }: { initialCategories?: string[] }) {
   const router = useRouter();
+  const { slug } = useParams<{ slug: string }>();
 
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -79,7 +80,7 @@ export default function AddDoctorPage({ initialCategories = [] }: { initialCateg
       }
 
       toast.success("Doctor added successfully");
-      router.push("/doctors");
+      router.push(`/${slug}/doctors`);
       router.refresh();
     } catch (error: any) {
       setMessage(error?.response?.data?.message || "Something went wrong");

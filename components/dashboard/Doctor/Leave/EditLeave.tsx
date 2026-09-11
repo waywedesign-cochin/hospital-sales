@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Doctor } from "@/lib/types";
 import { DEFAULT_TIME_SLOTS } from "@/constants/timeSlots";
 import { doctorLeaveSchema } from "@/app/validations/doctorSchema";
@@ -35,6 +35,7 @@ export default function EditLeaveForm({
   initialData?: any;
 }) {
   const router = useRouter();
+  const { slug } = useParams<{ slug: string }>();
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -97,7 +98,7 @@ export default function EditLeaveForm({
     try {
       await axios.put(`/api/doctor/manage-leave?id=${leaveId}`, { ...form });
       toast.success("Leave updated successfully");
-      router.push("/doctors/leave/leaves-list");
+      router.push(`/${slug}/doctors/leave/leaves-list`);
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Failed to update leave");
     } finally {

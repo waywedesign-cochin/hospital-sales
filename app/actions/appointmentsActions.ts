@@ -6,6 +6,7 @@ import {
   getMonthWiseReport,
   getTodaysAgenda,
   updateAppointment,
+  updateAppointmentStatus,
   deleteAppointment,
 } from "../controllers/appoinmentController";
 import { dbConnect } from "../lib/dbConnect";
@@ -97,6 +98,23 @@ export const deleteAppointmentAction = async (id: string) => {
     requestingUser,
   );
 };
+
+export const updateAppointmentStatusAction = async (
+  id: string,
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW"
+) => {
+  await dbConnect();
+  const user = await requireAuth();
+  const requestingUser = await buildRequestingUser(user);
+  return await updateAppointmentStatus(
+    user.organizationId,
+    id,
+    user._id,
+    status,
+    requestingUser
+  );
+};
+
 
 export const getMonthWiseReportAction = async (
   year?: string,

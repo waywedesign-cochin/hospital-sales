@@ -6,6 +6,7 @@ interface RecentAppointment {
   bookingId: string;
   firstName: string;
   lastName?: string;
+  patientId?: string | null;
   doctor?: { firstName?: string; lastName?: string } | null;
   treatmentCategory?: string;
   date: string | Date;
@@ -66,9 +67,18 @@ export default function RecentAppointmentsTable({
                   className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition-colors"
                 >
                   <td className="py-2.5 pr-3">
-                    <p className="font-semibold text-[#00236F] whitespace-nowrap">
-                      {apt.firstName} {apt.lastName}
-                    </p>
+                    {apt.patientId ? (
+                      <Link
+                        href={`/${slug}/patients/${apt.patientId}`}
+                        className="font-semibold text-[#00236F] whitespace-nowrap hover:underline block"
+                      >
+                        {apt.firstName} {apt.lastName}
+                      </Link>
+                    ) : (
+                      <p className="font-semibold text-[#00236F] whitespace-nowrap">
+                        {apt.firstName} {apt.lastName}
+                      </p>
+                    )}
                     <p className="text-[11px] text-slate-400">{apt.bookingId}</p>
                   </td>
                   <td className="py-2.5 pr-3 whitespace-nowrap text-slate-600">
