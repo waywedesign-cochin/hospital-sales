@@ -8,10 +8,12 @@ export default async function PatientsPage(props: {
 
   const search =
     typeof searchParams.search === "string" ? searchParams.search : "";
+  const sortBy =
+    typeof searchParams.sortBy === "string" ? searchParams.sortBy : "newest";
   const page = Number(searchParams.page) || 1;
   const limit = 10;
 
-  const response = await getPatientsAction(page, limit, search);
+  const response = await getPatientsAction(page, limit, search, sortBy);
 
   const patients = response?.data?.patients ?? [];
   const pagination = {
