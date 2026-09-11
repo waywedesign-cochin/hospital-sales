@@ -19,7 +19,7 @@ async function postHandler(req: NextRequest, user: AuthUser) {
     const org = await Organization.findById(organizationId).lean();
     const hospitalName = org?.name || "The Clinic";
 
-    let recipients = [];
+    let recipients: { patientId: string; phone: string; firstName?: string }[] = [];
 
     if (audienceType === "specific") {
       if (!patientId) {
@@ -30,6 +30,25 @@ async function postHandler(req: NextRequest, user: AuthUser) {
         return NextResponse.json({ success: false, message: "Patient not found" }, { status: 404 });
       }
       recipients.push({ patientId: patient._id.toString(), phone: patient.phone, firstName: patient.firstName });
+    } else if (audienceType === "birthday") {
+      // Patients whose birthday is today (any birth year). Re-resolved here
+      // rather than trusting a client-supplied list, and firstName is left
+      // out on purpose — the "firstName || 'Patient'" fallback below then
+      // keeps the message generic, as intended for a same-day mass wish.
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const day = now.getDate();
+      const birthdayPatients = await Patient.find({
+        organizationId,
+        dateOfBirth: { $exists: true, $ne: null },
+        $expr: {
+          $and: [
+            { $eq: [{ $month: "$dateOfBirth" }, month] },
+            { $eq: [{ $dayOfMonth: "$dateOfBirth" }, day] },
+          ],
+        },
+      });
+      recipients = birthdayPatients.map(p => ({ patientId: p._id.toString(), phone: p.phone }));
     } else {
       // Broadcast to all
       const allPatients = await Patient.find({ organizationId });
