@@ -12,10 +12,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Plug,
-<<<<<<< HEAD
-=======
   ArrowLeft,
->>>>>>> 7f5f68e (ui changes 3)
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -246,9 +243,6 @@ document.getElementById("enquiry-form").addEventListener("submit", async (e) => 
   }
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen p-2 space-y-6 relative">
-=======
     <div className="min-h-screen space-y-6 relative">
       {/* Breadcrumb */}
       <div className="flex items-center gap-3">
@@ -270,7 +264,7 @@ document.getElementById("enquiry-form").addEventListener("submit", async (e) => 
           ]}
         />
       </div>
->>>>>>> 7f5f68e (ui changes 3)
+
       {/* Header */}
       <div className="relative z-10 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-6 rounded-2xl">
