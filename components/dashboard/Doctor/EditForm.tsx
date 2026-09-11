@@ -13,7 +13,7 @@ import {
   DoctorUpdateFormData,
   doctorUpdateSchema,
 } from "@/app/validations/doctorSchema";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -38,6 +38,7 @@ interface EditFormProps {
 
 const EditDoctorForm: React.FC<EditFormProps> = ({ initialData, initialCategories = [] }) => {
   const router = useRouter();
+  const { slug } = useParams<{ slug: string }>();
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [password, setPassword] = useState("");
@@ -90,7 +91,7 @@ const EditDoctorForm: React.FC<EditFormProps> = ({ initialData, initialCategorie
       }
 
       toast.success("Doctor updated successfully");
-      router.push("/doctors");
+      router.push(`/${slug}/doctors`);
       router.refresh();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Something went wrong");

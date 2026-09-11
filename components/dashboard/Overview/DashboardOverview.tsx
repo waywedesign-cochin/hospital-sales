@@ -35,6 +35,7 @@ import {
   CalendarDays,
   ArrowRight,
   Users,
+  Search,
 } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import DoctorAppointmentSummary from "./DoctorAppointmentSummary";
@@ -243,6 +244,13 @@ const DashboardHome = ({
   const initialYear =
     searchParams.get("year") || new Date().getFullYear().toString();
   const [year, setYear] = useState(initialYear);
+  const [patientQuery, setPatientQuery] = useState("");
+
+  const submitPatientSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = patientQuery.trim();
+    if (q) router.push(`/${slug}/patients?search=${encodeURIComponent(q)}`);
+  };
 
   const logginedDoctor =
     user?.role === "DOCTOR"
@@ -374,46 +382,79 @@ const DashboardHome = ({
           </p>
         </div>
 
-        {/* Right */}
-        <Select value={year} onValueChange={updateYearFilter}>
-          <SelectTrigger
-            className="
-              w-full md:w-[130px]
-              bg-white/80 backdrop-blur-xl
-              text-[#00236F] font-bold
-              border border-white/60
-              rounded-xl
-              shadow-sm shadow-[#00236F]/5
-              hover:bg-white
-              transition-all
-              flex justify-between items-center
-            "
-          >
-            <SelectValue placeholder="Year" />
-          </SelectTrigger>
-
-          <SelectContent
-            className="
-              bg-white/90 backdrop-blur-2xl
-              border border-white/60
-              rounded-xl
-              shadow-xl shadow-[#00236F]/10
-            "
-          >
-            {[...Array(5)].map((_, i) => {
-              const y = new Date().getFullYear() - 2 + i;
-              return (
-                <SelectItem
-                  key={y}
-                  value={y.toString()}
-                  className="font-medium text-[#00236F]"
+        {/* Right Controls */}
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {logginedDoctor && (
+            <form
+              role="search"
+              onSubmit={submitPatientSearch}
+              className="relative w-full md:w-[300px]"
+            >
+              <input
+                type="search"
+                value={patientQuery}
+                onChange={(e) => setPatientQuery(e.target.value)}
+                placeholder="Search by name or phone…"
+                aria-label="Search patients"
+                className="peer h-11 w-full rounded-2xl border border-slate-200/80 bg-white pl-12 pr-12 text-sm font-medium text-[#00236F] placeholder:text-slate-400 shadow-[0_4px_20px_-6px_rgba(0,35,111,0.12)] transition-all duration-200 hover:border-[#2DD4BF]/50 focus:outline-none focus:border-[#2DD4BF] focus:ring-4 focus:ring-[#2DD4BF]/15 [&::-webkit-search-cancel-button]:hidden"
+              />
+              {/* after the input so peer-focus works and it paints above the input */}
+              <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#2DD4BF]/10 text-[#0D9488] transition-colors duration-200 peer-focus:bg-[#2DD4BF] peer-focus:text-white">
+                <Search className="h-4 w-4" strokeWidth={2.5} />
+              </span>
+              {patientQuery.trim() && (
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#00236F] text-white shadow-md shadow-[#00236F]/20 transition-all hover:bg-[#0D9488] active:scale-95"
                 >
-                  {y}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+                  <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+              )}
+            </form>
+          )}
+
+          <Select value={year} onValueChange={updateYearFilter}>
+            <SelectTrigger
+              className="
+                w-full md:w-[130px]
+                bg-white/80 backdrop-blur-xl
+                text-[#00236F] font-bold
+                border border-white/60
+                rounded-xl
+                shadow-sm shadow-[#00236F]/5
+                hover:bg-white
+                transition-all
+                flex justify-between items-center
+                h-11
+              "
+            >
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+
+            <SelectContent
+              className="
+                bg-white/90 backdrop-blur-2xl
+                border border-white/60
+                rounded-xl
+                shadow-xl shadow-[#00236F]/10
+              "
+            >
+              {[...Array(5)].map((_, i) => {
+                const y = new Date().getFullYear() - 2 + i;
+                return (
+                  <SelectItem
+                    key={y}
+                    value={y.toString()}
+                    className="font-medium text-[#00236F]"
+                  >
+                    {y}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Onboarding Setup Banner */}
@@ -455,8 +496,75 @@ const DashboardHome = ({
       {/* Today's Overview: headline stat cards + calendar, at-a-glance */}
       <section className="space-y-4">
         <h2 className="text-lg font-bold text-[#00236F]">Today's Overview</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
+        
+        {logginedDoctor ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <TodayOverviewCard
+                title="Total Patients"
+                value={totalPatients}
+                percent={100}
+                color="#2DD4BF"
+                icon={<Users className="w-5 h-5" />}
+                footer={
+                  recentPatients.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Recently Added
+                      </p>
+                      {recentPatients.slice(0, 3).map((p) => (
+                        <div key={p._id} className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-[#2DD4BF]/10 text-[#0F9C8A] text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {p.firstName?.[0]}
+                            {p.lastName?.[0] ?? ""}
+                          </span>
+                          <span className="text-xs font-medium text-[#00236F] truncate">
+                            {p.firstName} {p.lastName}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : undefined
+                }
+              />
+              <TodayOverviewCard
+                title="Today's Appointments"
+                value={quickOverview.todayAppointments.total}
+                percent={quickOverview.todayAppointments.total > 0 ? Math.round((quickOverview.todayAppointments.completed / quickOverview.todayAppointments.total) * 100) : 0}
+                color="#0EA5E9"
+                icon={<CalendarDays className="w-5 h-5" />}
+                footer={
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Tomorrow's Outlook
+                    </p>
+                    <p className="text-xs font-bold text-[#00236F]">{quickOverview.tomorrowAppointments} appointments scheduled</p>
+                  </div>
+                }
+              />
+              <TodayOverviewCard
+                title="Completed Today"
+                value={quickOverview.todayAppointments.completed}
+                percent={quickOverview.todayAppointments.total > 0 ? Math.round((quickOverview.todayAppointments.completed / quickOverview.todayAppointments.total) * 100) : 0}
+                color="#22C55E"
+                icon={<CheckCircle2 className="w-5 h-5" />}
+                footer={
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Pending Today
+                    </p>
+                    <p className="text-xs font-bold text-[#F59E0B]">{quickOverview.todayAppointments.pending} remaining</p>
+                  </div>
+                }
+              />
+            </div>
+            <div className="mt-5">
+              <TodaysAgenda appointments={todaysAgenda} />
+            </div>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
             <TodayOverviewCard
               title="Total Patients"
               value={totalPatients}
@@ -563,12 +671,9 @@ const DashboardHome = ({
               }
             />
           </div>
-          {logginedDoctor ? (
-            <TodaysAgenda appointments={todaysAgenda} />
-          ) : (
-            <MiniCalendar />
-          )}
+          <MiniCalendar />
         </div>
+        )}
       </section>
 
       <section className="grid grid-cols-1 gap-6">
@@ -599,11 +704,13 @@ const DashboardHome = ({
         <RecentAppointmentsTable appointments={recentAppointments} slug={slug} />
       </section>
 
-      <section className="mt-6">
-        <div className="w-full">
-          <DoctorAppointmentSummary doctors={doctorsAppointmentSummary} />
-        </div>
-      </section>
+      {!logginedDoctor && (
+        <section className="mt-6">
+          <div className="w-full">
+            <DoctorAppointmentSummary doctors={doctorsAppointmentSummary} />
+          </div>
+        </section>
+      )}
 
       {/* Quick Overview */}
       <div className="mt-8">

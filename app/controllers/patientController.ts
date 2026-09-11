@@ -108,11 +108,12 @@ export const getPatients = async (
   const sort = SORT_OPTIONS[sortBy] || SORT_OPTIONS.newest;
 
   if (search) {
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     whereClause.$or = [
-      { firstName: { $regex: search, $options: "i" } },
-      { lastName: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
-      { phone: { $regex: search, $options: "i" } },
+      { firstName: { $regex: safeSearch, $options: "i" } },
+      { lastName: { $regex: safeSearch, $options: "i" } },
+      { email: { $regex: safeSearch, $options: "i" } },
+      { phone: { $regex: safeSearch, $options: "i" } },
     ];
   }
 

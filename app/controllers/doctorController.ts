@@ -112,16 +112,18 @@ export const getAllDoctors = async (
 
     const whereClause: any = { organizationId };
     if (search) {
+      const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       whereClause.$or = [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { specialization: { $regex: search, $options: "i" } },
-        { qualification: { $regex: search, $options: "i" } },
+        { firstName: { $regex: safeSearch, $options: "i" } },
+        { lastName: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
+        { specialization: { $regex: safeSearch, $options: "i" } },
+        { qualification: { $regex: safeSearch, $options: "i" } },
       ];
     }
     if (specialization) {
-      whereClause.specialization = { $regex: specialization, $options: "i" };
+      const safeSpec = specialization.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      whereClause.specialization = { $regex: safeSpec, $options: "i" };
     }
     const totalCount = await Doctor.countDocuments(whereClause);
     const doctors = await Doctor.find(whereClause)

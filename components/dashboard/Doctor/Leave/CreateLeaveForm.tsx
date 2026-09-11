@@ -20,10 +20,11 @@ import { Doctor } from "@/lib/types";
 import { doctorLeaveSchema } from "@/app/validations/doctorSchema";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import { ArrowLeft, StethoscopeIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
   const router = useRouter();
+  const { slug } = useParams<{ slug: string }>();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
@@ -71,7 +72,7 @@ export default function DoctorLeaveForm({ doctors }: { doctors: Doctor[] }) {
     try {
       await axios.post("/api/doctor/manage-leave", { ...form });
       toast.success("Doctor leave added successfully");
-      router.push("/doctors/leave/leaves-list");
+      router.push(`/${slug}/doctors/leave/leaves-list`);
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Something went wrong");
     } finally {

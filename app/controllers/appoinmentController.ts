@@ -276,13 +276,14 @@ export const getAllAppointments = async (
   }
 
   if (search) {
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     whereClause.$or = [
-      { firstName: { $regex: search, $options: "i" } },
-      { lastName: { $regex: search, $options: "i" } },
-      { patientPhone: { $regex: search, $options: "i" } },
-      { patientEmail: { $regex: search, $options: "i" } },
-      { notes: { $regex: search, $options: "i" } },
-      { treatmentCategory: { $regex: search, $options: "i" } },
+      { firstName: { $regex: safeSearch, $options: "i" } },
+      { lastName: { $regex: safeSearch, $options: "i" } },
+      { patientPhone: { $regex: safeSearch, $options: "i" } },
+      { patientEmail: { $regex: safeSearch, $options: "i" } },
+      { notes: { $regex: safeSearch, $options: "i" } },
+      { treatmentCategory: { $regex: safeSearch, $options: "i" } },
     ];
   }
 
@@ -340,6 +341,7 @@ export const getAllAppointments = async (
       patientPhone: appointment.patientPhone,
       patientEmail: appointment.patientEmail,
       isNewPatient: appointment.isNewPatient,
+      patientId: appointment.patientId?.toString() || (appointment as any).patient?.toString() || null,
       doctor: appointment.doctor
         ? {
             ...appointment.doctor,
@@ -408,6 +410,7 @@ export const getTodaysAgenda = async (
       (appointment as any).patientName?.split(" ").slice(1).join(" ") ||
       "",
     treatmentCategory: appointment.treatmentCategory,
+    patientId: appointment.patientId?.toString() || (appointment as any).patient?.toString() || null,
     startTime: appointment.startTime,
     startTimeLabel: minutesToTimeString(appointment.startTime),
     status: appointment.status,
