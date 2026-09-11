@@ -1,3 +1,4 @@
+import { cache } from "react";
 import mongoose from "mongoose";
 import Doctor from "../models/Doctor";
 
@@ -6,6 +7,21 @@ export interface RequestingUser {
   role: "PLATFORM_ADMIN" | "ADMIN" | "STAFF" | "DOCTOR" | "GUEST";
   assignedDoctors?: string[];
 }
+
+// A single page render fans out to many actions in parallel (the dashboard
+// alone calls this from ~7 of them), each independently re-resolving the
+// same logged-in doctor's own profile id. cache() dedupes that lookup to one
+// DB call per request, keyed by primitives so it's independent of which
+// action's `user` object triggered it.
+const findOwnDoctorId = cache(
+  async (organizationId: string, userId: string) => {
+    const myProfile = await Doctor.findOne({
+      userId,
+      organizationId,
+    }).select("_id");
+    return myProfile ? (myProfile._id as unknown as mongoose.Types.ObjectId) : null;
+  },
+);
 
 /**
  * Resolves what doctor(s) a requesting user's appointment/patient access
@@ -28,11 +44,8 @@ export const resolveDoctorScope = async (
   }
 
   if (user.role === "DOCTOR") {
-    const myProfile = await Doctor.findOne({
-      userId: user._id,
-      organizationId,
-    }).select("_id");
-    return myProfile ? [myProfile._id as unknown as mongoose.Types.ObjectId] : [];
+    const doctorId = await findOwnDoctorId(organizationId, user._id);
+    return doctorId ? [doctorId] : [];
   }
 
   return null;

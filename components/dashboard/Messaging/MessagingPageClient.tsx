@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Sparkles, Send, Users, User, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, Send, Users, User, CheckCircle2, AlertCircle, Cake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,6 +25,7 @@ import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MessageLogs from "@/components/dashboard/Messaging/MessageLogs";
 import { useAuthStore } from "@/providers/AuthStoreProvider";
+import { getBirthdayPatientsAction } from "@/app/actions/patientActions";
 
 export default function MessagingPageClient({
   initialPatients,
@@ -49,6 +50,11 @@ export default function MessagingPageClient({
   const [generatedMessage, setGeneratedMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Birthday audience: fetched on demand (not part of initialPatients, which
+  // is capped at 50 and only meant for the "Specific Patient" picker).
+  const [birthdayPatients, setBirthdayPatients] = useState<any[]>([]);
+  const [birthdayLoading, setBirthdayLoading] = useState(false);
 
   // Queue State
   const [queueStatus, setQueueStatus] = useState({ pendingCount: 0, completedCount: 0, failedCount: 0 });
@@ -92,6 +98,34 @@ export default function MessagingPageClient({
     return () => clearInterval(interval);
   }, [isPollingQueue, isDoctor]);
 
+  useEffect(() => {
+    if (audienceType !== "birthday") return;
+
+    let cancelled = false;
+    setBirthdayLoading(true);
+
+    getBirthdayPatientsAction()
+      .then((res) => {
+        if (cancelled) return;
+        setBirthdayPatients(res?.data?.patients ?? []);
+      })
+      .finally(() => {
+        if (!cancelled) setBirthdayLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [audienceType]);
+
+  const handleAudienceChange = (value: string) => {
+    setAudienceType(value);
+    if (value === "birthday") {
+      setTemplateName("birthday_wish");
+      setPrompt((prev) => prev || "Wish them a very happy birthday");
+    }
+  };
+
   const handleGenerateAI = async () => {
     if (!prompt) {
       toast.error("Please enter a prompt for the AI");
@@ -119,8 +153,10 @@ export default function MessagingPageClient({
         toast.error("Failed to generate message");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("An error occurred during AI generation");
+      toast.error(
+        (axios.isAxiosError(error) && error.response?.data?.message) ||
+          "An error occurred during AI generation",
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -151,8 +187,10 @@ export default function MessagingPageClient({
         toast.error(res.data.message || "Failed to queue messages");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("An error occurred during dispatch");
+      toast.error(
+        (axios.isAxiosError(error) && error.response?.data?.message) ||
+          "An error occurred during dispatch",
+      );
     } finally {
       setIsSending(false);
     }
@@ -279,7 +317,7 @@ export default function MessagingPageClient({
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">Audience</label>
-                <Select value={audienceType} onValueChange={setAudienceType}>
+                <Select value={audienceType} onValueChange={handleAudienceChange}>
                   <SelectTrigger className="w-full rounded-xl bg-slate-50 border-slate-200">
                     <SelectValue placeholder="Select audience" />
                   </SelectTrigger>
@@ -294,9 +332,41 @@ export default function MessagingPageClient({
                         <User className="w-4 h-4 mr-2 text-slate-400" /> Specific Patient
                       </div>
                     </SelectItem>
+                    <SelectItem value="birthday">
+                      <div className="flex items-center">
+                        <Cake className="w-4 h-4 mr-2 text-slate-400" /> Patients with Birthday Today
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {audienceType === "birthday" && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  {birthdayLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                      <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                      Checking today&apos;s birthdays...
+                    </div>
+                  ) : birthdayPatients.length === 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                      <Cake className="w-4 h-4 text-slate-400 shrink-0" />
+                      No patients have a birthday today.
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                      <Cake className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <span>
+                        <span className="font-semibold">
+                          {birthdayPatients.length} patient{birthdayPatients.length > 1 ? "s" : ""}
+                        </span>{" "}
+                        celebrating today: {birthdayPatients.map((p) => p.firstName).join(", ")}.
+                        The message will be sent generically, without naming anyone.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {audienceType === "specific" && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -364,7 +434,10 @@ export default function MessagingPageClient({
             <Button
               className="w-full rounded-xl bg-blue-primary hover:bg-blue-600 text-white shadow-sm shadow-blue-500/20 py-6"
               onClick={handleGenerateAI}
-              disabled={isGenerating}
+              disabled={
+                isGenerating ||
+                (audienceType === "birthday" && !birthdayLoading && birthdayPatients.length === 0)
+              }
             >
               {isGenerating ? (
                 <span className="flex items-center">

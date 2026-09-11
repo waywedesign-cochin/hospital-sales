@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPatients } from "@/app/controllers/patientController";
+import { getPatients, createPatient } from "@/app/controllers/patientController";
 import { dbConnect } from "@/app/lib/dbConnect";
+import { validate } from "@/app/middlewares/validate";
+import { patientSchema } from "@/app/validations/patientSchemas";
+import { sendApiResponse } from "@/app/utils/nextResponseHandler";
 import User from "@/app/models/User";
 import type { RequestingUser } from "@/app/utils/DoctorScope";
 
@@ -24,6 +27,25 @@ export const GET = withAuth(["ADMIN", "STAFF", "DOCTOR"])(async (req: NextReques
 
     const response = await getPatients(user.organizationId, requestingUser, page, limit, search);
     return response;
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+});
+
+export const POST = withAuth(["ADMIN", "STAFF"])(async (req: NextRequest, user) => {
+  try {
+    await dbConnect();
+    const [data, errorResponse] = await validate(patientSchema, req);
+    if (errorResponse) {
+      return sendApiResponse(false, "Validation failed", null);
+    }
+    if (!data) {
+      return sendApiResponse(false, "Invalid request", null);
+    }
+    return await createPatient(
+      { ...data, organizationId: user.organizationId },
+      user._id,
+    );
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }

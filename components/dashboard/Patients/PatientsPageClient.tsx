@@ -1,10 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Search, UserPlus, FileText, Activity, Calendar } from "lucide-react";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { Search, UserPlus, FileText, Activity, Calendar, UserPlus2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/providers/AuthStoreProvider";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -52,6 +60,8 @@ export default function PatientsPageClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const clinic = useAuthStore((state: any) => state.clinic);
+  const { slug } = (useParams() as { slug: string }) || { slug: clinic?.slug };
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
 
   const currentPage = Number(searchParams.get("page") ?? pagination.page ?? 1);
@@ -61,18 +71,26 @@ export default function PatientsPageClient({
       const params = new URLSearchParams(searchParams);
       search ? params.set("search", search) : params.delete("search");
       params.delete("page");
-      router.push(`/patients?${params.toString()}`);
+      router.push(`/${slug}/patients?${params.toString()}`);
     }, 500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+
+  const sortBy = searchParams.get("sortBy") ?? "newest";
+  const handleSortChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    value === "newest" ? params.delete("sortBy") : params.set("sortBy", value);
+    params.delete("page");
+    router.push(`/${slug}/patients?${params.toString()}`);
+  };
 
   const handlePageChange = (page: number) => {
     const p = Math.max(1, Math.min(pagination.totalPages || 1, page));
     if (p === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", String(p));
-    router.push(`/patients?${params.toString()}`);
+    router.push(`/${slug}/patients?${params.toString()}`);
   };
 
   const handleExportCSV = () => {
@@ -123,16 +141,22 @@ export default function PatientsPageClient({
         </div>
         <div className="flex items-center gap-3">
           <Button
-            onClick={() => router.push("/enquiries/add-enquiry")}
+            onClick={() => router.push(`/${slug}/enquiries/add-enquiry`)}
             className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all rounded-full px-5"
           >
             <UserPlus className="w-4 h-4 mr-2 text-emerald-600" /> New Enquiry
           </Button>
           <Button
-            onClick={() => router.push("/appointments/create-appointment")}
+            onClick={() => router.push(`/${slug}/appointments/create-appointment`)}
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all rounded-full px-5"
+          >
+            <Calendar className="w-4 h-4 mr-2 text-emerald-600" /> Book Appointment
+          </Button>
+          <Button
+            onClick={() => router.push(`/${slug}/patients/add-patient`)}
             className="bg-[#0D1117] hover:bg-[#141A21] text-white shadow-sm transition-all shadow-black/10 rounded-full px-5"
           >
-            <Calendar className="w-4 h-4 mr-2" /> Book Appointment
+            <UserPlus2 className="w-4 h-4 mr-2" /> Add Patient
           </Button>
         </div>
       </div>
@@ -197,14 +221,29 @@ export default function PatientsPageClient({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button
-            variant="outline"
-            className="rounded-xl border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
-            onClick={handleExportCSV}
-            disabled={patients.length === 0}
-          >
-            <FileText className="w-4 h-4 mr-2" /> Export CSV
-          </Button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Select value={sortBy} onValueChange={handleSortChange}>
+              <SelectTrigger className="h-9 w-full sm:w-48 bg-slate-50 border-slate-200 rounded-xl">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                <SelectItem value="dob_asc">Date of Birth (Earliest)</SelectItem>
+                <SelectItem value="dob_desc">Date of Birth (Latest)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              className="rounded-xl border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 shrink-0"
+              onClick={handleExportCSV}
+              disabled={patients.length === 0}
+            >
+              <FileText className="w-4 h-4 mr-2" /> Export CSV
+            </Button>
+          </div>
         </div>
         <div className="bg-white">
           <Table>
@@ -245,7 +284,7 @@ export default function PatientsPageClient({
                   <TableRow
                     key={patient._id}
                     className="border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer group"
-                    onClick={() => router.push(`/patients/${patient._id}`)}
+                    onClick={() => router.push(`/${slug}/patients/${patient._id}`)}
                   >
                     <TableCell className="font-medium text-slate-800">
                       {patient.firstName} {patient.lastName}
@@ -297,7 +336,7 @@ export default function PatientsPageClient({
                         className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/patients/${patient._id}`);
+                          router.push(`/${slug}/patients/${patient._id}`);
                         }}
                       >
                         View Profile

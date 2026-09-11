@@ -50,7 +50,8 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <PresenceHeartbeat />
-      <div className="flex h-dvh overflow-hidden bg-linear-to-br from-[#F0FDF4] via-[#F4F7FB] to-[#E0F2FE] text-[#00236F] font-sans relative">
+      {/* clip, not hidden: the glow blobs overflow this box, and overflow-hidden stays scrollable by focus()/scrollIntoView(), shifting the header off-screen */}
+      <div className="flex h-dvh overflow-clip bg-linear-to-br from-[#F0FDF4] via-[#F4F7FB] to-[#E0F2FE] text-[#00236F] font-sans relative">
         {/* Luminous Organic Abstract Background */}
         <div className="absolute inset-0 bg-white/20 backdrop-blur-[100px] z-0 pointer-events-none"></div>
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-200/40 rounded-full blur-[120px] z-0 pointer-events-none"></div>

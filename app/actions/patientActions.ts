@@ -1,6 +1,10 @@
 "use server";
 
-import { getPatients, getPatientById } from "../controllers/patientController";
+import {
+  getPatients,
+  getPatientById,
+  getBirthdayPatients,
+} from "../controllers/patientController";
 import { dbConnect } from "../lib/dbConnect";
 import { requireAuth } from "../lib/auth";
 import User from "../models/User";
@@ -24,6 +28,7 @@ export const getPatientsAction = async (
   page: number,
   limit: number,
   search?: string,
+  sortBy?: string,
 ) => {
   await dbConnect();
   const { user, requestingUser } = await resolveRequestingUser();
@@ -33,7 +38,15 @@ export const getPatientsAction = async (
     page,
     limit,
     search,
+    sortBy,
   );
+  return await response.json();
+};
+
+export const getBirthdayPatientsAction = async () => {
+  await dbConnect();
+  const { user, requestingUser } = await resolveRequestingUser();
+  const response = await getBirthdayPatients(user.organizationId, requestingUser);
   return await response.json();
 };
 

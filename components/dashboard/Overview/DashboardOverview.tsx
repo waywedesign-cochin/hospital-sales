@@ -301,13 +301,33 @@ const DashboardHome = ({
         )
       : 0;
 
-  // Feeds the sparkline in each stat card's otherwise-empty footer space —
-  // reuses the same monthly series already fetched for the bar chart below,
-  // rather than a second request.
-  const appointmentsTrend = appointmentData.map((d) => d.totalAppointments ?? 0);
-  const completedTrend = appointmentData.map(
-    (d) => d.statusSummary?.COMPLETED ?? 0,
+  const normalizedAgenda = todaysAgenda.map((a) => ({
+    _id: a._id,
+    firstName: a.firstName,
+    lastName: a.lastName,
+    startTime: a.startTimeLabel,
+    status: a.status,
+  }));
+  const normalizedRecent = recentAppointments.map((a) => ({
+    _id: a._id,
+    firstName: a.firstName,
+    lastName: a.lastName,
+    startTime: a.startTime,
+    status: a.status,
+  }));
+
+  const allAppointments = [...normalizedAgenda, ...normalizedRecent];
+  const uniqueAppointments = allAppointments.filter(
+    (a, i, self) => i === self.findIndex((t) => t._id === a._id)
   );
+
+  const upcomingList = uniqueAppointments
+    .filter((a) => a.status === "SCHEDULED" || a.status === "IN_PROGRESS")
+    .slice(0, 3);
+
+  const completedList = uniqueAppointments
+    .filter((a) => a.status === "COMPLETED")
+    .slice(0, 3);
 
   const statusSummary = appointmentData.reduce(
     (acc, item) => {
@@ -471,14 +491,36 @@ const DashboardHome = ({
               color="#0EA5E9"
               icon={<CalendarDays className="w-5 h-5" />}
               footer={
-                appointmentsTrend.some((v) => v > 0) ? (
-                  <div>
+                upcomingList.length > 0 ? (
+                  <div className="space-y-2">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      {year} Trend
+                      Up Next
                     </p>
-                    <MiniSparkline data={appointmentsTrend} color="#0EA5E9" />
+                    {upcomingList.map((a) => (
+                      <div key={a._id} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-6 h-6 rounded-full bg-[#0EA5E9]/10 text-[#0EA5E9] text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {a.firstName?.[0]}
+                            {a.lastName?.[0] ?? ""}
+                          </span>
+                          <span className="text-xs font-medium text-[#00236F] truncate">
+                            {a.firstName} {a.lastName}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                          {String(a.startTime)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ) : undefined
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Up Next
+                    </p>
+                    <p className="text-xs font-medium text-slate-500">No upcoming appointments</p>
+                  </div>
+                )
               }
             />
             <TodayOverviewCard
@@ -488,14 +530,36 @@ const DashboardHome = ({
               color="#22C55E"
               icon={<CheckCircle2 className="w-5 h-5" />}
               footer={
-                completedTrend.some((v) => v > 0) ? (
-                  <div>
+                completedList.length > 0 ? (
+                  <div className="space-y-2">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      {year} Trend
+                      Recently Completed
                     </p>
-                    <MiniSparkline data={completedTrend} color="#22C55E" />
+                    {completedList.map((a) => (
+                      <div key={a._id} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-6 h-6 rounded-full bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {a.firstName?.[0]}
+                            {a.lastName?.[0] ?? ""}
+                          </span>
+                          <span className="text-xs font-medium text-[#00236F] truncate">
+                            {a.firstName} {a.lastName}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                          {String(a.startTime)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ) : undefined
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Recently Completed
+                    </p>
+                    <p className="text-xs font-medium text-slate-500">No recent completions</p>
+                  </div>
+                )
               }
             />
           </div>
